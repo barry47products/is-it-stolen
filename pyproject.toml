@@ -122,7 +122,7 @@ addopts = [
     "--strict-markers",
     "--cov=src",
     "--cov-branch",
-    "--cov-report=term-missing:skip-covered",
+    "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
     "--cov-fail-under=80",
@@ -141,6 +141,7 @@ source = ["src"]
 omit = [
     "*/tests/*",
     "*/alembic/*",
+    "*/__init__.py",
 ]
 
 [tool.coverage.report]

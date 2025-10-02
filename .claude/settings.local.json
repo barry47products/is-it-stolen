@@ -5,7 +5,8 @@
       "Bash(docker compose:*)",
       "Bash(poetry run ruff:*)",
       "Bash(poetry run:*)",
-      "Bash(make:*)"
+      "Bash(make:*)",
+      "Bash(gh issue view:*)"
     ],
     "deny": [],
     "ask": []

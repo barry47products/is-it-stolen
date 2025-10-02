@@ -179,3 +179,79 @@ def test_location_repr() -> None:
     assert "51.5074" in repr_str
     assert "-0.1278" in repr_str
     assert "Location" in repr_str
+
+
+@pytest.mark.unit
+def test_distance_calculation_between_known_locations() -> None:
+    """Test distance calculation between London and Paris.
+
+    Given: Two locations with known coordinates (London and Paris)
+    When: Calculating distance between them
+    Then: Returns approximately 344km (accurate to ±1km)
+    """
+    # Arrange - London and Paris coordinates
+    london = Location(latitude=51.5074, longitude=-0.1278)
+    paris = Location(latitude=48.8566, longitude=2.3522)
+
+    # Act
+    distance = london.distance_to(paris)
+
+    # Assert - London to Paris is approximately 344km
+    assert 343 <= distance <= 345
+
+
+@pytest.mark.unit
+def test_distance_to_same_location_is_zero() -> None:
+    """Test that distance to same location is zero.
+
+    Given: Two identical locations
+    When: Calculating distance between them
+    Then: Returns 0km
+    """
+    # Arrange
+    location = Location(latitude=51.5074, longitude=-0.1278)
+
+    # Act
+    distance = location.distance_to(location)
+
+    # Assert
+    assert distance == 0.0
+
+
+@pytest.mark.unit
+def test_distance_calculation_is_symmetric() -> None:
+    """Test that distance calculation is symmetric.
+
+    Given: Two different locations
+    When: Calculating distance in both directions
+    Then: Both distances are equal
+    """
+    # Arrange
+    location1 = Location(latitude=51.5074, longitude=-0.1278)
+    location2 = Location(latitude=48.8566, longitude=2.3522)
+
+    # Act
+    distance1 = location1.distance_to(location2)
+    distance2 = location2.distance_to(location1)
+
+    # Assert
+    assert distance1 == distance2
+
+
+@pytest.mark.unit
+def test_distance_across_equator() -> None:
+    """Test distance calculation across equator.
+
+    Given: Locations on opposite sides of equator
+    When: Calculating distance
+    Then: Returns correct distance
+    """
+    # Arrange
+    north = Location(latitude=10.0, longitude=0.0)
+    south = Location(latitude=-10.0, longitude=0.0)
+
+    # Act
+    distance = north.distance_to(south)
+
+    # Assert - Approximately 2223km (20 degrees of latitude)
+    assert 2220 <= distance <= 2226
