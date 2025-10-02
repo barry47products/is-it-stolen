@@ -23,25 +23,11 @@ coverage:
         if_ci_failed: error
 
 comment:
-  layout: "reach,diff,flags,tree,footer"
+  layout: "reach,diff,tree,footer"
   behavior: default
   require_changes: false
   require_base: false
   require_head: true
-
-flags:
-  unit:
-    paths:
-      - tests/unit/
-    carryforward: false
-  integration:
-    paths:
-      - tests/integration/
-    carryforward: false
-  e2e:
-    paths:
-      - tests/e2e/
-    carryforward: false
 
 ignore:
   - "tests/**"
