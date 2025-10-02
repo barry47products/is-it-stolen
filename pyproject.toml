@@ -21,6 +21,7 @@ celery = "^5.3.4"
 httpx = "^0.25.2"
 tenacity = "^8.2.3"
 sentry-sdk = {extras = ["fastapi"], version = "^1.38.0"}
+pyyaml = "^6.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
@@ -35,6 +36,8 @@ mypy = "^1.7.1"
 pre-commit = "^3.5.0"
 ipython = "^8.18.1"
 ipdb = "^0.13.13"
+types-pyyaml = "^6.0.12"
+pyyaml = "^6.0.3"
 
 [build-system]
 requires = ["poetry-core"]

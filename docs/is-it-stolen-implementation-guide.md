@@ -101,11 +101,24 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 ````markdown
 ## Implementation Roadmap
 
+### Progress Summary
+
+**Last Updated**: October 2, 2025
+
+**Completed**:
+- ✅ Development environment setup (Poetry, Docker, Alembic, pre-commit hooks)
+- ✅ CI/CD pipeline (GitHub Actions with SonarCloud, Codecov)
+- ✅ Issue #1: Location value object with Haversine distance calculation
+
+**Current Status**: Ready to start Issue #2 (ItemCategory enum)
+
+---
+
 ### Milestone 1: Core Domain (Issues #1-10) - Week 1
 
 Start with the pure domain layer - no external dependencies.
 
-| Issue | Title | Description | Estimate |
+| Issue | Title | Description | Estimate | Status |
 |## Your First Issue: Getting Started
 
 ### Recommended First Issue: #1 - Location Value Object
@@ -249,17 +262,18 @@ After completing the Location value object:
 
 Each issue builds on the previous ones, gradually increasing in complexity while maintaining the same TDD workflow.
 
--------|-------|-------------|----------|
-| #1 | Location value object | Coordinate validation, distance calculation | 2h |
-| #2 | ItemCategory enum | Categories with keyword parsing | 1h |
-| #3 | PhoneNumber value object | E.164 validation | 1h |
-| #4 | StolenItem entity | Aggregate root with validation | 4h |
-| #5 | Domain events | ItemReported, ItemVerified events | 2h |
-| #6 | Matching service | Text similarity algorithm | 3h |
-| #7 | Domain exceptions | Custom domain-specific exceptions | 1h |
-| #8 | Item attributes | Flexible attributes per category | 2h |
-| #9 | Verification rules | Business rules for verification | 2h |
-| #10 | Domain integration tests | Test domain layer together | 2h |
+| Issue | Title                       | Description                                  | Estimate | Status       |
+|-------|-----------------------------|----------------------------------------------|----------|--------------|
+| #1    | Location value object       | Coordinate validation, distance calculation  | 2h       | ✅ COMPLETE  |
+| #2    | ItemCategory enum           | Categories with keyword parsing              | 1h       |              |
+| #3    | PhoneNumber value object    | E.164 validation                             | 1h       |              |
+| #4    | StolenItem entity           | Aggregate root with validation               | 4h       |              |
+| #5    | Domain events               | ItemReported, ItemVerified events            | 2h       |              |
+| #6    | Matching service            | Text similarity algorithm                    | 3h       |              |
+| #7    | Domain exceptions           | Custom domain-specific exceptions            | 1h       |              |
+| #8    | Item attributes             | Flexible attributes per category             | 2h       |              |
+| #9    | Verification rules          | Business rules for verification              | 2h       |              |
+| #10   | Domain integration tests    | Test domain layer together                   | 2h       |              |
 
 ### Milestone 2: Infrastructure (Issues #11-20) - Week 2
 

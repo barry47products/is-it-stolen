@@ -1,0 +1,31 @@
+# Item Category Keywords Configuration
+#
+# This file defines keyword mappings for item categories.
+# Keywords are case-insensitive and whitespace is trimmed.
+
+categories:
+  BICYCLE:
+    - bicycle
+    - bike
+    - cycle
+    - mountain bike
+
+  PHONE:
+    - phone
+    - mobile
+    - cellphone
+    - smartphone
+    - iphone
+
+  LAPTOP:
+    - laptop
+    - computer
+    - notebook
+    - macbook
+
+  VEHICLE:
+    - vehicle
+    - car
+    - motorcycle
+    - motorbike
+    - scooter

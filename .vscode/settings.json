@@ -27,5 +27,9 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "sonarlint.connectedMode.project": {
+        "connectionId": "barry47products",
+        "projectKey": "barry47products_is-it-stolen"
+    }
 }

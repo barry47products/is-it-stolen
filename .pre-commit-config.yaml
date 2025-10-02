@@ -24,5 +24,6 @@ repos:
         additional_dependencies:
           - pydantic>=2.5.0
           - types-redis
+          - types-pyyaml
         args: [--ignore-missing-imports]
         exclude: ^(tests/|alembic/)

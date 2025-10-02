@@ -1,5 +1,12 @@
 """FastAPI application entry point."""
+
 from fastapi import FastAPI
+
+from src.domain.value_objects.item_category import ItemCategory
+from src.infrastructure.config import load_category_keywords
+
+# Load configuration at startup
+ItemCategory.set_keywords(load_category_keywords())
 
 app = FastAPI(
     title="Is It Stolen API",
