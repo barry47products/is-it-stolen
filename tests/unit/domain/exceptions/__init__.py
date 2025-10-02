@@ -1,0 +1,1 @@
+"""Domain exceptions tests module."""
