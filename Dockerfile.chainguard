@@ -1,0 +1,38 @@
+# Multi-stage build using Chainguard's Wolfi-based Python images
+# These images have significantly fewer CVEs than standard Python images
+FROM cgr.dev/chainguard/python:latest-dev AS builder
+
+WORKDIR /app
+
+# Install Poetry
+RUN pip install --no-cache-dir poetry==1.7.1
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock* ./
+
+# Install dependencies
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-dev --no-interaction --no-ansi
+
+# Final stage - distroless Python (minimal, secure)
+FROM cgr.dev/chainguard/python:latest
+
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /usr/lib/python3*/site-packages /usr/lib/python3*/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 8000
+
+# Health check (note: distroless doesn't have curl, use python)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+
+# Run application
+ENTRYPOINT ["python", "-m", "uvicorn"]
+CMD ["src.presentation.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

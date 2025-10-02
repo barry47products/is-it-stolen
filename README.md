@@ -1,121 +1,124 @@
-# Is It Stolen?
+# Is It Stolen
 
-A WhatsApp Business API service that allows users to report stolen items and check if items are stolen. This service helps with theft recovery and prevention by creating a community-driven database of stolen goods.
+A WhatsApp bot that enables users to check if items are reported as stolen, report stolen items, search by location, and verify reports with police reference numbers.
 
-## Features
+## Quick Start
 
-- **Report Stolen Items**: Users can report stolen items via WhatsApp with details and photos
-- **Check Item Status**: Check if an item might be stolen before purchasing
-- **Real-time Alerts**: Get notified when someone checks an item matching your stolen report
-- **Recovery Tracking**: Mark items as recovered when found
-- **Multi-language Support**: Available in multiple languages
-- **GDPR Compliant**: Full data protection and privacy controls
+```bash
+# 1. Clone and install
+git clone https://github.com/barry47products/is-it-stolen.git
+cd is-it-stolen
+make dev-setup
 
-## How It Works
+# 2. Configure environment
+cp .env.example .env
+# Edit .env with your WhatsApp credentials
 
-1. **Report**: Users send details of stolen items via WhatsApp
-2. **Database**: Items are stored in a searchable database
-3. **Check**: Potential buyers can check if items are stolen
-4. **Alert**: Original owners get notified of potential matches
-5. **Recovery**: Items can be marked as recovered
+# 3. Start services
+make docker-up
+make migrate-up
 
-## Cost Estimate
+# 4. Run application
+make run
+```
 
-Based on WhatsApp Business API pricing (UK rates):
+## Technology Stack
 
-- **500 theft reports** × £0.0159 = £7.95
-- **2,000 item checks** × £0.0159 = £31.80
-- **100 alerts** × £0.0318 = £3.18
-- **Total**: ~£43/month for 2,600 conversations
+- **Language**: Python 3.13+
+- **Framework**: FastAPI
+- **Database**: PostgreSQL with PostGIS
+- **Cache**: Redis
+- **Queue**: Celery
+- **WhatsApp**: Business Cloud API
+- **Testing**: pytest with 80%+ coverage
 
-*First 1,000 service conversations per month are FREE*
+## Architecture
 
-## Setup Requirements
+This project follows **Domain-Driven Design (DDD)** with clean architecture:
 
-### Prerequisites
+```bash
+src/
+├── domain/         # Pure business logic (NO external dependencies)
+├── application/    # Use cases orchestrating domain
+├── infrastructure/ # External dependencies (DB, APIs)
+└── presentation/   # API and bot interface
+```
 
-1. Facebook Business Manager account
-2. WhatsApp Business Account (verified)
-3. Dedicated phone number (not previously used with WhatsApp)
-4. Business verification documents
+See [CLAUDE.md](CLAUDE.md) for detailed architecture and development guidelines.
 
-### Implementation Options
+## Development
 
-#### Option 1: WhatsApp Cloud API (Recommended)
-- Hosted by Meta
-- Free tier: 1,000 conversations/month
-- Quick setup
-- No infrastructure needed
+### Essential Commands
 
-#### Option 2: WhatsApp Business API (On-Premise)
-- Full control over infrastructure
-- Data stays on your servers
-- Better for high volume
-- Requires Docker/Kubernetes setup
+```bash
+# Testing
+make test              # Run all tests
+make test-unit         # Unit tests only (fast)
+make test-cov          # Generate coverage report
 
-## Message Templates
+# Code Quality
+make lint              # Check code
+make format            # Format code
+make type-check        # Type checking
+make check             # Run all quality checks
 
-The service uses approved WhatsApp message templates for:
+# Database
+make migrate-create message="description"
+make migrate-up
+make db-shell
 
-- Welcome messages
-- Theft match alerts
-- Recovery confirmations
-- Status updates
+# Docker
+make docker-up         # Start PostgreSQL + Redis
+make docker-down       # Stop services
+make docker-logs       # View logs
+```
 
-Templates must be submitted to Meta for approval (24-48 hours).
+### Issue-Driven Development
 
-## Documentation
+Every feature starts with a GitHub issue:
 
-Comprehensive setup documentation is available in [`docs/whatsapp-business-setup.md`](docs/whatsapp-business-setup.md), including:
+```bash
+# 1. Create branch for issue
+make issue number=1 name=feature-name
 
-- Complete WhatsApp Business API setup guide
-- Pricing breakdown by country
-- Template examples
-- Testing procedures
-- Deployment options
-- Compliance requirements
-- Troubleshooting guide
+# 2. Write test first (TDD)
+make test-unit  # Should fail
 
-## Getting Started
+# 3. Implement feature
+make test-unit  # Should pass
 
-1. **Business Setup**
-   - Create Facebook Business Manager account
-   - Apply for WhatsApp Business Account
-   - Get verification documents ready
+# 4. Check quality
+make check
 
-2. **Technical Setup**
-   - Deploy webhook endpoint
-   - Configure WhatsApp API credentials
-   - Set up database for storing reports
+# 5. Create PR
+make pr-issue number=1
+```
 
-3. **Go Live**
-   - Create and submit message templates
-   - Test with team members
-   - Launch to users
+## WhatsApp Setup
 
-## Legal Considerations
+1. Create app at [Meta for Developers](https://developers.facebook.com)
+2. Add WhatsApp product and get credentials
+3. Configure webhook to your ngrok URL
+4. Add credentials to `.env`
 
-- Users must confirm all reports are truthful
-- False reports may result in legal action
-- Data is shared with law enforcement when required
-- GDPR compliant with data deletion options
-- 12-month data retention policy
+See [.env.example](.env.example) for required variables.
 
-## Support
+## Code Quality Standards
 
-For technical support and questions:
-- Check the [troubleshooting guide](docs/whatsapp-business-setup.md#troubleshooting)
-- WhatsApp Business Support: business.whatsapp.com/contact
-- Developer Support: developers.facebook.com/support
+- **Functions ≤ 10 lines**: Keep code focused
+- **Full type hints**: MyPy strict mode enabled
+- **80%+ test coverage**: Enforced by pytest
+- **No magic values**: Use named constants
+- **TDD approach**: Test first, then implement
+
+See [docs/python-codebase-evaluation-guide.md](docs/python-codebase-evaluation-guide.md) for complete standards.
+
+## Project Resources
+
+- **Implementation Guide**: [docs/is-it-stolen-implementation-guide.md](docs/is-it-stolen-implementation-guide.md)
+- **Development Guide**: [CLAUDE.md](CLAUDE.md)
+- **Issues**: [GitHub Issues](https://github.com/barry47products/is-it-stolen/issues)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
----
-
-**Important**: This service uses the official WhatsApp Business API, ensuring 100% compliance with WhatsApp's terms of service and providing enterprise-grade reliability and scale.
+MIT - See [LICENSE](LICENSE)

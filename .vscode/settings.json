@@ -1,6 +1,26 @@
 {
+    "cSpell.language": "en-GB",
     "cSpell.words": [
+        "alphanum",
+        "BUILDKIT",
+        "cust",
+        "dlat",
+        "dlon",
+        "Dodds",
+        "Domane",
+        "ehthumbs",
+        "esac",
+        "eslintcache",
+        "freezegun",
         "isitstolen",
-        "mongolab"
-    ]
+        "Jaccard",
+        "mongolab",
+        "nuxt",
+        "pids",
+        "softprops",
+        "stylelintcache",
+        "unvalidated",
+        "vercel"
+    ],
+    "postman.settings.dotenv-detection-notification-visibility": false
 }
