@@ -113,8 +113,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #3: PhoneNumber value object with E.164 validation
 - ✅ Issue #4: StolenItem entity (aggregate root)
 - ✅ Issue #5: Domain events (ItemReported, ItemVerified, ItemRecovered)
+- ✅ Issue #6: Item matching service with text similarity
 
-**Current Status**: Ready to start Issue #6 (Matching service)
+**Current Status**: Ready to start Issue #7 (Domain exceptions)
 
 ---
 
@@ -273,7 +274,7 @@ Each issue builds on the previous ones, gradually increasing in complexity while
 | #3    | PhoneNumber value object    | E.164 validation                             | 1h       | ✅ COMPLETE  |
 | #4    | StolenItem entity           | Aggregate root with validation               | 4h       | ✅ COMPLETE  |
 | #5    | Domain events               | ItemReported, ItemVerified events            | 2h       | ✅ COMPLETE  |
-| #6    | Matching service            | Text similarity algorithm                    | 3h       |              |
+| #6    | Matching service            | Text similarity algorithm                    | 3h       | ✅ COMPLETE  |
 | #7    | Domain exceptions           | Custom domain-specific exceptions            | 1h       |              |
 | #8    | Item attributes             | Flexible attributes per category             | 2h       |              |
 | #9    | Verification rules          | Business rules for verification              | 2h       |              |
