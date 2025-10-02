@@ -1,0 +1,86 @@
+"""Domain-specific exception types."""
+
+
+class DomainError(Exception):
+    """Base exception for all domain errors.
+
+    All domain-specific exceptions should extend this class to enable
+    consistent error handling across layers.
+    """
+
+    def __init__(self, message: str, code: str = "DOMAIN_ERROR") -> None:
+        """Initialize domain error with message and error code.
+
+        Args:
+            message: Human-readable error description
+            code: Error code for client handling
+        """
+        super().__init__(message)
+        self.code = code
+
+
+class InvalidLocationError(DomainError):
+    """Raised when location coordinates are invalid.
+
+    Examples:
+        - Latitude outside -90 to 90 range
+        - Longitude outside -180 to 180 range
+        - Invalid coordinate format
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with location validation error message."""
+        super().__init__(message, code="INVALID_LOCATION")
+
+
+class InvalidPhoneNumberError(DomainError):
+    """Raised when phone number validation fails.
+
+    Examples:
+        - Missing country code prefix
+        - Invalid E.164 format
+        - Invalid phone number structure
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with phone number validation error message."""
+        super().__init__(message, code="INVALID_PHONE_NUMBER")
+
+
+class InvalidItemCategoryError(DomainError):
+    """Raised when item category is unknown or invalid.
+
+    Examples:
+        - Unknown category name
+        - Unrecognized keyword
+        - Invalid enum value
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with item category validation error message."""
+        super().__init__(message, code="INVALID_ITEM_CATEGORY")
+
+
+class ItemNotFoundError(DomainError):
+    """Raised when a stolen item cannot be found.
+
+    Examples:
+        - Item with given ID doesn't exist
+        - Item has been deleted
+        - Invalid item reference
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with item not found error message."""
+        super().__init__(message, code="ITEM_NOT_FOUND")
+
+
+class ItemAlreadyRecoveredError(DomainError):
+    """Raised when attempting to recover an already recovered item.
+
+    This is a business rule violation - items can only be recovered once.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with item already recovered error message."""
+        super().__init__(message, code="ITEM_ALREADY_RECOVERED")
