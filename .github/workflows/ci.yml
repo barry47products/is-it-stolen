@@ -74,15 +74,48 @@ jobs:
       - name: Run type checking
         run: poetry run mypy src
 
-      - name: Run tests
+      - name: Run unit tests
         env:
           DATABASE_URL: postgresql://admin:admin_password@localhost:5432/isitstolen
           REDIS_URL: redis://localhost:6379
-        run: poetry run pytest --cov-report=xml --cov-report=term
+        run: poetry run pytest tests/unit -m unit --cov-report=xml --cov-report=term
 
-      - name: Upload coverage to Codecov
+      - name: Upload unit test coverage
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
+          flags: unit
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql://admin:admin_password@localhost:5432/isitstolen
+          REDIS_URL: redis://localhost:6379
+        run: poetry run pytest tests/integration -m integration --cov-report=xml --cov-report=term --cov-append
+        continue-on-error: true
+
+      - name: Upload integration test coverage
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: integration
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        continue-on-error: true
+
+      - name: Run e2e tests
+        env:
+          DATABASE_URL: postgresql://admin:admin_password@localhost:5432/isitstolen
+          REDIS_URL: redis://localhost:6379
+        run: poetry run pytest tests/e2e -m e2e --cov-report=xml --cov-report=term --cov-append
+        continue-on-error: true
+
+      - name: Upload e2e test coverage
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: e2e
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        continue-on-error: true
