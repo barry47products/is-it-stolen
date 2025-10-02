@@ -109,8 +109,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Development environment setup (Poetry, Docker, Alembic, pre-commit hooks)
 - ✅ CI/CD pipeline (GitHub Actions with SonarCloud, Codecov)
 - ✅ Issue #1: Location value object with Haversine distance calculation
+- ✅ Issue #2: ItemCategory enum with YAML-based keyword configuration
 
-**Current Status**: Ready to start Issue #2 (ItemCategory enum)
+**Current Status**: Ready to start Issue #3 (PhoneNumber value object)
 
 ---
 
@@ -265,7 +266,7 @@ Each issue builds on the previous ones, gradually increasing in complexity while
 | Issue | Title                       | Description                                  | Estimate | Status       |
 |-------|-----------------------------|----------------------------------------------|----------|--------------|
 | #1    | Location value object       | Coordinate validation, distance calculation  | 2h       | ✅ COMPLETE  |
-| #2    | ItemCategory enum           | Categories with keyword parsing              | 1h       |              |
+| #2    | ItemCategory enum           | Categories with keyword parsing              | 1h       | ✅ COMPLETE  |
 | #3    | PhoneNumber value object    | E.164 validation                             | 1h       |              |
 | #4    | StolenItem entity           | Aggregate root with validation               | 4h       |              |
 | #5    | Domain events               | ItemReported, ItemVerified events            | 2h       |              |
