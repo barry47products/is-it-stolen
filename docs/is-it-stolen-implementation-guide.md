@@ -112,8 +112,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #2: ItemCategory enum with YAML-based keyword configuration
 - ✅ Issue #3: PhoneNumber value object with E.164 validation
 - ✅ Issue #4: StolenItem entity (aggregate root)
+- ✅ Issue #5: Domain events (ItemReported, ItemVerified, ItemRecovered)
 
-**Current Status**: Ready to start Issue #5 (Domain events)
+**Current Status**: Ready to start Issue #6 (Matching service)
 
 ---
 
@@ -271,7 +272,7 @@ Each issue builds on the previous ones, gradually increasing in complexity while
 | #2    | ItemCategory enum           | Categories with keyword parsing              | 1h       | ✅ COMPLETE  |
 | #3    | PhoneNumber value object    | E.164 validation                             | 1h       | ✅ COMPLETE  |
 | #4    | StolenItem entity           | Aggregate root with validation               | 4h       | ✅ COMPLETE  |
-| #5    | Domain events               | ItemReported, ItemVerified events            | 2h       |              |
+| #5    | Domain events               | ItemReported, ItemVerified events            | 2h       | ✅ COMPLETE  |
 | #6    | Matching service            | Text similarity algorithm                    | 3h       |              |
 | #7    | Domain exceptions           | Custom domain-specific exceptions            | 1h       |              |
 | #8    | Item attributes             | Flexible attributes per category             | 2h       |              |
