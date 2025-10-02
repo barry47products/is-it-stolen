@@ -48,7 +48,7 @@ class PhoneNumber:
         parsed = phonenumbers.parse(self.value, None)
         code = parsed.country_code
         assert code is not None, "Valid phone number must have country code"
-        return code  # type: ignore[no-any-return]
+        return code
 
     @property
     def formatted(self) -> str:
@@ -59,6 +59,6 @@ class PhoneNumber:
             Example: "+44 7700 900123"
         """
         parsed = phonenumbers.parse(self.value, None)
-        return phonenumbers.format_number(  # type: ignore[no-any-return]
+        return phonenumbers.format_number(
             parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL
         )

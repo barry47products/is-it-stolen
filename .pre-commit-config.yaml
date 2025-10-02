@@ -25,5 +25,6 @@ repos:
           - pydantic>=2.5.0
           - types-redis
           - types-pyyaml
+          - phonenumbers>=9.0.15
         args: [--ignore-missing-imports]
         exclude: ^(tests/|alembic/)

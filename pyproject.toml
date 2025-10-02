@@ -112,7 +112,6 @@ module = [
     "redis.*",
     "celery.*",
     "alembic.*",
-    "phonenumbers.*",
 ]
 ignore_missing_imports = true
 
