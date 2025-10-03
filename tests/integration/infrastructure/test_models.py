@@ -132,8 +132,10 @@ class TestStolenItemModel:
                 .filter(StolenItemModel.report_id == item_id)
                 .first()
             )
-            item.status = ItemStatus.RECOVERED.value
-            item.updated_at = datetime.now(UTC)
+            assert item is not None
+            # SQLAlchemy descriptor pattern: class attr is Column, instance attr is actual value
+            item.status = ItemStatus.RECOVERED.value  # type: ignore[assignment]
+            item.updated_at = datetime.now(UTC)  # type: ignore[assignment]
             db.commit()
 
         # Assert
@@ -143,6 +145,7 @@ class TestStolenItemModel:
                 .filter(StolenItemModel.report_id == item_id)
                 .first()
             )
+            assert updated_item is not None
             assert updated_item.status == ItemStatus.RECOVERED.value
 
     def test_stores_optional_item_fields(self) -> None:
@@ -180,6 +183,7 @@ class TestStolenItemModel:
                 .filter(StolenItemModel.report_id == item_id)
                 .first()
             )
+            assert retrieved_item is not None
             assert retrieved_item.brand == "Trek"
             assert retrieved_item.model == "X-Caliber 9"
             assert retrieved_item.serial_number == "WTU123456789"
@@ -219,6 +223,7 @@ class TestStolenItemModel:
                 .filter(StolenItemModel.report_id == item_id)
                 .first()
             )
+            assert retrieved_item is not None
             assert retrieved_item.police_reference == "MET/2024/123456"
             assert retrieved_item.verified_at is not None
 
