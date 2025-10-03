@@ -16,12 +16,12 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Add your model's MetaData object here for 'autogenerate' support
-# from src.infrastructure.persistence.models import Base
+# from src.infrastructure.persistence.database import Base
 # target_metadata = Base.metadata
 target_metadata = None
 
 # Get database URL from environment variable
-database_url = os.getenv("DATABASE_URL", "postgresql://admin:admin_password@localhost:5432/isitstolen")
+database_url = os.getenv("DATABASE_URL", "postgresql://admin:admin_password@localhost:5433/isitstolen")
 config.set_main_option("sqlalchemy.url", database_url)
 
 
