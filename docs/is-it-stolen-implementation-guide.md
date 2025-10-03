@@ -124,8 +124,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #14: WhatsApp client (REST API client with retry logic)
 - ✅ Issue #15: Webhook handler (parse and validate webhooks with signature verification)
 - ✅ Issue #16: Redis setup (async Redis client with connection pooling)
+- ✅ Issue #17: Event bus (in-memory event bus with async handlers and error handling)
 
-**Current Status**: Milestone 2 Infrastructure - 6/10 complete. Ready to start Issue #17 (Event bus)
+**Current Status**: Milestone 2 Infrastructure - 7/10 complete. Ready to start Issue #18 (Media storage)
 
 ---
 
@@ -302,7 +303,7 @@ Build the infrastructure to support the domain.
 | #14   | WhatsApp client      | REST API client with retry logic    | 4h       | ✅ COMPLETE |
 | #15   | Webhook handler      | Parse and validate webhooks         | 3h       | ✅ COMPLETE |
 | #16   | Redis setup          | Cache and session management        | 2h       | ✅ COMPLETE |
-| #17   | Event bus            | Publish domain events               | 2h       |             |
+| #17   | Event bus            | Publish domain events               | 2h       | ✅ COMPLETE |
 | #18   | Media storage        | Handle images from WhatsApp         | 3h       |             |
 | #19   | Configuration        | Settings with Pydantic              | 1h       |             |
 | #20   | Infrastructure tests | Integration tests                   | 3h       |             |
