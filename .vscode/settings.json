@@ -2,6 +2,7 @@
     "cSpell.language": "en-GB",
     "cSpell.words": [
         "alphanum",
+        "anyio",
         "BUILDKIT",
         "cust",
         "dlat",
@@ -18,6 +19,7 @@
         "nuxt",
         "pids",
         "softprops",
+        "starlette",
         "stylelintcache",
         "unvalidated",
         "vercel"
