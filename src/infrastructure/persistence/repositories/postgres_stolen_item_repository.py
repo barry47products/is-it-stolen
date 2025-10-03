@@ -75,6 +75,11 @@ class PostgresStolenItemRepository(IStolenItemRepository):
 
         Returns:
             Domain entity
+
+        Note:
+            Type ignores are required due to SQLAlchemy's descriptor pattern.
+            At the class level, attributes are Column[T] descriptors, but at
+            runtime (instance level), they are actual values of type T.
         """
         location = Location(
             latitude=model.latitude,  # type: ignore[arg-type]
