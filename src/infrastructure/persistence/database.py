@@ -18,7 +18,7 @@ Base = declarative_base()
 
 # Get database URL from settings
 settings = get_settings()
-DATABASE_URL = settings.database_url
+DATABASE_URL = str(settings.database_url)
 
 # Create engine with connection pooling
 engine = create_engine(
