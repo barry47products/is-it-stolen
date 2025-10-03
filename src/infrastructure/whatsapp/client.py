@@ -209,8 +209,6 @@ class WhatsAppClient:
             "Content-Type": "application/json",
         }
 
-        last_error: Exception | None = None
-
         for attempt in range(self.max_retries + 1):
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -243,14 +241,11 @@ class WhatsAppClient:
                     return result
 
             except (httpx.HTTPError, WhatsAppAPIError, WhatsAppRateLimitError) as e:
-                last_error = e
                 if isinstance(e, WhatsAppRateLimitError) and attempt < self.max_retries:
                     backoff = INITIAL_BACKOFF_SECONDS * (BACKOFF_MULTIPLIER**attempt)
                     await asyncio.sleep(backoff)
                     continue
                 raise
 
-        # Should never reach here, but just in case
-        if last_error:
-            raise last_error
-        raise WhatsAppAPIError("Unknown error occurred")
+        # This line is unreachable but satisfies mypy's return checking
+        raise WhatsAppAPIError("Unknown error occurred")  # pragma: no cover

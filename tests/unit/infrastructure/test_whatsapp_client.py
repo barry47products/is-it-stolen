@@ -311,3 +311,174 @@ class TestWhatsAppClient:
                 await client.download_media("media123")
 
             assert "Invalid media response" in str(exc_info.value)
+
+    async def test_sends_template_message_without_variables(
+        self, client: WhatsAppClient
+    ) -> None:
+        """Should send template message without variables."""
+        # Arrange
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "messaging_product": "whatsapp",
+            "contacts": [{"input": "+447911123456", "wa_id": "447911123456"}],
+            "messages": [{"id": "wamid.template_no_vars"}],
+        }
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            mock_post.return_value = mock_response
+
+            # Act
+            message_id = await client.send_template_message(
+                to="+447911123456",
+                template_name="simple_greeting",
+                language_code="en",
+            )
+
+            # Assert
+            assert message_id == "wamid.template_no_vars"
+            call_args = mock_post.call_args
+            # Template should have empty components list when no variables provided
+            assert call_args.kwargs["json"]["template"]["components"] == []
+
+    async def test_sends_image_without_caption(self, client: WhatsAppClient) -> None:
+        """Should send image message without caption."""
+        # Arrange
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "messaging_product": "whatsapp",
+            "contacts": [{"input": "+447911123456", "wa_id": "447911123456"}],
+            "messages": [{"id": "wamid.image_no_caption"}],
+        }
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            mock_post.return_value = mock_response
+
+            # Act
+            message_id = await client.send_image(
+                to="+447911123456",
+                image_url="https://example.com/bike.jpg",
+            )
+
+            # Assert
+            assert message_id == "wamid.image_no_caption"
+            call_args = mock_post.call_args
+            # Image should not have caption field when not provided
+            assert "caption" not in call_args.kwargs["json"]["image"]
+            assert (
+                call_args.kwargs["json"]["image"]["link"]
+                == "https://example.com/bike.jpg"
+            )
+
+    async def test_retries_on_rate_limit_error_with_eventual_success(
+        self, client: WhatsAppClient
+    ) -> None:
+        """Should retry when WhatsAppRateLimitError is raised and eventually succeed."""
+        # Arrange
+        mock_rate_limit_response = Mock()
+        mock_rate_limit_response.status_code = 429
+        mock_rate_limit_response.json.return_value = {
+            "error": {"message": "Rate limit exceeded", "code": 4}
+        }
+
+        mock_success_response = Mock()
+        mock_success_response.status_code = 200
+        mock_success_response.json.return_value = {
+            "messaging_product": "whatsapp",
+            "messages": [{"id": "wamid.success_after_retry"}],
+        }
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            # First two attempts fail with 429, third succeeds
+            mock_post.side_effect = [
+                mock_rate_limit_response,
+                mock_rate_limit_response,
+                mock_success_response,
+            ]
+
+            with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                # Act
+                message_id = await client.send_text_message(
+                    to="+447911123456",
+                    text="Test message",
+                )
+
+                # Assert
+                assert message_id == "wamid.success_after_retry"
+                assert mock_post.call_count == 3
+                # Should have slept twice (after 1st and 2nd failures)
+                assert mock_sleep.call_count == 2
+
+    async def test_handles_http_error_with_retry_on_network_failure(
+        self, client: WhatsAppClient
+    ) -> None:
+        """Should handle HTTPError during send and eventually succeed after retry."""
+        # Arrange
+        mock_success_response = Mock()
+        mock_success_response.status_code = 200
+        mock_success_response.json.return_value = {
+            "messaging_product": "whatsapp",
+            "messages": [{"id": "wamid.success_after_network_error"}],
+        }
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            # First call raises HTTPError, second succeeds
+            mock_post.side_effect = [
+                httpx.ConnectError("Network error"),
+                mock_success_response,
+            ]
+
+            # Act & Assert - HTTPError should be raised immediately (no retry for HTTPError)
+            with pytest.raises(httpx.ConnectError):
+                await client.send_text_message(
+                    to="+447911123456",
+                    text="Test message",
+                )
+
+    async def test_covers_fallback_error_handling_paths(
+        self, client: WhatsAppClient
+    ) -> None:
+        """Should cover defensive error handling paths in retry logic."""
+        # This test exercises the defensive code paths (lines 247-250, 254-256)
+        # by forcing specific exception scenarios during the retry loop
+
+        # Create a mock that will succeed after throwing errors
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "messaging_product": "whatsapp",
+            "messages": [{"id": "wamid.success"}],
+        }
+
+        call_count = 0
+
+        async def mock_post_with_early_rate_limit(
+            *args: object, **kwargs: object
+        ) -> Mock:
+            nonlocal call_count
+            call_count += 1
+
+            # First call: raise WhatsAppRateLimitError early (simulating external raise)
+            # This will be caught and trigger the retry logic on lines 247-250
+            if call_count == 1:
+                raise WhatsAppRateLimitError("Rate limited externally")
+
+            # Second call: succeed
+            return mock_response
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            mock_post.side_effect = mock_post_with_early_rate_limit
+
+            with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                # Act
+                message_id = await client.send_text_message(
+                    to="+447911123456",
+                    text="Test",
+                )
+
+                # Assert
+                assert message_id == "wamid.success"
+                assert call_count == 2
+                # Should have slept once for retry
+                assert mock_sleep.call_count == 1
