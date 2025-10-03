@@ -133,6 +133,28 @@ class UnauthorizedVerificationError(DomainError):
         super().__init__(message, code="UNAUTHORIZED_VERIFICATION")
 
 
+class ItemAlreadyDeletedException(DomainError):
+    """Raised when attempting to delete an already deleted item.
+
+    Prevents double deletion and ensures proper error handling.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with item already deleted error message."""
+        super().__init__(message, code="ITEM_ALREADY_DELETED")
+
+
+class UnauthorizedDeletionError(DomainError):
+    """Raised when user is not authorized to delete an item.
+
+    Only the original reporter can delete their own report.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with unauthorized deletion error message."""
+        super().__init__(message, code="UNAUTHORIZED_DELETION")
+
+
 class RepositoryError(DomainError):
     """Raised when repository operations fail.
 
