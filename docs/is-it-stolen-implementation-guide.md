@@ -296,7 +296,7 @@ Build the infrastructure to support the domain.
 | #11   | Database setup       | PostgreSQL with PostGIS             | 2h       | ✅ COMPLETE |
 | #12   | SQLAlchemy models    | Database models with GeoAlchemy2    | 3h       | ✅ COMPLETE |
 | #13   | Repository pattern   | StolenItemRepository implementation | 3h       | ✅ COMPLETE |
-| #14   | WhatsApp client      | REST API client with retry logic    | 4h       |             |
+| #14   | WhatsApp client      | REST API client with retry logic    | 4h       | ✅ COMPLETE |
 | #15   | Webhook handler      | Parse and validate webhooks         | 3h       |             |
 | #16   | Redis setup          | Cache and session management        | 2h       |             |
 | #17   | Event bus            | Publish domain events               | 2h       |             |
