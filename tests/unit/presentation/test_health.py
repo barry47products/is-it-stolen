@@ -10,14 +10,14 @@ def test_health_check_returns_healthy_status(client: TestClient) -> None:
 
     Given: A running FastAPI application
     When: GET request is made to /health endpoint
-    Then: Response status is 200 and body contains healthy status
+    Then: Response status is 200 and body contains healthy status with version
     """
     # Act
     response = client.get("/health")
 
     # Assert
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+    assert response.json() == {"status": "healthy", "version": "0.1.0"}
 
 
 @pytest.mark.unit
