@@ -309,7 +309,7 @@ Build the infrastructure to support the domain.
 | #19   | Configuration        | Settings with Pydantic validation   | 1h       | ✅ COMPLETE |
 | #20   | Infrastructure tests | Redis integration tests             | 3h       | ✅ COMPLETE |
 
-### Milestone 3: Application Layer (Issues #21-30) - Week 3 - 8/10 Complete
+### Milestone 3: Application Layer (Issues #21-30) - Week 3 - 9/10 Complete
 
 Implement use cases that orchestrate the domain.
 
@@ -323,7 +323,7 @@ Implement use cases that orchestrate the domain.
 | #26   | Delete item command   | Remove reports             | ✅ COMPLETE | 1h       |
 | #27   | Update item command   | Edit reports               | ✅ COMPLETE | 2h       |
 | #28   | Notification service  | Send confirmations         | ✅ COMPLETE | 2h       |
-| #29   | Export service        | Generate reports           |             | 2h       |
+| #29   | Export service        | Generate reports           | ✅ COMPLETE | 2h       |
 | #30   | Application tests     | Use case tests             |             | 3h       |
 
 ### Milestone 4: Bot Presentation (Issues #31-40) - Week 4
