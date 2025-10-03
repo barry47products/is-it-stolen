@@ -16,7 +16,9 @@ class Settings(BaseSettings):
     )
 
     # Database
-    database_url: str = "postgresql://admin:admin_password@localhost:5433/isitstolen"
+    # SECURITY: Never commit real database passwords to the repository
+    # Set DATABASE_URL environment variable in production
+    database_url: str
 
     # Redis
     redis_url: str = "redis://localhost:6379"
