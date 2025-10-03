@@ -18,6 +18,7 @@ class ItemStatus(str, Enum):
     ACTIVE = "active"
     RECOVERED = "recovered"
     EXPIRED = "expired"
+    DELETED = "deleted"
 
 
 class StolenItem:
@@ -175,4 +176,19 @@ class StolenItem:
             raise ValueError("Item is already recovered")
 
         self.status = ItemStatus.RECOVERED
+        self.updated_at = datetime.now(UTC)
+
+    def mark_as_deleted(self) -> None:
+        """Mark the item as deleted (soft delete).
+
+        This performs a soft delete by changing the status to DELETED
+        while preserving the record in the database for audit trail.
+
+        Raises:
+            ValueError: If item is already deleted
+        """
+        if self.status == ItemStatus.DELETED:
+            raise ValueError("Item is already deleted")
+
+        self.status = ItemStatus.DELETED
         self.updated_at = datetime.now(UTC)

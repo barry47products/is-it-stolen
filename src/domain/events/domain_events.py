@@ -67,3 +67,17 @@ class ItemRecovered:
     recovery_notes: str | None = None
     event_id: UUID = field(default_factory=_generate_event_id)
     occurred_at: datetime = field(default_factory=_generate_timestamp)
+
+
+@dataclass(frozen=True)
+class ItemDeleted:
+    """Event raised when a stolen item report is deleted.
+
+    This event captures who deleted the report and when.
+    """
+
+    report_id: UUID
+    deleted_by: PhoneNumber
+    reason: str | None = None
+    event_id: UUID = field(default_factory=_generate_event_id)
+    occurred_at: datetime = field(default_factory=_generate_timestamp)
