@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 from src.domain.value_objects.item_category import ItemCategory
 from src.domain.value_objects.location import Location
 from src.domain.value_objects.phone_number import PhoneNumber
+from src.domain.value_objects.police_reference import PoliceReference
 
 MIN_DESCRIPTION_LENGTH = 10
 
@@ -41,6 +42,8 @@ class StolenItem:
         model: str | None = None,
         serial_number: str | None = None,
         color: str | None = None,
+        police_reference: PoliceReference | None = None,
+        verified_at: datetime | None = None,
     ) -> None:
         """Initialize StolenItem entity.
 
@@ -59,6 +62,23 @@ class StolenItem:
         self.model = model
         self.serial_number = serial_number
         self.color = color
+        self._police_reference = police_reference
+        self._verified_at = verified_at
+
+    @property
+    def is_verified(self) -> bool:
+        """Check if item is verified."""
+        return self._verified_at is not None
+
+    @property
+    def police_reference(self) -> PoliceReference | None:
+        """Get police reference number."""
+        return self._police_reference
+
+    @property
+    def verified_at(self) -> datetime | None:
+        """Get verification timestamp."""
+        return self._verified_at
 
     @classmethod
     def create(

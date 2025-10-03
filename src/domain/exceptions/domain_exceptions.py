@@ -84,3 +84,25 @@ class ItemAlreadyRecoveredError(DomainError):
     def __init__(self, message: str) -> None:
         """Initialize with item already recovered error message."""
         super().__init__(message, code="ITEM_ALREADY_RECOVERED")
+
+
+class ItemNotActiveError(DomainError):
+    """Raised when attempting to verify a non-active item.
+
+    Only active items can be verified. Recovered or expired items cannot.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with item not active error message."""
+        super().__init__(message, code="ITEM_NOT_ACTIVE")
+
+
+class ItemAlreadyVerifiedError(DomainError):
+    """Raised when attempting to verify an already verified item.
+
+    This is a business rule violation - items can only be verified once.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with item already verified error message."""
+        super().__init__(message, code="ITEM_ALREADY_VERIFIED")
