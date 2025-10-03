@@ -8,7 +8,9 @@
       "Bash(make:*)",
       "Bash(gh issue view:*)",
       "Bash(poetry show:*)",
-      "Bash(cat .env)"
+      "Bash(cat .env)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []

@@ -385,11 +385,11 @@ class TestPostgresStolenItemRepository:
             updated_at=datetime.now(UTC),
         )
 
-        def failing_db():
+        def failing_db() -> None:
             # Force a constraint violation or connection error
             raise Exception("Database connection failed")
 
-        repository._get_db = failing_db
+        repository._get_db = failing_db  # type: ignore[method-assign]
 
         # Act & Assert
         with pytest.raises(RepositoryError) as exc_info:
@@ -409,7 +409,7 @@ class TestPostgresStolenItemRepository:
             item_type=ItemCategory.BICYCLE,
             description="Bike stolen somewhere",
             stolen_date=datetime(2025, 10, 1, tzinfo=UTC),
-            location=None,  # No location
+            location=None,  # type: ignore[arg-type]  # Testing defensive null handling
             status=ItemStatus.ACTIVE,
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
