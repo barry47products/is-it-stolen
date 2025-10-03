@@ -81,3 +81,17 @@ class ItemDeleted:
     reason: str | None = None
     event_id: UUID = field(default_factory=_generate_event_id)
     occurred_at: datetime = field(default_factory=_generate_timestamp)
+
+
+@dataclass(frozen=True)
+class ItemUpdated:
+    """Event raised when a stolen item report is updated.
+
+    This event captures what fields were updated and by whom.
+    """
+
+    report_id: UUID
+    updated_by: PhoneNumber
+    updated_fields: dict[str, str | None]
+    event_id: UUID = field(default_factory=_generate_event_id)
+    occurred_at: datetime = field(default_factory=_generate_timestamp)

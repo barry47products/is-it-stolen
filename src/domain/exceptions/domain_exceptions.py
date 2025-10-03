@@ -155,6 +155,17 @@ class UnauthorizedDeletionError(DomainError):
         super().__init__(message, code="UNAUTHORIZED_DELETION")
 
 
+class UnauthorizedUpdateError(DomainError):
+    """Raised when user is not authorized to update an item.
+
+    Only the original reporter can update their own report.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with unauthorized update error message."""
+        super().__init__(message, code="UNAUTHORIZED_UPDATE")
+
+
 class RepositoryError(DomainError):
     """Raised when repository operations fail.
 

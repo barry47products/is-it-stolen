@@ -192,3 +192,44 @@ class StolenItem:
 
         self.status = ItemStatus.DELETED
         self.updated_at = datetime.now(UTC)
+
+    def update_details(
+        self,
+        description: str | None = None,
+        brand: str | None = None,
+        model: str | None = None,
+        serial_number: str | None = None,
+        color: str | None = None,
+    ) -> None:
+        """Update mutable item details.
+
+        This method allows updating certain fields while preserving
+        core immutable fields like report_id, reporter_phone, etc.
+
+        Args:
+            description: Updated description (if provided)
+            brand: Updated brand (if provided)
+            model: Updated model (if provided)
+            serial_number: Updated serial number (if provided)
+            color: Updated color (if provided)
+
+        Raises:
+            ValueError: If description validation fails
+        """
+        if description is not None:
+            self._validate_description(description)
+            self.description = description
+
+        if brand is not None:
+            self.brand = brand
+
+        if model is not None:
+            self.model = model
+
+        if serial_number is not None:
+            self.serial_number = serial_number
+
+        if color is not None:
+            self.color = color
+
+        self.updated_at = datetime.now(UTC)
