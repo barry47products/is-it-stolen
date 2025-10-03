@@ -66,7 +66,7 @@ class WebhookHandler:
         self.verify_token = verify_token
         self.app_secret = app_secret
 
-    async def verify_webhook(  # type: ignore[no-any-unimported]
+    def verify_webhook(  # type: ignore[no-any-unimported]
         self,
         mode: str,
         token: str,
@@ -108,39 +108,82 @@ class WebhookHandler:
             List of parsed messages
         """
         messages: list[dict[str, str]] = []
-
         entries = payload.get("entry", [])
+
         if not isinstance(entries, list):
             return messages
 
         for entry in entries:
-            if not isinstance(entry, dict):
+            entry_messages = self._extract_messages_from_entry(entry)
+            messages.extend(entry_messages)
+
+        return messages
+
+    def _extract_messages_from_entry(self, entry: object) -> list[dict[str, str]]:
+        """Extract messages from a webhook entry.
+
+        Args:
+            entry: Entry object from webhook payload
+
+        Returns:
+            List of parsed messages from this entry
+        """
+        if not isinstance(entry, dict):
+            return []
+
+        changes = entry.get("changes", [])
+        if not isinstance(changes, list):
+            return []
+
+        messages: list[dict[str, str]] = []
+        for change in changes:
+            change_messages = self._extract_messages_from_change(change)
+            messages.extend(change_messages)
+
+        return messages
+
+    def _extract_messages_from_change(self, change: object) -> list[dict[str, str]]:
+        """Extract messages from a webhook change.
+
+        Args:
+            change: Change object from webhook entry
+
+        Returns:
+            List of parsed messages from this change
+        """
+        if not isinstance(change, dict):
+            return []
+
+        value = change.get("value", {})
+        if not isinstance(value, dict):
+            return []
+
+        webhook_messages = value.get("messages", [])
+        if not isinstance(webhook_messages, list):
+            return []
+
+        return self._parse_messages_list(webhook_messages)
+
+    def _parse_messages_list(
+        self, webhook_messages: list[object]
+    ) -> list[dict[str, str]]:
+        """Parse a list of webhook messages.
+
+        Args:
+            webhook_messages: List of message objects
+
+        Returns:
+            List of successfully parsed messages
+        """
+        messages: list[dict[str, str]] = []
+
+        for msg in webhook_messages:
+            if not isinstance(msg, dict):
                 continue
 
-            changes = entry.get("changes", [])
-            if not isinstance(changes, list):
-                continue
-
-            for change in changes:
-                if not isinstance(change, dict):
-                    continue
-
-                value = change.get("value", {})
-                if not isinstance(value, dict):
-                    continue
-
-                # Extract messages (skip if this is a status update)
-                webhook_messages = value.get("messages", [])
-                if not isinstance(webhook_messages, list):
-                    continue
-
-                for msg in webhook_messages:
-                    if not isinstance(msg, dict):
-                        continue
-
-                    parsed = self._parse_message(msg)
-                    if parsed:
-                        messages.append(parsed)
+            parsed = self._parse_message(msg)
+            if parsed:
+                messages.append(parsed)
 
         return messages
 
@@ -153,6 +196,24 @@ class WebhookHandler:
         Returns:
             Parsed message dict or None if parsing fails
         """
+        base_fields = self._extract_base_fields(msg)
+        if not base_fields:
+            return None
+
+        msg_type = base_fields["type"]
+        self._add_message_content(msg, msg_type, base_fields)
+
+        return base_fields
+
+    def _extract_base_fields(self, msg: dict[str, object]) -> dict[str, str] | None:
+        """Extract base fields from message.
+
+        Args:
+            msg: Message dictionary
+
+        Returns:
+            Dict with base fields or None if validation fails
+        """
         msg_type = msg.get("type")
         if not isinstance(msg_type, str):
             return None
@@ -164,29 +225,61 @@ class WebhookHandler:
         if not all(isinstance(x, str) for x in [from_number, message_id, timestamp]):
             return None
 
-        parsed: dict[str, str] = {
+        return {
             "from": str(from_number),
             "message_id": str(message_id),
             "timestamp": str(timestamp),
             "type": msg_type,
         }
 
-        # Parse message content based on type
+    def _add_message_content(
+        self, msg: dict[str, object], msg_type: str, parsed: dict[str, str]
+    ) -> None:
+        """Add message content to parsed dict based on message type.
+
+        Args:
+            msg: Message dictionary
+            msg_type: Type of message
+            parsed: Parsed message dict to update
+        """
         if msg_type == "text":
-            text_data = msg.get("text", {})
-            if isinstance(text_data, dict):
-                body = text_data.get("body")
-                if isinstance(body, str):
-                    parsed["text"] = body
-
+            self._add_text_content(msg, parsed)
         elif msg_type in ("image", "video", "document", "audio"):
-            media_data = msg.get(msg_type, {})
-            if isinstance(media_data, dict):
-                media_id = media_data.get("id")
-                mime_type = media_data.get("mime_type")
-                if isinstance(media_id, str):
-                    parsed["media_id"] = media_id
-                if isinstance(mime_type, str):
-                    parsed["mime_type"] = mime_type
+            self._add_media_content(msg, msg_type, parsed)
 
-        return parsed
+    def _add_text_content(self, msg: dict[str, object], parsed: dict[str, str]) -> None:
+        """Add text content to parsed message.
+
+        Args:
+            msg: Message dictionary
+            parsed: Parsed message dict to update
+        """
+        text_data = msg.get("text", {})
+        if not isinstance(text_data, dict):
+            return
+
+        body = text_data.get("body")
+        if isinstance(body, str):
+            parsed["text"] = body
+
+    def _add_media_content(
+        self, msg: dict[str, object], msg_type: str, parsed: dict[str, str]
+    ) -> None:
+        """Add media content to parsed message.
+
+        Args:
+            msg: Message dictionary
+            msg_type: Media type (image, video, document, audio)
+            parsed: Parsed message dict to update
+        """
+        media_data = msg.get(msg_type, {})
+        if not isinstance(media_data, dict):
+            return
+
+        media_id = media_data.get("id")
+        if isinstance(media_id, str):
+            parsed["media_id"] = media_id
+
+        mime_type = media_data.get("mime_type")
+        if isinstance(mime_type, str):
+            parsed["mime_type"] = mime_type
