@@ -13,12 +13,10 @@ class TestSettings:
         # Arrange & Act
         settings = Settings()
 
-        # Assert - Values loaded from .env.test file in test environment
-        assert (
-            settings.database_url
-            == "postgresql://admin:admin_password@localhost:5433/isitstolen"
-        )
-        assert settings.redis_url == "redis://localhost:6379"
+        # Assert - Values loaded from environment or .env.test file
+        assert settings.database_url.startswith("postgresql://")
+        assert "isitstolen" in settings.database_url
+        assert settings.redis_url.startswith("redis://")
         assert settings.environment == "test"
         assert settings.debug is True
 
