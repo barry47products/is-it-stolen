@@ -1,4 +1,5 @@
 """Location value object for geographic coordinates."""
+
 from dataclasses import dataclass
 from math import asin, cos, radians, sin, sqrt
 

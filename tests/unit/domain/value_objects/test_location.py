@@ -1,4 +1,5 @@
 """Tests for Location value object."""
+
 import pytest
 
 from src.domain.value_objects.location import Location
