@@ -2,18 +2,19 @@ services:
   postgres:
     # PostgreSQL 18 with PostGIS 3.6 (latest)
     # Runs via Rosetta 2 emulation on Apple Silicon
+    # SECURITY: For local development only - change credentials in production!
     image: postgis/postgis:18-3.6
     container_name: is-it-stolen-postgres
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin_password
+      POSTGRES_USER: isitstolen_user
+      POSTGRES_PASSWORD: local_dev_password_only
       POSTGRES_DB: isitstolen
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d isitstolen"]
+      test: ["CMD-SHELL", "pg_isready -U isitstolen_user -d isitstolen"]
       interval: 10s
       timeout: 5s
       retries: 5
