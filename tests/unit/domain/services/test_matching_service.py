@@ -251,9 +251,9 @@ class TestItemMatchingService:
 
         # Assert
         assert strict_match is False
-        assert (
-            lenient_match is True
-        ), f"Expected match with threshold 0.03, got similarity {similarity}"
+        assert lenient_match is True, (
+            f"Expected match with threshold 0.03, got similarity {similarity}"
+        )
 
     def test_completely_different_items_near_zero_similarity(self) -> None:
         """Should return very low similarity for completely different items."""
