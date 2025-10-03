@@ -60,6 +60,7 @@ class TestRedisClientIntegration:
 
         # Wait for expiration (slightly longer than TTL)
         await asyncio.sleep(1.05)
+        # TODO: Reduce the sleep time by using a mockable time function in RedisClient
 
         # Verify value has expired
         result_after = await redis_client.get(test_key)

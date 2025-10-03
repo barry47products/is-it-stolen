@@ -108,6 +108,31 @@ class ItemAlreadyVerifiedError(DomainError):
         super().__init__(message, code="ITEM_ALREADY_VERIFIED")
 
 
+class InvalidPoliceReferenceError(DomainError):
+    """Raised when police reference validation fails.
+
+    Examples:
+        - Invalid reference format
+        - Missing required components
+        - Invalid reference structure
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with police reference validation error message."""
+        super().__init__(message, code="INVALID_POLICE_REFERENCE")
+
+
+class UnauthorizedVerificationError(DomainError):
+    """Raised when user is not authorized to verify an item.
+
+    Only the original reporter can verify their own report.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Initialize with unauthorized verification error message."""
+        super().__init__(message, code="UNAUTHORIZED_VERIFICATION")
+
+
 class RepositoryError(DomainError):
     """Raised when repository operations fail.
 
