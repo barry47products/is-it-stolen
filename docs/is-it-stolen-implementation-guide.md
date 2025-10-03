@@ -284,18 +284,18 @@ Each issue builds on the previous ones, gradually increasing in complexity while
 
 Build the infrastructure to support the domain.
 
-| Issue | Title                | Description                         | Estimate |
-| ----- | -------------------- | ----------------------------------- | -------- |
-| #11   | Database setup       | PostgreSQL with PostGIS             | 2h       |
-| #12   | SQLAlchemy models    | Database models with GeoAlchemy2    | 3h       |
-| #13   | Repository pattern   | StolenItemRepository implementation | 3h       |
-| #14   | WhatsApp client      | REST API client with retry logic    | 4h       |
-| #15   | Webhook handler      | Parse and validate webhooks         | 3h       |
-| #16   | Redis setup          | Cache and session management        | 2h       |
-| #17   | Event bus            | Publish domain events               | 2h       |
-| #18   | Media storage        | Handle images from WhatsApp         | 3h       |
-| #19   | Configuration        | Settings with Pydantic              | 1h       |
-| #20   | Infrastructure tests | Integration tests                   | 3h       |
+| Issue | Title                | Description                         | Estimate | Status      |
+| ----- | -------------------- | ----------------------------------- | -------- | ----------- |
+| #11   | Database setup       | PostgreSQL with PostGIS             | 2h       | ✅ COMPLETE |
+| #12   | SQLAlchemy models    | Database models with GeoAlchemy2    | 3h       |             |
+| #13   | Repository pattern   | StolenItemRepository implementation | 3h       |             |
+| #14   | WhatsApp client      | REST API client with retry logic    | 4h       |             |
+| #15   | Webhook handler      | Parse and validate webhooks         | 3h       |             |
+| #16   | Redis setup          | Cache and session management        | 2h       |             |
+| #17   | Event bus            | Publish domain events               | 2h       |             |
+| #18   | Media storage        | Handle images from WhatsApp         | 3h       |             |
+| #19   | Configuration        | Settings with Pydantic              | 1h       |             |
+| #20   | Infrastructure tests | Integration tests                   | 3h       |             |
 
 ### Milestone 3: Application Layer (Issues #21-30) - Week 3
 
