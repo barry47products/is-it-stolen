@@ -275,8 +275,8 @@ Each issue builds on the previous ones, gradually increasing in complexity while
 | #4    | StolenItem entity           | Aggregate root with validation               | 4h       | ✅ COMPLETE  |
 | #5    | Domain events               | ItemReported, ItemVerified events            | 2h       | ✅ COMPLETE  |
 | #6    | Matching service            | Text similarity algorithm                    | 3h       | ✅ COMPLETE  |
-| #7    | Domain exceptions           | Custom domain-specific exceptions            | 1h       |              |
-| #8    | Item attributes             | Flexible attributes per category             | 2h       |              |
+| #7    | Domain exceptions           | Custom domain-specific exceptions            | 1h       | ✅ COMPLETE  |
+| #8    | Item attributes             | Flexible attributes per category             | 2h       | ✅ COMPLETE  |
 | #9    | Verification rules          | Business rules for verification              | 2h       |              |
 | #10   | Domain integration tests    | Test domain layer together                   | 2h       |              |
 
