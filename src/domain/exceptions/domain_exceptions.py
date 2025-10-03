@@ -106,3 +106,24 @@ class ItemAlreadyVerifiedError(DomainError):
     def __init__(self, message: str) -> None:
         """Initialize with item already verified error message."""
         super().__init__(message, code="ITEM_ALREADY_VERIFIED")
+
+
+class RepositoryError(DomainError):
+    """Raised when repository operations fail.
+
+    Examples:
+        - Database connection fails
+        - Query execution fails
+        - Data persistence fails
+        - Transaction rollback occurs
+    """
+
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
+        """Initialize with repository error message and optional cause.
+
+        Args:
+            message: Human-readable error description
+            cause: Optional underlying exception that caused this error
+        """
+        super().__init__(message, code="REPOSITORY_ERROR")
+        self.cause = cause
