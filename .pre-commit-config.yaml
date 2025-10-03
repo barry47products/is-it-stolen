@@ -23,6 +23,8 @@ repos:
       - id: mypy
         additional_dependencies:
           - pydantic>=2.5.0
+          - pydantic-settings>=2.0.0
+          - sqlalchemy>=2.0.0
           - types-redis
           - types-pyyaml
           - phonenumbers>=9.0.15
