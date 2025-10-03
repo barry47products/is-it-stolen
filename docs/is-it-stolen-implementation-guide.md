@@ -103,7 +103,7 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 
 ### Progress Summary
 
-**Last Updated**: October 2, 2025
+**Last Updated**: October 3, 2025
 
 **Completed**:
 - ✅ Development environment setup (Poetry, Docker, Alembic, pre-commit hooks)
@@ -114,8 +114,15 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #4: StolenItem entity (aggregate root)
 - ✅ Issue #5: Domain events (ItemReported, ItemVerified, ItemRecovered)
 - ✅ Issue #6: Item matching service with text similarity
+- ✅ Issue #7: Domain exceptions (domain-specific exception types)
+- ✅ Issue #8: Item attributes (flexible attributes per category)
+- ✅ Issue #9: Verification service (business rules for verification)
+- ✅ Issue #10: Domain integration tests (domain layer integration)
+- ✅ Issue #11: Database setup (PostgreSQL 18 with PostGIS 3.6)
+- ✅ Issue #12: SQLAlchemy models (database models with GeoAlchemy2)
+- ✅ Issue #13: Repository pattern (async PostgreSQL repository with PostGIS queries)
 
-**Current Status**: Ready to start Issue #7 (Domain exceptions)
+**Current Status**: Milestone 2 Infrastructure - 3/10 complete. Ready to start Issue #14 (WhatsApp client)
 
 ---
 
@@ -288,7 +295,7 @@ Build the infrastructure to support the domain.
 | ----- | -------------------- | ----------------------------------- | -------- | ----------- |
 | #11   | Database setup       | PostgreSQL with PostGIS             | 2h       | ✅ COMPLETE |
 | #12   | SQLAlchemy models    | Database models with GeoAlchemy2    | 3h       | ✅ COMPLETE |
-| #13   | Repository pattern   | StolenItemRepository implementation | 3h       |             |
+| #13   | Repository pattern   | StolenItemRepository implementation | 3h       | ✅ COMPLETE |
 | #14   | WhatsApp client      | REST API client with retry logic    | 4h       |             |
 | #15   | Webhook handler      | Parse and validate webhooks         | 3h       |             |
 | #16   | Redis setup          | Cache and session management        | 2h       |             |
