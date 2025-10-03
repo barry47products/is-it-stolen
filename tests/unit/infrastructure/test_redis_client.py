@@ -177,7 +177,7 @@ class TestRedisClient:
             await client.close()
 
             # Assert
-            mock_redis.close.assert_called_once()
+            mock_redis.aclose.assert_called_once()
 
     async def test_raises_redis_error_on_get_failure(self, client: RedisClient) -> None:
         """Should raise RedisError when get operation fails."""
@@ -267,7 +267,7 @@ class TestRedisClient:
         """Should raise RedisError when closing connection fails."""
         # Arrange
         mock_redis = AsyncMock()
-        mock_redis.close.side_effect = Exception("Close failed")
+        mock_redis.aclose.side_effect = Exception("Close failed")
 
         with patch("redis.asyncio.from_url", new_callable=AsyncMock) as mock_from_url:
             mock_from_url.return_value = mock_redis
