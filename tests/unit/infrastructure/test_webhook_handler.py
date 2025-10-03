@@ -16,7 +16,7 @@ from src.infrastructure.whatsapp.webhook_handler import (
 class TestWebhookVerification:
     """Test webhook verification for initial setup."""
 
-    async def test_verifies_webhook_with_correct_token(self) -> None:
+    def test_verifies_webhook_with_correct_token(self) -> None:
         """Should verify webhook when verify_token matches."""
         # Arrange
         handler = WebhookHandler(
@@ -25,7 +25,7 @@ class TestWebhookVerification:
         )
 
         # Act
-        response = await handler.verify_webhook(
+        response = handler.verify_webhook(
             mode="subscribe",
             token="test_verify_token",
             challenge="challenge_string_12345",
@@ -36,7 +36,7 @@ class TestWebhookVerification:
         assert response.body == b"challenge_string_12345"
         assert response.status_code == 200
 
-    async def test_rejects_webhook_with_incorrect_token(self) -> None:
+    def test_rejects_webhook_with_incorrect_token(self) -> None:
         """Should reject webhook when verify_token doesn't match."""
         # Arrange
         handler = WebhookHandler(
@@ -46,7 +46,7 @@ class TestWebhookVerification:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await handler.verify_webhook(
+            handler.verify_webhook(
                 mode="subscribe",
                 token="wrong_token",
                 challenge="challenge_string_12345",
@@ -55,7 +55,7 @@ class TestWebhookVerification:
         assert exc_info.value.status_code == 403
         assert "Invalid verify token" in str(exc_info.value.detail)
 
-    async def test_rejects_webhook_with_incorrect_mode(self) -> None:
+    def test_rejects_webhook_with_incorrect_mode(self) -> None:
         """Should reject webhook when mode is not 'subscribe'."""
         # Arrange
         handler = WebhookHandler(
@@ -65,7 +65,7 @@ class TestWebhookVerification:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await handler.verify_webhook(
+            handler.verify_webhook(
                 mode="unsubscribe",
                 token="test_verify_token",
                 challenge="challenge_string_12345",
