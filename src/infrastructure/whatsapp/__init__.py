@@ -7,11 +7,17 @@ from src.infrastructure.whatsapp.exceptions import (
     WhatsAppMediaError,
     WhatsAppRateLimitError,
 )
+from src.infrastructure.whatsapp.webhook_handler import (
+    WebhookHandler,
+    verify_webhook_signature,
+)
 
 __all__ = [
+    "WebhookHandler",
     "WhatsAppAPIError",
     "WhatsAppClient",
     "WhatsAppError",
     "WhatsAppMediaError",
     "WhatsAppRateLimitError",
+    "verify_webhook_signature",
 ]

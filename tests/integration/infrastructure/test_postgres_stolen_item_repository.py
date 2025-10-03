@@ -385,7 +385,7 @@ class TestPostgresStolenItemRepository:
             updated_at=datetime.now(UTC),
         )
 
-        def failing_db():  # type: ignore[no-untyped-def]
+        def failing_db() -> None:
             # Force a constraint violation or connection error
             raise Exception("Database connection failed")
 
