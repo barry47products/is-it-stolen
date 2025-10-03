@@ -125,8 +125,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #15: Webhook handler (parse and validate webhooks with signature verification)
 - ✅ Issue #16: Redis setup (async Redis client with connection pooling)
 - ✅ Issue #17: Event bus (in-memory event bus with async handlers and error handling)
+- ✅ Issue #18: Media storage (local filesystem storage with Protocol interface for future cloud backends)
 
-**Current Status**: Milestone 2 Infrastructure - 7/10 complete. Ready to start Issue #18 (Media storage)
+**Current Status**: Milestone 2 Infrastructure - 8/10 complete. Ready to start Issue #19 (Configuration)
 
 ---
 
@@ -304,7 +305,7 @@ Build the infrastructure to support the domain.
 | #15   | Webhook handler      | Parse and validate webhooks         | 3h       | ✅ COMPLETE |
 | #16   | Redis setup          | Cache and session management        | 2h       | ✅ COMPLETE |
 | #17   | Event bus            | Publish domain events               | 2h       | ✅ COMPLETE |
-| #18   | Media storage        | Handle images from WhatsApp         | 3h       |             |
+| #18   | Media storage        | Handle images from WhatsApp         | 3h       | ✅ COMPLETE |
 | #19   | Configuration        | Settings with Pydantic              | 1h       |             |
 | #20   | Infrastructure tests | Integration tests                   | 3h       |             |
 
