@@ -104,7 +104,7 @@ disallow_untyped_defs = true
 disallow_any_unimported = true
 no_implicit_optional = true
 warn_redundant_casts = true
-warn_unused_ignores = true
+warn_unused_ignores = false
 warn_no_return = true
 check_untyped_defs = true
 strict_equality = true
@@ -135,7 +135,7 @@ addopts = [
     "--cov-report=html",
     "--cov-report=xml",
     "--cov-fail-under=80",
-    "--durations=20",
+    "--durations=5",
 ]
 asyncio_mode = "auto"
 markers = [

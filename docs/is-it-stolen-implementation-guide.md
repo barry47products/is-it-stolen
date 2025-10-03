@@ -121,8 +121,11 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #11: Database setup (PostgreSQL 18 with PostGIS 3.6)
 - ✅ Issue #12: SQLAlchemy models (database models with GeoAlchemy2)
 - ✅ Issue #13: Repository pattern (async PostgreSQL repository with PostGIS queries)
+- ✅ Issue #14: WhatsApp client (REST API client with retry logic)
+- ✅ Issue #15: Webhook handler (parse and validate webhooks with signature verification)
+- ✅ Issue #16: Redis setup (async Redis client with connection pooling)
 
-**Current Status**: Milestone 2 Infrastructure - 3/10 complete. Ready to start Issue #14 (WhatsApp client)
+**Current Status**: Milestone 2 Infrastructure - 6/10 complete. Ready to start Issue #17 (Event bus)
 
 ---
 
@@ -298,7 +301,7 @@ Build the infrastructure to support the domain.
 | #13   | Repository pattern   | StolenItemRepository implementation | 3h       | ✅ COMPLETE |
 | #14   | WhatsApp client      | REST API client with retry logic    | 4h       | ✅ COMPLETE |
 | #15   | Webhook handler      | Parse and validate webhooks         | 3h       | ✅ COMPLETE |
-| #16   | Redis setup          | Cache and session management        | 2h       |             |
+| #16   | Redis setup          | Cache and session management        | 2h       | ✅ COMPLETE |
 | #17   | Event bus            | Publish domain events               | 2h       |             |
 | #18   | Media storage        | Handle images from WhatsApp         | 3h       |             |
 | #19   | Configuration        | Settings with Pydantic              | 1h       |             |
