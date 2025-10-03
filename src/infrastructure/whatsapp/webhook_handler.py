@@ -66,7 +66,7 @@ class WebhookHandler:
         self.verify_token = verify_token
         self.app_secret = app_secret
 
-    async def verify_webhook(
+    async def verify_webhook(  # type: ignore[no-any-unimported]
         self,
         mode: str,
         token: str,
