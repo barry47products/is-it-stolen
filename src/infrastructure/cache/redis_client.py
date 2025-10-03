@@ -145,7 +145,7 @@ class RedisClient:
         """
         try:
             if self._redis is not None:
-                await self._redis.close()  # type: ignore[attr-defined]
+                await self._redis.aclose()  # type: ignore[attr-defined]
                 self._redis = None
         except Exception as e:
             raise RedisError(f"Failed to close connection: {e}") from e
