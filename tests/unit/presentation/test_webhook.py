@@ -168,7 +168,7 @@ class TestWebhookMessages:
         """Test handling of empty payload."""
         # Arrange
         app_secret = "test_app_secret"
-        payload = {"entry": []}
+        payload: dict[str, list[object]] = {"entry": []}
         payload_str = json.dumps(payload, separators=(",", ":"))
 
         # Generate valid signature
@@ -295,7 +295,7 @@ class TestWebhookMessages:
     def test_missing_signature_header(self, client: TestClient) -> None:
         """Test that missing signature header is handled."""
         # Arrange
-        payload = {"entry": []}
+        payload: dict[str, list[object]] = {"entry": []}
 
         # Act - no signature header
         response = client.post("/v1/webhook", json=payload)
