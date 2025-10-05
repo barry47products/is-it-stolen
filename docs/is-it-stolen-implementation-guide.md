@@ -334,7 +334,7 @@ Build the WhatsApp bot interface.
 | Issue | Title            | Description                  | Status      | Estimate |
 | ----- | ---------------- | ---------------------------- | ----------- | -------- |
 | #31   | FastAPI setup    | Basic application structure  | ✅ COMPLETE | 2h       |
-| #32   | Webhook endpoint | Receive WhatsApp messages    | 📋 TODO     | 2h       |
+| #32   | Webhook endpoint | Receive WhatsApp messages    | ✅ COMPLETE | 2h       |
 | #33   | State machine    | Conversation flow management | 📋 TODO     | 4h       |
 | #34   | Message parser   | Extract data from messages   | 📋 TODO     | 3h       |
 | #35   | Response builder | Format bot responses         | 📋 TODO     | 3h       |
@@ -4890,8 +4890,87 @@ Full type annotations with MyPy strict mode. Used targeted `# type: ignore[no-an
 - `tests/unit/presentation/test_health.py` - Updated for version in response
 - `pyproject.toml` - Updated MyPy configuration
 
-#### Next Issue
+#### Next Steps
 
 Issue #32 - Implement WhatsApp webhook endpoint for receiving messages.
+
+---
+
+### ✅ Issue #32 - WhatsApp Webhook Endpoint (COMPLETE)
+
+**PR**: https://github.com/barry47products/is-it-stolen/pull/86
+**Completed**: 2025-10-05
+
+#### What Was Implemented
+
+**Webhook Verification (GET /v1/webhook):**
+
+- Handles WhatsApp verification challenge during setup
+- Validates `hub.mode`, `hub.verify_token`, and `hub.challenge` parameters
+- Returns challenge string when verification succeeds
+- Returns 403 for invalid mode or token
+
+**Message Reception (POST /v1/webhook):**
+
+- Receives WhatsApp message events
+- Verifies HMAC SHA256 signature using `X-Hub-Signature-256` header
+- Parses webhook payload to extract messages
+- Returns immediate 200 response (idempotent)
+- Ready for message queueing (to be implemented in #33)
+
+**Signature Verification:**
+
+- Implements HMAC SHA256 verification
+- Uses timing-safe comparison to prevent timing attacks
+- Validates against WhatsApp app secret
+- Rejects requests with invalid signatures (403)
+
+#### Key Technical Decisions
+
+**Webhook Handler Integration:**
+Leveraged existing `WebhookHandler` from infrastructure layer and `verify_webhook_signature()` function. The presentation layer provides thin FastAPI endpoints that delegate to the well-tested infrastructure components.
+
+**Test Infrastructure:**
+Set WhatsApp test credentials in `conftest.py` at module level (before app import) to ensure settings singleton is initialized with test values. Discovered that TestClient serializes JSON in compact format (no spaces), requiring signature calculation to match.
+
+**Type Safety:**
+Full type annotations with targeted `# type: ignore[no-any-unimported]` for FastAPI imports where MyPy's `disallow_any_unimported` setting conflicts with FastAPI's type definitions.
+
+**Idempotent Design:**
+Webhook endpoint returns 200 immediately after parsing messages. Actual message processing will be queued asynchronously (Issue #33) to prevent webhook timeouts and allow for retries.
+
+#### Test Coverage
+
+- ✅ All 462 tests passing (9 new webhook tests)
+- ✅ 100% coverage on `src/presentation/api/v1/webhook.py`
+- ✅ Pre-commit hooks passing (Ruff, MyPy, formatting)
+- ✅ Verification tests (successful, invalid mode, invalid token)
+- ✅ Message tests (valid signature, invalid signature, empty payload, multiple messages, media messages, missing header)
+
+#### Files Created/Modified
+
+**New Files:**
+
+- `src/presentation/api/v1/webhook.py` - Webhook endpoints (GET/POST)
+- `tests/unit/presentation/test_webhook.py` - Comprehensive webhook tests (9 tests)
+
+**Modified Files:**
+
+- `src/presentation/api/v1/__init__.py` - Include webhook router
+- `tests/conftest.py` - Add WhatsApp test credentials at module level
+
+#### Integration with Existing Infrastructure
+
+The webhook endpoints integrate seamlessly with:
+
+- `WebhookHandler` (src/infrastructure/whatsapp/webhook_handler.py) - Message parsing
+- `verify_webhook_signature()` - HMAC SHA256 verification
+- Settings (src/infrastructure/config/settings.py) - Verify token and app secret
+
+This demonstrates the clean separation between presentation (FastAPI endpoints) and infrastructure (WhatsApp-specific logic).
+
+#### Next Steps
+
+Issue #33 will implement the conversation state machine to process the queued messages.
 
 Build incrementally, test thoroughly, and deploy confidently!
