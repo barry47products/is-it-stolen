@@ -124,20 +124,18 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
             continue
 
         try:
-            # Process message through state machine
+            # Process message through state machine and send response
             response = await message_processor.process_message(
                 phone_number, message_text
             )
             logger.info(
-                "Message processed successfully",
+                "Message processed and response sent",
                 extra={
                     "phone_number": phone_number,
                     "state": response.get("state"),
                 },
             )
             processed_count += 1
-
-            # TODO: Send response back to user via WhatsApp API (Issue #34)
 
         except Exception as e:
             logger.error(

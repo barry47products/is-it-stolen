@@ -11,6 +11,7 @@ from src.infrastructure.messaging.event_bus import InMemoryEventBus
 from src.infrastructure.persistence.repositories.postgres_stolen_item_repository import (
     PostgresStolenItemRepository,
 )
+from src.infrastructure.whatsapp.client import WhatsAppClient
 from src.presentation.bot.message_processor import MessageProcessor
 from src.presentation.bot.state_machine import ConversationStateMachine
 from src.presentation.bot.storage import RedisConversationStorage
@@ -22,6 +23,7 @@ _verification_service: VerificationService | None = None
 _redis_client: Redis | None = None  # type: ignore[type-arg]
 _conversation_storage: RedisConversationStorage | None = None
 _state_machine: ConversationStateMachine | None = None
+_whatsapp_client: WhatsAppClient | None = None
 _message_processor: MessageProcessor | None = None
 
 
@@ -114,6 +116,22 @@ def get_state_machine() -> ConversationStateMachine:
     return _state_machine
 
 
+def get_whatsapp_client() -> WhatsAppClient:
+    """Get or create WhatsApp client singleton.
+
+    Returns:
+        WhatsApp client instance
+    """
+    global _whatsapp_client
+    if _whatsapp_client is None:
+        settings = get_settings()
+        _whatsapp_client = WhatsAppClient(
+            phone_number_id=settings.whatsapp_phone_number_id,
+            access_token=settings.whatsapp_access_token,
+        )
+    return _whatsapp_client
+
+
 def get_message_processor() -> MessageProcessor:
     """Get or create message processor singleton.
 
@@ -123,7 +141,10 @@ def get_message_processor() -> MessageProcessor:
     global _message_processor
     if _message_processor is None:
         state_machine = get_state_machine()
-        _message_processor = MessageProcessor(state_machine=state_machine)
+        whatsapp_client = get_whatsapp_client()
+        _message_processor = MessageProcessor(
+            state_machine=state_machine, whatsapp_client=whatsapp_client
+        )
     return _message_processor
 
 

@@ -4,9 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.presentation.bot.context import ConversationContext
 from src.presentation.bot.message_processor import MessageProcessor
-from src.presentation.bot.states import ConversationState
 
 
 @pytest.mark.unit
@@ -14,51 +12,37 @@ class TestMessageProcessor:
     """Test message processor."""
 
     @pytest.mark.asyncio
-    async def test_process_message_creates_context(self) -> None:
-        """Test process_message creates or retrieves context."""
+    async def test_process_message_routes_and_sends_response(self) -> None:
+        """Test process_message routes message and sends WhatsApp response."""
         # Arrange
         phone_number = "+1234567890"
         message_text = "Hello"
 
-        state_machine = MagicMock()
-        state_machine.get_or_create = AsyncMock(
-            return_value=ConversationContext(
-                phone_number=phone_number,
-                state=ConversationState.IDLE,
-            )
+        # Mock router
+        router = MagicMock()
+        router.route_message = AsyncMock(
+            return_value={"reply": "Welcome!", "state": "main_menu"}
         )
 
-        processor = MessageProcessor(state_machine=state_machine)
+        # Mock WhatsApp client
+        whatsapp_client = MagicMock()
+        whatsapp_client.send_text_message = AsyncMock()
+
+        # Mock state machine
+        state_machine = MagicMock()
+
+        processor = MessageProcessor(
+            state_machine=state_machine, whatsapp_client=whatsapp_client
+        )
+        processor.router = router  # Replace router with our mock
 
         # Act
         response = await processor.process_message(phone_number, message_text)
 
         # Assert
-        state_machine.get_or_create.assert_called_once_with(phone_number)
-        assert "reply" in response
-        assert "state" in response
-        assert response["state"] == "idle"
-
-    @pytest.mark.asyncio
-    async def test_process_message_returns_acknowledgment(self) -> None:
-        """Test process_message returns acknowledgment."""
-        # Arrange
-        phone_number = "+1234567890"
-        message_text = "Test message"
-
-        state_machine = MagicMock()
-        state_machine.get_or_create = AsyncMock(
-            return_value=ConversationContext(
-                phone_number=phone_number,
-                state=ConversationState.MAIN_MENU,
-            )
+        router.route_message.assert_called_once_with(phone_number, message_text)
+        whatsapp_client.send_text_message.assert_called_once_with(
+            to=phone_number, text="Welcome!"
         )
-
-        processor = MessageProcessor(state_machine=state_machine)
-
-        # Act
-        response = await processor.process_message(phone_number, message_text)
-
-        # Assert
-        assert f"Received: {message_text}" in response["reply"]
+        assert response["reply"] == "Welcome!"
         assert response["state"] == "main_menu"

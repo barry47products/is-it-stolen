@@ -8,6 +8,7 @@ from src.infrastructure.messaging.event_bus import InMemoryEventBus
 from src.infrastructure.persistence.repositories.postgres_stolen_item_repository import (
     PostgresStolenItemRepository,
 )
+from src.infrastructure.whatsapp.client import WhatsAppClient
 from src.presentation.api.dependencies import (
     get_conversation_storage,
     get_event_bus,
@@ -17,6 +18,7 @@ from src.presentation.api.dependencies import (
     get_repository,
     get_state_machine,
     get_verification_service,
+    get_whatsapp_client,
 )
 from src.presentation.bot.message_processor import MessageProcessor
 from src.presentation.bot.state_machine import ConversationStateMachine
@@ -96,6 +98,23 @@ class TestDependencies:
 
         # Assert
         assert processor1 is processor2
+
+    def test_get_whatsapp_client_returns_client(self) -> None:
+        """Test get_whatsapp_client returns client instance."""
+        # Act
+        client = get_whatsapp_client()
+
+        # Assert
+        assert isinstance(client, WhatsAppClient)
+
+    def test_get_whatsapp_client_returns_singleton(self) -> None:
+        """Test get_whatsapp_client returns same instance."""
+        # Act
+        client1 = get_whatsapp_client()
+        client2 = get_whatsapp_client()
+
+        # Assert
+        assert client1 is client2
 
     def test_get_event_bus_returns_event_bus(self) -> None:
         """Test get_event_bus returns event bus instance."""
