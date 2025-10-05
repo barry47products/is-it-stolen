@@ -4973,4 +4973,112 @@ This demonstrates the clean separation between presentation (FastAPI endpoints) 
 
 Issue #33 will implement the conversation state machine to process the queued messages.
 
+---
+
+### ✅ Issue #33 - Conversation State Machine (COMPLETE)
+
+**PR**: `https://github.com/barry47products/is-it-stolen/pull/87`
+**Completed**: 2025-10-05
+
+#### Implementation Summary (Issue #33)
+
+**State Management:**
+
+- 9 conversation states: IDLE, MAIN_MENU, CHECKING_CATEGORY, CHECKING_DESCRIPTION, CHECKING_LOCATION, REPORTING_CATEGORY, REPORTING_DESCRIPTION, REPORTING_LOCATION, COMPLETE, CANCELLED
+- STATE_TRANSITIONS dictionary mapping valid state transitions
+- is_valid_transition() function for validation
+- Terminal states (COMPLETE, CANCELLED) prevent further transitions
+
+**Immutable Context:**
+
+- ConversationContext dataclass with frozen=True
+- Fields: phone_number, state, data, created_at, updated_at
+- with_state() and with_data() return new instances
+- to_dict() and from_dict() for Redis serialization
+- is_active() checks if not in terminal state
+
+**Redis Storage:**
+
+- ConversationStorage Protocol for interface
+- RedisConversationStorage implementation
+- Key format: conversation:{phone_number}
+- TTL support: 3600 seconds (1 hour) default
+- JSON serialization for persistence
+
+**State Machine Operations:**
+
+- get_or_create() - retrieve existing or create new context
+- transition() - validate transition and save
+- update_data() - merge data and save
+- cancel() - transition to CANCELLED and cleanup
+- complete() - transition to COMPLETE and cleanup
+- reset() - delete context from storage
+
+#### Technical Approach (Issue #33)
+
+**Test-Driven Development:**
+Implemented following strict TDD - wrote failing tests first, then implementation. Created 45 tests (41 unit + 4 integration) before any production code. Achieved 100% coverage on all bot modules.
+
+**Immutability Pattern:**
+Used frozen dataclass pattern for ConversationContext to prevent accidental mutation. All state changes return new instances with updated timestamps.
+
+**Protocol Pattern:**
+Defined ConversationStorage as Protocol for structural subtyping, enabling easy mocking in tests while maintaining type safety.
+
+**Fast Integration Tests:**
+Optimized TTL test to verify Redis expiry is set correctly without waiting 2 seconds. Uses redis.ttl() command to check TTL value instead of sleep().
+
+**Type Safety:**
+Full type annotations with targeted # type: ignore comments for Redis library issues. All bot code passes MyPy strict mode.
+
+#### Test Results (Issue #33)
+
+- ✅ All 507 tests passing (45 new bot tests)
+- ✅ 100% coverage on src/presentation/bot/context.py
+- ✅ 100% coverage on src/presentation/bot/exceptions.py
+- ✅ 100% coverage on src/presentation/bot/state_machine.py
+- ✅ 100% coverage on src/presentation/bot/states.py
+- ✅ 100% coverage on src/presentation/bot/storage.py
+- ✅ Pre-commit hooks passing (Ruff, MyPy, formatting)
+- ✅ Protocol pragma comments for coverage
+- ✅ Fast integration tests (no 2s sleep)
+
+#### Changes Made (Issue #33)
+
+**New Files:**
+
+- src/presentation/bot/__init__.py - Package initialization
+- src/presentation/bot/states.py - State definitions and transitions
+- src/presentation/bot/context.py - Immutable conversation context
+- src/presentation/bot/exceptions.py - Custom exceptions (InvalidStateTransitionError)
+- src/presentation/bot/storage.py - Redis storage with Protocol
+- src/presentation/bot/state_machine.py - State machine orchestration
+- tests/unit/presentation/bot/test_states.py - State/transition tests (13 tests)
+- tests/unit/presentation/bot/test_context.py - Context immutability tests (12 tests)
+- tests/unit/presentation/bot/test_storage.py - Redis storage tests (8 tests)
+- tests/unit/presentation/bot/test_state_machine.py - State machine tests (8 tests)
+- tests/integration/presentation/bot/test_conversation_integration.py - Integration tests (4 tests)
+- docs/conversation-state-machine.md - State diagram with Mermaid visualization
+
+**Modified Files:**
+
+- pyproject.toml - Added Ruff exclusion for docs/ and *.md files
+- docs/is-it-stolen-implementation-guide.md - Fixed markdownlint duplicate headings
+
+#### State Machine Documentation (Issue #33)
+
+Full state machine documentation available at [docs/conversation-state-machine.md](docs/conversation-state-machine.md):
+
+- Complete state definitions
+- State transition tables
+- Mermaid state diagram
+- Context structure
+- Redis storage details
+- Navigation commands (back, cancel)
+- Code examples
+
+#### Next Steps (Issue #33)
+
+Issue #34 will implement message routing and handlers to integrate the state machine with webhook messages.
+
 Build incrementally, test thoroughly, and deploy confidently!
