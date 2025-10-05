@@ -103,32 +103,20 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 
 ### Progress Summary
 
-**Last Updated**: October 3, 2025
+**Last Updated**: October 5, 2025
 
 **Completed**:
 
 - ✅ Development environment setup (Poetry, Docker, Alembic, pre-commit hooks)
 - ✅ CI/CD pipeline (GitHub Actions with SonarCloud, Codecov)
-- ✅ Issue #1: Location value object with Haversine distance calculation
-- ✅ Issue #2: ItemCategory enum with YAML-based keyword configuration
-- ✅ Issue #3: PhoneNumber value object with E.164 validation
-- ✅ Issue #4: StolenItem entity (aggregate root)
-- ✅ Issue #5: Domain events (ItemReported, ItemVerified, ItemRecovered)
-- ✅ Issue #6: Item matching service with text similarity
-- ✅ Issue #7: Domain exceptions (domain-specific exception types)
-- ✅ Issue #8: Item attributes (flexible attributes per category)
-- ✅ Issue #9: Verification service (business rules for verification)
-- ✅ Issue #10: Domain integration tests (domain layer integration)
-- ✅ Issue #11: Database setup (PostgreSQL 18 with PostGIS 3.6)
-- ✅ Issue #12: SQLAlchemy models (database models with GeoAlchemy2)
-- ✅ Issue #13: Repository pattern (async PostgreSQL repository with PostGIS queries)
-- ✅ Issue #14: WhatsApp client (REST API client with retry logic)
-- ✅ Issue #15: Webhook handler (parse and validate webhooks with signature verification)
-- ✅ Issue #16: Redis setup (async Redis client with connection pooling)
-- ✅ Issue #17: Event bus (in-memory event bus with async handlers and error handling)
-- ✅ Issue #18: Media storage (local filesystem storage with Protocol interface for future cloud backends)
+- ✅ Milestone 1: Core Domain (Issues #1-10) - 10/10 complete
+- ✅ Milestone 2: Infrastructure (Issues #11-20) - 10/10 complete
+- ✅ Milestone 3: Application Layer (Issues #21-30) - 10/10 complete
+- ✅ Issue #31: FastAPI setup (application factory pattern, lifespan, middleware)
+- ✅ Issue #32: Webhook endpoint (GET/POST with signature verification)
+- ✅ Issue #33: State machine (conversation flow with Redis storage, 100% coverage)
 
-**Current Status**: Milestone 2 Infrastructure - 8/10 complete. Ready to start Issue #19 (Configuration)
+**Current Status**: Milestone 4 Bot Presentation - 3/10 complete. Ready to start Issue #34 (Message parser)
 
 ---
 
@@ -327,7 +315,7 @@ Implement use cases that orchestrate the domain.
 | #29   | Export service        | Generate reports           | ✅ COMPLETE | 2h       |
 | #30   | Application tests     | Use case tests             | ✅ COMPLETE | 3h       |
 
-### Milestone 4: Bot Presentation (Issues #31-40) - Week 4
+### Milestone 4: Bot Presentation (Issues #31-40) - Week 4 - 3/10 Complete
 
 Build the WhatsApp bot interface.
 
@@ -335,7 +323,7 @@ Build the WhatsApp bot interface.
 | ----- | ---------------- | ---------------------------- | ----------- | -------- |
 | #31   | FastAPI setup    | Basic application structure  | ✅ COMPLETE | 2h       |
 | #32   | Webhook endpoint | Receive WhatsApp messages    | ✅ COMPLETE | 2h       |
-| #33   | State machine    | Conversation flow management | 📋 TODO     | 4h       |
+| #33   | State machine    | Conversation flow management | ✅ COMPLETE | 4h       |
 | #34   | Message parser   | Extract data from messages   | 📋 TODO     | 3h       |
 | #35   | Response builder | Format bot responses         | 📋 TODO     | 3h       |
 | #36   | Error handling   | User-friendly errors         | 📋 TODO     | 2h       |
