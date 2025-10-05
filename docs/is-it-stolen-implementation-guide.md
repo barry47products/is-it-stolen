@@ -118,9 +118,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #34: Message parser and router (parsing + routing + WhatsApp integration, 100% coverage)
 - ✅ Issue #35: Response builder (formatted bot messages with templates, 100% coverage)
 - ✅ Issue #36: Error handling (ErrorHandler + MessageRouter integration, 100% coverage on both)
-- 🚧 Issue #37: Rate limiting (RateLimiter class complete with 100% coverage, integration pending)
+- 🚧 Issue #37: Rate limiting (RateLimiter + ErrorHandler complete, 100% coverage, MessageProcessor integration pending)
 
-**Current Status**: Milestone 4 Bot Presentation - 6/12 complete (Issue #36 merged, Issue #37 50% done). RateLimiter implemented with 100% coverage (597 tests passing total).
+**Current Status**: Milestone 4 Bot Presentation - 6/12 complete (Issue #36 merged, Issue #37 75% done). RateLimiter and ErrorHandler integration complete with 100% coverage (608 tests passing total).
 
 ---
 
