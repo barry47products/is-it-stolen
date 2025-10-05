@@ -118,8 +118,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #34: Message parser and router (parsing + routing + WhatsApp integration, 100% coverage)
 - ✅ Issue #35: Response builder (formatted bot messages with templates, 100% coverage)
 - ✅ Issue #36: Error handling (ErrorHandler + MessageRouter integration, 100% coverage on both)
+- 🚧 Issue #37: Rate limiting (RateLimiter class complete with 100% coverage, integration pending)
 
-**Current Status**: Milestone 4 Bot Presentation - 6/10 complete (Issue #36 complete and awaiting review). 100% code coverage on ErrorHandler and MessageRouter (586 tests passing total).
+**Current Status**: Milestone 4 Bot Presentation - 6/12 complete (Issue #36 merged, Issue #37 50% done). RateLimiter implemented with 100% coverage (597 tests passing total).
 
 ---
 
@@ -330,7 +331,7 @@ Build the WhatsApp bot interface.
 | #34   | Message parser   | Parse + route messages with WhatsApp | ✅ COMPLETE | 3h       |
 | #35   | Response builder | Template-based message formatting    | ✅ COMPLETE | 3h       |
 | #36   | Error handling   | User-friendly errors                 | ✅ COMPLETE | 3h       |
-| #37   | Rate limiting    | Prevent abuse                        | 📋 TODO     | 2h       |
+| #37   | Rate limiting    | Prevent abuse                        | 🚧 IN PROGRESS | 2h    |
 | #38   | Health checks    | Monitoring endpoints                 | 📋 TODO     | 1h       |
 | #39   | Metrics          | Track usage statistics               | 📋 TODO     | 2h       |
 | #40   | E2E tests        | Full conversation tests              | 📋 TODO     | 4h       |
