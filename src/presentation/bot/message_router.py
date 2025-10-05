@@ -2,6 +2,7 @@
 
 from src.presentation.bot.context import ConversationContext
 from src.presentation.bot.message_parser import MessageParser
+from src.presentation.bot.response_builder import ResponseBuilder
 from src.presentation.bot.state_machine import ConversationStateMachine
 from src.presentation.bot.states import ConversationState
 
@@ -10,16 +11,21 @@ class MessageRouter:
     """Routes messages based on conversation state."""
 
     def __init__(
-        self, state_machine: ConversationStateMachine, parser: MessageParser
+        self,
+        state_machine: ConversationStateMachine,
+        parser: MessageParser,
+        response_builder: ResponseBuilder | None = None,
     ) -> None:
         """Initialize message router.
 
         Args:
             state_machine: Conversation state machine
             parser: Message parser for extracting data
+            response_builder: Response builder for formatting messages
         """
         self.state_machine = state_machine
         self.parser = parser
+        self.response_builder = response_builder or ResponseBuilder()
 
     async def route_message(
         self, phone_number: str, message_text: str
@@ -40,7 +46,7 @@ class MessageRouter:
         if message_text.lower().strip() in ["cancel", "quit", "exit", "stop"]:
             await self.state_machine.cancel(context)
             return {
-                "reply": "Conversation cancelled. Send any message to start again.",
+                "reply": self.response_builder.format_cancel(),
                 "state": ConversationState.CANCELLED.value,
             }
 
@@ -72,13 +78,7 @@ class MessageRouter:
             context, ConversationState.MAIN_MENU
         )
         return {
-            "reply": (
-                "👋 Welcome to Is It Stolen!\n\n"
-                "What would you like to do?\n"
-                "1️⃣ Check if an item is stolen\n"
-                "2️⃣ Report a stolen item\n\n"
-                "Reply with 1 or 2, or type 'cancel' to exit."
-            ),
+            "reply": self.response_builder.format_welcome(),
             "state": new_context.state.value,
         }
 
@@ -93,12 +93,7 @@ class MessageRouter:
                 context, ConversationState.CHECKING_CATEGORY
             )
             return {
-                "reply": (
-                    "🔍 Check if stolen\n\n"
-                    "What type of item do you want to check?\n"
-                    "Examples: bike, phone, laptop, car\n\n"
-                    "Type 'cancel' to go back."
-                ),
+                "reply": self.response_builder.format_checking_category_prompt(),
                 "state": new_context.state.value,
             }
         elif choice in ["2", "report", "Report"]:
@@ -106,22 +101,12 @@ class MessageRouter:
                 context, ConversationState.REPORTING_CATEGORY
             )
             return {
-                "reply": (
-                    "📝 Report stolen item\n\n"
-                    "What type of item was stolen?\n"
-                    "Examples: bike, phone, laptop, car\n\n"
-                    "Type 'cancel' to go back."
-                ),
+                "reply": self.response_builder.format_reporting_category_prompt(),
                 "state": new_context.state.value,
             }
         else:
             return {
-                "reply": (
-                    "Please choose an option:\n"
-                    "1️⃣ Check if an item is stolen\n"
-                    "2️⃣ Report a stolen item\n\n"
-                    "Type 'cancel' to exit."
-                ),
+                "reply": self.response_builder.format_main_menu_invalid_choice(),
                 "state": context.state.value,
             }
 
@@ -140,19 +125,12 @@ class MessageRouter:
                 new_context, ConversationState.CHECKING_DESCRIPTION
             )
             return {
-                "reply": (
-                    f"✅ Got it, checking for: {category.value}\n\n"
-                    "Please describe the item (brand, model, color, etc.):\n"
-                    "Example: Red Trek mountain bike, serial ABC123"
-                ),
+                "reply": self.response_builder.format_category_confirmation(category),
                 "state": new_context.state.value,
             }
         else:
             return {
-                "reply": (
-                    "❌ I didn't recognize that item type.\n\n"
-                    "Please try again with: bike, phone, laptop, or car"
-                ),
+                "reply": self.response_builder.format_invalid_category(),
                 "state": context.state.value,
             }
 
@@ -172,13 +150,7 @@ class MessageRouter:
         )
 
         return {
-            "reply": (
-                "📍 Where was it last seen or stolen?\n\n"
-                "You can either:\n"
-                "• Type a location (e.g., 'Main Street, downtown')\n"
-                "• Send your current location\n"
-                "• Type 'skip' if you don't know"
-            ),
+            "reply": self.response_builder.format_checking_location_prompt(),
             "state": new_context.state.value,
         }
 
@@ -197,13 +169,10 @@ class MessageRouter:
         )
         await self.state_machine.complete(new_context)
 
-        # TODO: Actually query the database with the collected data
-        # For now, just acknowledge
+        # TODO (Issue #36+): Integrate with CheckIfStolenQuery handler
         return {
-            "reply": (
-                "🔍 Searching for matches...\n\n"
-                "No stolen items found matching your description.\n\n"
-                "Send any message to start a new search."
+            "reply": self.response_builder.format_checking_complete(
+                matches_found=False
             ),
             "state": ConversationState.COMPLETE.value,
         }
@@ -222,19 +191,12 @@ class MessageRouter:
                 new_context, ConversationState.REPORTING_DESCRIPTION
             )
             return {
-                "reply": (
-                    f"✅ Reporting stolen: {category.value}\n\n"
-                    "Please describe the item in detail:\n"
-                    "Include: brand, model, color, serial number, any unique features"
-                ),
+                "reply": self.response_builder.format_reporting_confirmation(category),
                 "state": new_context.state.value,
             }
         else:
             return {
-                "reply": (
-                    "❌ I didn't recognize that item type.\n\n"
-                    "Please try again with: bike, phone, laptop, or car"
-                ),
+                "reply": self.response_builder.format_invalid_category(),
                 "state": context.state.value,
             }
 
@@ -252,13 +214,7 @@ class MessageRouter:
         )
 
         return {
-            "reply": (
-                "📍 Where was it stolen?\n\n"
-                "You can either:\n"
-                "• Type the location\n"
-                "• Send your location\n"
-                "• Type 'unknown' if you're not sure"
-            ),
+            "reply": self.response_builder.format_reporting_location_prompt(),
             "state": new_context.state.value,
         }
 
@@ -276,13 +232,8 @@ class MessageRouter:
         )
         await self.state_machine.complete(new_context)
 
-        # TODO: Actually save to database with the collected data
+        # TODO (Issue #36+): Integrate with ReportStolenItemCommand handler
         return {
-            "reply": (
-                "✅ Thank you for reporting!\n\n"
-                "Your stolen item has been recorded.\n"
-                "We'll notify you if there are any matches.\n\n"
-                "Send any message to make another report."
-            ),
+            "reply": self.response_builder.format_reporting_complete(),
             "state": ConversationState.COMPLETE.value,
         }
