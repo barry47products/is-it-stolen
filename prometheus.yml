@@ -1,0 +1,28 @@
+# Prometheus configuration for Is It Stolen metrics
+
+global:
+  scrape_interval: 15s      # Scrape metrics every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  scrape_timeout: 10s       # Timeout after 10 seconds
+
+# Scrape configurations
+scrape_configs:
+  # Is It Stolen API metrics
+  - job_name: 'isitstolen'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # Your FastAPI app
+        labels:
+          service: 'isitstolen-api'
+          environment: 'development'
+
+    # Optional: Add more instances if you run multiple
+    # - targets: ['host.docker.internal:8001']
+    #   labels:
+    #     service: 'isitstolen-api'
+    #     instance: '2'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
