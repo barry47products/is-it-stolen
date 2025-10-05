@@ -346,7 +346,7 @@ class MessageRouter:
         latitude = None
         longitude = None
         if location_text:
-            # TODO(#37): Parse actual coordinates from location text using geocoding
+            # TODO(#91): Parse actual coordinates from location text using geocoding
             # For now, location is just text - will need geocoding service
             pass
 
@@ -377,7 +377,7 @@ class MessageRouter:
         location_text = data.get("location")
 
         # Parse location if provided (use placeholder coordinates for now)
-        # TODO(#37): Implement geocoding to convert location text to coordinates
+        # TODO(#91): Implement geocoding to convert location text to coordinates
         latitude = 0.0
         longitude = 0.0
         if location_text:
@@ -388,7 +388,9 @@ class MessageRouter:
             reporter_phone=context.phone_number,
             item_type=str(category),
             description=description,
-            stolen_date=datetime.now(UTC),  # Use current time as placeholder
+            stolen_date=datetime.now(
+                UTC
+            ),  # TODO(#92): Collect actual stolen date from user
             latitude=latitude,
             longitude=longitude,
             brand=brand_model,
