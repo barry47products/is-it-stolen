@@ -305,17 +305,17 @@ class TestSettings:
         """Should load rate limiting configuration."""
         # Arrange
         os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5555/test"
-        os.environ["RATE_LIMIT_WINDOW_MS"] = "30000"
+        os.environ["RATE_LIMIT_WINDOW_SECONDS"] = "30"
         os.environ["RATE_LIMIT_MAX_REQUESTS"] = "20"
 
         # Act
         settings = Settings()
 
         # Assert
-        assert settings.rate_limit_window_ms == 30000
+        assert settings.rate_limit_window_seconds == 30
         assert settings.rate_limit_max_requests == 20
 
         # Cleanup
         del os.environ["DATABASE_URL"]
-        del os.environ["RATE_LIMIT_WINDOW_MS"]
+        del os.environ["RATE_LIMIT_WINDOW_SECONDS"]
         del os.environ["RATE_LIMIT_MAX_REQUESTS"]

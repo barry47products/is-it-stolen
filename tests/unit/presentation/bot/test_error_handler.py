@@ -9,6 +9,7 @@ from src.domain.exceptions.domain_exceptions import (
     ItemNotFoundError,
     RepositoryError,
 )
+from src.infrastructure.cache.rate_limiter import RateLimitExceeded
 from src.infrastructure.whatsapp.exceptions import (
     WhatsAppAPIError,
     WhatsAppError,
@@ -214,3 +215,43 @@ class TestErrorHandler:
         # Assert
         assert "conversation" in response.lower() or "problem" in response.lower()
         assert "try" in response.lower() or "cancel" in response.lower()
+
+    def test_handle_rate_limit_exceeded_error(self) -> None:
+        """Test handling rate limit exceeded error."""
+        # Arrange
+        handler = ErrorHandler()
+        error = RateLimitExceeded("Rate limit exceeded", retry_after=90)
+
+        # Act
+        response = handler.handle_error(error)
+
+        # Assert
+        assert "too quickly" in response.lower() or "wait" in response.lower()
+        assert "1 minute" in response.lower()
+        assert "30 second" in response.lower()
+
+    def test_handle_rate_limit_exceeded_seconds_only(self) -> None:
+        """Test handling rate limit with seconds only."""
+        # Arrange
+        handler = ErrorHandler()
+        error = RateLimitExceeded("Rate limit exceeded", retry_after=45)
+
+        # Act
+        response = handler.handle_error(error)
+
+        # Assert
+        assert "45 seconds" in response.lower()
+        assert "minute" not in response.lower()
+
+    def test_handle_rate_limit_exceeded_minutes_only(self) -> None:
+        """Test handling rate limit with exact minutes (no seconds)."""
+        # Arrange
+        handler = ErrorHandler()
+        error = RateLimitExceeded("Rate limit exceeded", retry_after=120)
+
+        # Act
+        response = handler.handle_error(error)
+
+        # Assert
+        assert "2 minutes" in response.lower()
+        assert "second" not in response.lower()

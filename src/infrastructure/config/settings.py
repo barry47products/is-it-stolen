@@ -82,10 +82,10 @@ class Settings(BaseSettings):
     )
 
     # Rate Limiting
-    rate_limit_window_ms: int = Field(
-        default=60000,
+    rate_limit_window_seconds: int = Field(
+        default=60,
         ge=MIN_RATE_LIMIT,
-        description="Rate limit window in milliseconds",
+        description="Rate limit window in seconds",
     )
     rate_limit_max_requests: int = Field(
         default=10,
