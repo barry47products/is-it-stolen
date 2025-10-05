@@ -1,10 +1,24 @@
 """Message router for handling state-based message routing."""
 
+import logging
+from datetime import UTC, datetime
+
+from src.application.commands.report_stolen_item import (
+    ReportStolenItemCommand,
+    ReportStolenItemHandler,
+)
+from src.application.queries.check_if_stolen import (
+    CheckIfStolenHandler,
+    CheckIfStolenQuery,
+)
 from src.presentation.bot.context import ConversationContext
+from src.presentation.bot.error_handler import ErrorHandler
 from src.presentation.bot.message_parser import MessageParser
 from src.presentation.bot.response_builder import ResponseBuilder
 from src.presentation.bot.state_machine import ConversationStateMachine
 from src.presentation.bot.states import ConversationState
+
+logger = logging.getLogger(__name__)
 
 
 class MessageRouter:
@@ -15,6 +29,9 @@ class MessageRouter:
         state_machine: ConversationStateMachine,
         parser: MessageParser,
         response_builder: ResponseBuilder | None = None,
+        check_if_stolen_handler: CheckIfStolenHandler | None = None,
+        report_stolen_item_handler: ReportStolenItemHandler | None = None,
+        error_handler: ErrorHandler | None = None,
     ) -> None:
         """Initialize message router.
 
@@ -22,10 +39,16 @@ class MessageRouter:
             state_machine: Conversation state machine
             parser: Message parser for extracting data
             response_builder: Response builder for formatting messages
+            check_if_stolen_handler: Handler for checking stolen items (optional)
+            report_stolen_item_handler: Handler for reporting stolen items (optional)
+            error_handler: Handler for mapping exceptions to user messages
         """
         self.state_machine = state_machine
         self.parser = parser
         self.response_builder = response_builder or ResponseBuilder()
+        self.check_if_stolen_handler = check_if_stolen_handler
+        self.report_stolen_item_handler = report_stolen_item_handler
+        self.error_handler = error_handler or ErrorHandler()
 
     async def route_message(
         self, phone_number: str, message_text: str
@@ -169,13 +192,44 @@ class MessageRouter:
         )
         await self.state_machine.complete(new_context)
 
-        # TODO (Issue #36+): Integrate with CheckIfStolenQuery handler
-        return {
-            "reply": self.response_builder.format_checking_complete(
-                matches_found=False
-            ),
-            "state": ConversationState.COMPLETE.value,
-        }
+        # Query database for stolen items if handler is available
+        if self.check_if_stolen_handler is not None:
+            try:
+                # Build query from collected data
+                query = self._build_check_query(new_context)
+
+                # Execute query
+                result = await self.check_if_stolen_handler.handle(query)
+
+                # Format response based on results
+                matches_found = len(result.matches) > 0
+                match_count = len(result.matches)
+
+                return {
+                    "reply": self.response_builder.format_checking_complete(
+                        matches_found=matches_found, match_count=match_count
+                    ),
+                    "state": ConversationState.COMPLETE.value,
+                }
+            except Exception as error:
+                # Log and return user-friendly error message
+                logger.error(
+                    f"Error checking stolen items: {error}",
+                    exc_info=True,
+                    extra={"phone_number": new_context.phone_number},
+                )
+                return {
+                    "reply": self.error_handler.handle_error(error),
+                    "state": ConversationState.COMPLETE.value,
+                }
+        else:
+            # No handler available - return placeholder response
+            return {
+                "reply": self.response_builder.format_checking_complete(
+                    matches_found=False
+                ),
+                "state": ConversationState.COMPLETE.value,
+            }
 
     async def _handle_reporting_category(
         self, context: ConversationContext, message_text: str
@@ -232,8 +286,110 @@ class MessageRouter:
         )
         await self.state_machine.complete(new_context)
 
-        # TODO (Issue #36+): Integrate with ReportStolenItemCommand handler
-        return {
-            "reply": self.response_builder.format_reporting_complete(),
-            "state": ConversationState.COMPLETE.value,
-        }
+        # Save stolen item report if handler is available
+        if self.report_stolen_item_handler is not None:
+            try:
+                # Build command from collected data
+                command = self._build_report_command(new_context)
+
+                # Execute command
+                item_id = await self.report_stolen_item_handler.handle(command)
+
+                # Log success
+                logger.info(
+                    "Stolen item reported successfully",
+                    extra={
+                        "item_id": str(item_id),
+                        "phone_number": new_context.phone_number,
+                    },
+                )
+
+                return {
+                    "reply": self.response_builder.format_reporting_complete(),
+                    "state": ConversationState.COMPLETE.value,
+                }
+            except Exception as error:
+                # Log and return user-friendly error message
+                logger.error(
+                    f"Error reporting stolen item: {error}",
+                    exc_info=True,
+                    extra={"phone_number": new_context.phone_number},
+                )
+                return {
+                    "reply": self.error_handler.handle_error(error),
+                    "state": ConversationState.COMPLETE.value,
+                }
+        else:
+            # No handler available - return placeholder response
+            return {
+                "reply": self.response_builder.format_reporting_complete(),
+                "state": ConversationState.COMPLETE.value,
+            }
+
+    def _build_check_query(self, context: ConversationContext) -> CheckIfStolenQuery:
+        """Build CheckIfStolenQuery from conversation context data.
+
+        Args:
+            context: Conversation context with collected data
+
+        Returns:
+            CheckIfStolenQuery ready to execute
+        """
+        data = context.data
+        description = str(data.get("description", ""))
+        brand_model_value = data.get("brand_model", "")
+        brand_model = str(brand_model_value) if brand_model_value else None
+        category = data.get("category")
+        location_text = data.get("location")
+
+        # Parse location if provided
+        latitude = None
+        longitude = None
+        if location_text:
+            # TODO(#37): Parse actual coordinates from location text using geocoding
+            # For now, location is just text - will need geocoding service
+            pass
+
+        return CheckIfStolenQuery(
+            description=description,
+            brand=brand_model,
+            category=str(category) if category else None,
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+    def _build_report_command(
+        self, context: ConversationContext
+    ) -> ReportStolenItemCommand:
+        """Build ReportStolenItemCommand from conversation context data.
+
+        Args:
+            context: Conversation context with collected data
+
+        Returns:
+            ReportStolenItemCommand ready to execute
+        """
+        data = context.data
+        description = str(data.get("description", ""))
+        brand_model_value = data.get("brand_model", "")
+        brand_model = str(brand_model_value) if brand_model_value else None
+        category = data.get("category", "unknown")
+        location_text = data.get("location")
+
+        # Parse location if provided (use placeholder coordinates for now)
+        # TODO(#37): Implement geocoding to convert location text to coordinates
+        latitude = 0.0
+        longitude = 0.0
+        if location_text:
+            # Placeholder - will need actual geocoding service
+            pass
+
+        return ReportStolenItemCommand(
+            reporter_phone=context.phone_number,
+            item_type=str(category),
+            description=description,
+            stolen_date=datetime.now(UTC),  # Use current time as placeholder
+            latitude=latitude,
+            longitude=longitude,
+            brand=brand_model,
+        )
