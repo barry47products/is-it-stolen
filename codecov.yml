@@ -13,6 +13,37 @@ coverage:
         target: 80%
         threshold: 1%
         if_ci_failed: error
+      # Domain layer (core business logic)
+      domain:
+        target: 100%
+        paths:
+          - "src/domain/**"
+        flags:
+          - unit
+      # Application layer (use cases)
+      application:
+        target: 100%
+        paths:
+          - "src/application/**"
+        flags:
+          - unit
+          - integration
+      # Infrastructure layer
+      infrastructure:
+        target: 95%
+        paths:
+          - "src/infrastructure/**"
+        flags:
+          - unit
+          - integration
+      # Presentation layer (API/Bot)
+      presentation:
+        target: 95%
+        paths:
+          - "src/presentation/**"
+        flags:
+          - unit
+          - integration
     patch:
       default:
         target: 80%
@@ -22,8 +53,99 @@ coverage:
       default:
         if_ci_failed: error
 
+# Component breakdown by architectural layer
+component_management:
+  individual_components:
+    # Domain Layer Components
+    - component_id: domain_entities
+      name: Domain Entities
+      paths:
+        - src/domain/entities/**
+    - component_id: domain_value_objects
+      name: Domain Value Objects
+      paths:
+        - src/domain/value_objects/**
+    - component_id: domain_services
+      name: Domain Services
+      paths:
+        - src/domain/services/**
+    - component_id: domain_events
+      name: Domain Events
+      paths:
+        - src/domain/events/**
+    - component_id: domain_exceptions
+      name: Domain Exceptions
+      paths:
+        - src/domain/exceptions/**
+
+    # Application Layer Components
+    - component_id: application_commands
+      name: Application Commands
+      paths:
+        - src/application/commands/**
+    - component_id: application_queries
+      name: Application Queries
+      paths:
+        - src/application/queries/**
+    - component_id: application_services
+      name: Application Services
+      paths:
+        - src/application/services/**
+
+    # Infrastructure Layer Components
+    - component_id: infrastructure_persistence
+      name: Infrastructure - Persistence
+      paths:
+        - src/infrastructure/persistence/**
+    - component_id: infrastructure_whatsapp
+      name: Infrastructure - WhatsApp
+      paths:
+        - src/infrastructure/whatsapp/**
+    - component_id: infrastructure_messaging
+      name: Infrastructure - Messaging
+      paths:
+        - src/infrastructure/messaging/**
+    - component_id: infrastructure_cache
+      name: Infrastructure - Cache
+      paths:
+        - src/infrastructure/cache/**
+    - component_id: infrastructure_config
+      name: Infrastructure - Config
+      paths:
+        - src/infrastructure/config/**
+    - component_id: infrastructure_media
+      name: Infrastructure - Media
+      paths:
+        - src/infrastructure/media/**
+
+    # Presentation Layer Components
+    - component_id: presentation_api
+      name: Presentation - API
+      paths:
+        - src/presentation/api/**
+    - component_id: presentation_bot
+      name: Presentation - Bot
+      paths:
+        - src/presentation/bot/**
+
+# Flag management for test types
+flag_management:
+  individual_flags:
+    - name: unit
+      paths:
+        - src/**
+      carryforward: true
+    - name: integration
+      paths:
+        - src/**
+      carryforward: true
+    - name: e2e
+      paths:
+        - src/**
+      carryforward: true
+
 comment:
-  layout: "reach,diff,tree,footer"
+  layout: "reach,diff,flags,components,tree,footer"
   behavior: default
   require_changes: false
   require_base: false

@@ -59,6 +59,8 @@ exclude = [
     ".mypy_cache",
     ".pytest_cache",
     "alembic",
+    "*.md",
+    "docs/",
 ]
 
 [tool.ruff.lint]

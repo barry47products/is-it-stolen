@@ -103,32 +103,20 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 
 ### Progress Summary
 
-**Last Updated**: October 3, 2025
+**Last Updated**: October 5, 2025
 
 **Completed**:
 
 - ✅ Development environment setup (Poetry, Docker, Alembic, pre-commit hooks)
 - ✅ CI/CD pipeline (GitHub Actions with SonarCloud, Codecov)
-- ✅ Issue #1: Location value object with Haversine distance calculation
-- ✅ Issue #2: ItemCategory enum with YAML-based keyword configuration
-- ✅ Issue #3: PhoneNumber value object with E.164 validation
-- ✅ Issue #4: StolenItem entity (aggregate root)
-- ✅ Issue #5: Domain events (ItemReported, ItemVerified, ItemRecovered)
-- ✅ Issue #6: Item matching service with text similarity
-- ✅ Issue #7: Domain exceptions (domain-specific exception types)
-- ✅ Issue #8: Item attributes (flexible attributes per category)
-- ✅ Issue #9: Verification service (business rules for verification)
-- ✅ Issue #10: Domain integration tests (domain layer integration)
-- ✅ Issue #11: Database setup (PostgreSQL 18 with PostGIS 3.6)
-- ✅ Issue #12: SQLAlchemy models (database models with GeoAlchemy2)
-- ✅ Issue #13: Repository pattern (async PostgreSQL repository with PostGIS queries)
-- ✅ Issue #14: WhatsApp client (REST API client with retry logic)
-- ✅ Issue #15: Webhook handler (parse and validate webhooks with signature verification)
-- ✅ Issue #16: Redis setup (async Redis client with connection pooling)
-- ✅ Issue #17: Event bus (in-memory event bus with async handlers and error handling)
-- ✅ Issue #18: Media storage (local filesystem storage with Protocol interface for future cloud backends)
+- ✅ Milestone 1: Core Domain (Issues #1-10) - 10/10 complete
+- ✅ Milestone 2: Infrastructure (Issues #11-20) - 10/10 complete
+- ✅ Milestone 3: Application Layer (Issues #21-30) - 10/10 complete
+- ✅ Issue #31: FastAPI setup (application factory pattern, lifespan, middleware)
+- ✅ Issue #32: Webhook endpoint (GET/POST with signature verification)
+- ✅ Issue #33: State machine (conversation flow with Redis storage, 100% coverage)
 
-**Current Status**: Milestone 2 Infrastructure - 8/10 complete. Ready to start Issue #19 (Configuration)
+**Current Status**: Milestone 4 Bot Presentation - 3/10 complete. Ready to start Issue #34 (Message parser)
 
 ---
 
@@ -327,7 +315,7 @@ Implement use cases that orchestrate the domain.
 | #29   | Export service        | Generate reports           | ✅ COMPLETE | 2h       |
 | #30   | Application tests     | Use case tests             | ✅ COMPLETE | 3h       |
 
-### Milestone 4: Bot Presentation (Issues #31-40) - Week 4
+### Milestone 4: Bot Presentation (Issues #31-40) - Week 4 - 3/10 Complete
 
 Build the WhatsApp bot interface.
 
@@ -335,7 +323,7 @@ Build the WhatsApp bot interface.
 | ----- | ---------------- | ---------------------------- | ----------- | -------- |
 | #31   | FastAPI setup    | Basic application structure  | ✅ COMPLETE | 2h       |
 | #32   | Webhook endpoint | Receive WhatsApp messages    | ✅ COMPLETE | 2h       |
-| #33   | State machine    | Conversation flow management | 📋 TODO     | 4h       |
+| #33   | State machine    | Conversation flow management | ✅ COMPLETE | 4h       |
 | #34   | Message parser   | Extract data from messages   | 📋 TODO     | 3h       |
 | #35   | Response builder | Format bot responses         | 📋 TODO     | 3h       |
 | #36   | Error handling   | User-friendly errors         | 📋 TODO     | 2h       |
@@ -4890,7 +4878,7 @@ Full type annotations with MyPy strict mode. Used targeted `# type: ignore[no-an
 - `tests/unit/presentation/test_health.py` - Updated for version in response
 - `pyproject.toml` - Updated MyPy configuration
 
-#### Next Steps
+#### Next Steps (Issue #31)
 
 Issue #32 - Implement WhatsApp webhook endpoint for receiving messages.
 
@@ -4898,10 +4886,10 @@ Issue #32 - Implement WhatsApp webhook endpoint for receiving messages.
 
 ### ✅ Issue #32 - WhatsApp Webhook Endpoint (COMPLETE)
 
-**PR**: https://github.com/barry47products/is-it-stolen/pull/86
+**PR**: `https://github.com/barry47products/is-it-stolen/pull/86`
 **Completed**: 2025-10-05
 
-#### What Was Implemented
+#### Implementation Summary (Issue #32)
 
 **Webhook Verification (GET /v1/webhook):**
 
@@ -4925,7 +4913,7 @@ Issue #32 - Implement WhatsApp webhook endpoint for receiving messages.
 - Validates against WhatsApp app secret
 - Rejects requests with invalid signatures (403)
 
-#### Key Technical Decisions
+#### Technical Approach (Issue #32)
 
 **Webhook Handler Integration:**
 Leveraged existing `WebhookHandler` from infrastructure layer and `verify_webhook_signature()` function. The presentation layer provides thin FastAPI endpoints that delegate to the well-tested infrastructure components.
@@ -4939,7 +4927,7 @@ Full type annotations with targeted `# type: ignore[no-any-unimported]` for Fast
 **Idempotent Design:**
 Webhook endpoint returns 200 immediately after parsing messages. Actual message processing will be queued asynchronously (Issue #33) to prevent webhook timeouts and allow for retries.
 
-#### Test Coverage
+#### Test Results (Issue #32)
 
 - ✅ All 462 tests passing (9 new webhook tests)
 - ✅ 100% coverage on `src/presentation/api/v1/webhook.py`
@@ -4947,7 +4935,7 @@ Webhook endpoint returns 200 immediately after parsing messages. Actual message 
 - ✅ Verification tests (successful, invalid mode, invalid token)
 - ✅ Message tests (valid signature, invalid signature, empty payload, multiple messages, media messages, missing header)
 
-#### Files Created/Modified
+#### Changes Made (Issue #32)
 
 **New Files:**
 
@@ -4959,7 +4947,7 @@ Webhook endpoint returns 200 immediately after parsing messages. Actual message 
 - `src/presentation/api/v1/__init__.py` - Include webhook router
 - `tests/conftest.py` - Add WhatsApp test credentials at module level
 
-#### Integration with Existing Infrastructure
+#### Infrastructure Integration (Issue #32)
 
 The webhook endpoints integrate seamlessly with:
 
@@ -4969,8 +4957,116 @@ The webhook endpoints integrate seamlessly with:
 
 This demonstrates the clean separation between presentation (FastAPI endpoints) and infrastructure (WhatsApp-specific logic).
 
-#### Next Steps
+#### Next Steps (Issue #32)
 
 Issue #33 will implement the conversation state machine to process the queued messages.
+
+---
+
+### ✅ Issue #33 - Conversation State Machine (COMPLETE)
+
+**PR**: `https://github.com/barry47products/is-it-stolen/pull/87`
+**Completed**: 2025-10-05
+
+#### Implementation Summary (Issue #33)
+
+**State Management:**
+
+- 9 conversation states: IDLE, MAIN_MENU, CHECKING_CATEGORY, CHECKING_DESCRIPTION, CHECKING_LOCATION, REPORTING_CATEGORY, REPORTING_DESCRIPTION, REPORTING_LOCATION, COMPLETE, CANCELLED
+- STATE_TRANSITIONS dictionary mapping valid state transitions
+- is_valid_transition() function for validation
+- Terminal states (COMPLETE, CANCELLED) prevent further transitions
+
+**Immutable Context:**
+
+- ConversationContext dataclass with frozen=True
+- Fields: phone_number, state, data, created_at, updated_at
+- with_state() and with_data() return new instances
+- to_dict() and from_dict() for Redis serialization
+- is_active() checks if not in terminal state
+
+**Redis Storage:**
+
+- ConversationStorage Protocol for interface
+- RedisConversationStorage implementation
+- Key format: conversation:{phone_number}
+- TTL support: 3600 seconds (1 hour) default
+- JSON serialization for persistence
+
+**State Machine Operations:**
+
+- get_or_create() - retrieve existing or create new context
+- transition() - validate transition and save
+- update_data() - merge data and save
+- cancel() - transition to CANCELLED and cleanup
+- complete() - transition to COMPLETE and cleanup
+- reset() - delete context from storage
+
+#### Technical Approach (Issue #33)
+
+**Test-Driven Development:**
+Implemented following strict TDD - wrote failing tests first, then implementation. Created 45 tests (41 unit + 4 integration) before any production code. Achieved 100% coverage on all bot modules.
+
+**Immutability Pattern:**
+Used frozen dataclass pattern for ConversationContext to prevent accidental mutation. All state changes return new instances with updated timestamps.
+
+**Protocol Pattern:**
+Defined ConversationStorage as Protocol for structural subtyping, enabling easy mocking in tests while maintaining type safety.
+
+**Fast Integration Tests:**
+Optimized TTL test to verify Redis expiry is set correctly without waiting 2 seconds. Uses redis.ttl() command to check TTL value instead of sleep().
+
+**Type Safety:**
+Full type annotations with targeted # type: ignore comments for Redis library issues. All bot code passes MyPy strict mode.
+
+#### Test Results (Issue #33)
+
+- ✅ All 507 tests passing (45 new bot tests)
+- ✅ 100% coverage on src/presentation/bot/context.py
+- ✅ 100% coverage on src/presentation/bot/exceptions.py
+- ✅ 100% coverage on src/presentation/bot/state_machine.py
+- ✅ 100% coverage on src/presentation/bot/states.py
+- ✅ 100% coverage on src/presentation/bot/storage.py
+- ✅ Pre-commit hooks passing (Ruff, MyPy, formatting)
+- ✅ Protocol pragma comments for coverage
+- ✅ Fast integration tests (no 2s sleep)
+
+#### Changes Made (Issue #33)
+
+**New Files:**
+
+- `src/presentation/bot/__init__.py` - Package initialization
+- `src/presentation/bot/states.py` - State definitions and transitions
+- `src/presentation/bot/context.py` - Immutable conversation context
+- `src/presentation/bot/exceptions.py` - Custom exceptions (InvalidStateTransitionError)
+- `src/presentation/bot/storage.py` - Redis storage with Protocol
+- `src/presentation/bot/state_machine.py` - State machine orchestration
+- `tests/unit/presentation/bot/test_states.py` - State/transition tests (13 tests)
+- `tests/unit/presentation/bot/test_context.py` - Context immutability tests (12 tests)
+- `tests/unit/presentation/bot/test_storage.py` - Redis storage tests (8 tests)
+- `tests/unit/presentation/bot/test_state_machine.py` - State machine tests (8 tests)
+- `tests/integration/presentation/bot/test_conversation_integration.py` - Integration tests (4 tests)
+- `docs/conversation-state-machine.md` - State diagram with Mermaid visualization
+
+**Modified Files:**
+
+- pyproject.toml - Added Ruff exclusion for docs/ and *.md files
+- docs/is-it-stolen-implementation-guide.md - Fixed markdownlint duplicate headings
+
+#### State Machine Documentation (Issue #33)
+
+Full state machine documentation available at [docs/conversation-state-machine.md](docs/conversation-state-machine.md):
+
+- Complete state definitions
+- State transition tables
+- Mermaid state diagram
+- Context structure
+- Redis storage details
+- Navigation commands (back, cancel)
+- Code examples
+
+#### Next Steps (Issue #33)
+
+Issue #34 will implement message routing and handlers to integrate the state machine with webhook messages.
 
 Build incrementally, test thoroughly, and deploy confidently!
