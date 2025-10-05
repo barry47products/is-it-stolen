@@ -5047,18 +5047,18 @@ Full type annotations with targeted # type: ignore comments for Redis library is
 
 **New Files:**
 
-- src/presentation/bot/__init__.py - Package initialization
-- src/presentation/bot/states.py - State definitions and transitions
-- src/presentation/bot/context.py - Immutable conversation context
-- src/presentation/bot/exceptions.py - Custom exceptions (InvalidStateTransitionError)
-- src/presentation/bot/storage.py - Redis storage with Protocol
-- src/presentation/bot/state_machine.py - State machine orchestration
-- tests/unit/presentation/bot/test_states.py - State/transition tests (13 tests)
-- tests/unit/presentation/bot/test_context.py - Context immutability tests (12 tests)
-- tests/unit/presentation/bot/test_storage.py - Redis storage tests (8 tests)
-- tests/unit/presentation/bot/test_state_machine.py - State machine tests (8 tests)
-- tests/integration/presentation/bot/test_conversation_integration.py - Integration tests (4 tests)
-- docs/conversation-state-machine.md - State diagram with Mermaid visualization
+- `src/presentation/bot/__init__.py` - Package initialization
+- `src/presentation/bot/states.py` - State definitions and transitions
+- `src/presentation/bot/context.py` - Immutable conversation context
+- `src/presentation/bot/exceptions.py` - Custom exceptions (InvalidStateTransitionError)
+- `src/presentation/bot/storage.py` - Redis storage with Protocol
+- `src/presentation/bot/state_machine.py` - State machine orchestration
+- `tests/unit/presentation/bot/test_states.py` - State/transition tests (13 tests)
+- `tests/unit/presentation/bot/test_context.py` - Context immutability tests (12 tests)
+- `tests/unit/presentation/bot/test_storage.py` - Redis storage tests (8 tests)
+- `tests/unit/presentation/bot/test_state_machine.py` - State machine tests (8 tests)
+- `tests/integration/presentation/bot/test_conversation_integration.py` - Integration tests (4 tests)
+- `docs/conversation-state-machine.md` - State diagram with Mermaid visualization
 
 **Modified Files:**
 
