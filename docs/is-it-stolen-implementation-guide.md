@@ -117,8 +117,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #33: State machine (conversation flow with Redis storage, 100% coverage)
 - ✅ Issue #34: Message parser and router (parsing + routing + WhatsApp integration, 100% coverage)
 - ✅ Issue #35: Response builder (formatted bot messages with templates, 100% coverage)
+- 🚧 Issue #36: Error handling (ErrorHandler complete with 100% coverage, integration in progress)
 
-**Current Status**: Milestone 4 Bot Presentation - 5/10 complete. 100% code coverage achieved (566 tests passing). Ready to start Issue #36 (Error handling)
+**Current Status**: Milestone 4 Bot Presentation - 5/10 complete (Issue #36 40% done). 100% code coverage on ErrorHandler (579 tests passing). Integrating error handling into MessageProcessor and MessageRouter.
 
 ---
 
