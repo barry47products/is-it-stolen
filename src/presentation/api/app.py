@@ -19,6 +19,7 @@ from src.infrastructure.config import load_category_keywords
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.persistence.database import init_db
 from src.presentation.api.middleware import LoggingMiddleware, RequestIDMiddleware
+from src.presentation.api.prometheus import router as prometheus_router
 from src.presentation.api.v1 import api_router as v1_router
 
 # Configure structured logging
@@ -96,6 +97,9 @@ def create_app() -> FastAPI:  # type: ignore[no-any-unimported]
     # Add custom middleware
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(LoggingMiddleware)
+
+    # Include Prometheus metrics endpoint (at root level as per Prometheus convention)
+    app.include_router(prometheus_router)
 
     # Include versioned API routes
     app.include_router(v1_router, prefix="/v1")

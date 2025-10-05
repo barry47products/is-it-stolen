@@ -1,0 +1,141 @@
+{
+  "dashboard": {
+    "title": "Is It Stolen - Bot Metrics",
+    "tags": ["isitstolen", "whatsapp", "bot"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "id": 1,
+        "title": "Messages Received (Total)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "messages_received_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "id": 2,
+        "title": "Messages Sent (Total)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "messages_sent_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "id": 3,
+        "title": "Message Rate (per minute)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(messages_received_total[1m]) * 60",
+            "legendFormat": "Received",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(messages_sent_total[1m]) * 60",
+            "legendFormat": "Sent",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Messages/min"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "id": 4,
+        "title": "Response Time (p50, p95, p99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(response_time_seconds_bucket[5m]))",
+            "legendFormat": "p50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(response_time_seconds_bucket[5m]))",
+            "legendFormat": "p95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(response_time_seconds_bucket[5m]))",
+            "legendFormat": "p99",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Response Time"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16},
+        "id": 5,
+        "title": "Active Users",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "active_users_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 16},
+        "id": 6,
+        "title": "Reports Created",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "reports_created_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 16},
+        "id": 7,
+        "title": "Items Checked",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "items_checked_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      }
+    ]
+  }
+}
