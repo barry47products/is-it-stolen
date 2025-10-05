@@ -11,6 +11,7 @@ from src.application.queries.check_if_stolen import (
     CheckIfStolenHandler,
     CheckIfStolenQuery,
 )
+from src.infrastructure.metrics.metrics_service import get_metrics_service
 from src.presentation.bot.context import ConversationContext
 from src.presentation.bot.error_handler import ErrorHandler
 from src.presentation.bot.message_parser import MessageParser
@@ -201,6 +202,10 @@ class MessageRouter:
                 # Execute query
                 result = await self.check_if_stolen_handler.handle(query)
 
+                # Track metrics
+                metrics = get_metrics_service()
+                metrics.increment_items_checked()
+
                 # Format response based on results
                 matches_found = len(result.matches) > 0
                 match_count = len(result.matches)
@@ -294,6 +299,10 @@ class MessageRouter:
 
                 # Execute command
                 item_id = await self.report_stolen_item_handler.handle(command)
+
+                # Track metrics
+                metrics = get_metrics_service()
+                metrics.increment_reports_created()
 
                 # Log success
                 logger.info(
