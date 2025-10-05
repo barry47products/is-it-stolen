@@ -319,24 +319,26 @@ Implement use cases that orchestrate the domain.
 | #29   | Export service        | Generate reports           | ✅ COMPLETE | 2h       |
 | #30   | Application tests     | Use case tests             | ✅ COMPLETE | 3h       |
 
-### Milestone 4: Bot Presentation (Issues #31-40, #91-92) - Week 4 - 7/12 Complete
+### Milestone 4: Bot Presentation (Issues #31-40, #91-92, #94-95) - Week 4 - 7/14 Complete
 
 Build the WhatsApp bot interface.
 
-| Issue | Title            | Description                          | Status      | Estimate |
-| ----- | ---------------- | ------------------------------------ | ----------- | -------- |
-| #31   | FastAPI setup    | Basic application structure          | ✅ COMPLETE | 2h       |
-| #32   | Webhook endpoint | Receive WhatsApp messages            | ✅ COMPLETE | 2h       |
-| #33   | State machine    | Conversation flow management         | ✅ COMPLETE | 4h       |
-| #34   | Message parser   | Parse + route messages with WhatsApp | ✅ COMPLETE | 3h       |
-| #35   | Response builder | Template-based message formatting    | ✅ COMPLETE | 3h       |
-| #36   | Error handling   | User-friendly errors                 | ✅ COMPLETE | 3h       |
-| #37   | Rate limiting    | Prevent abuse                        | ✅ COMPLETE | 2h       |
-| #38   | Health checks    | Monitoring endpoints                 | 📋 TODO     | 1h       |
-| #39   | Metrics          | Track usage statistics               | 📋 TODO     | 2h       |
-| #40   | E2E tests        | Full conversation tests              | 📋 TODO     | 4h       |
-| #91   | Geocoding        | Location text to coordinates         | 📋 TODO     | 3h       |
-| #92   | Stolen date      | Collect actual stolen date from user | 📋 TODO     | 2h       |
+| Issue | Title                        | Description                          | Status      | Estimate |
+| ----- | ---------------------------- | ------------------------------------ | ----------- | -------- |
+| #31   | FastAPI setup                | Basic application structure          | ✅ COMPLETE | 2h       |
+| #32   | Webhook endpoint             | Receive WhatsApp messages            | ✅ COMPLETE | 2h       |
+| #33   | State machine                | Conversation flow management         | ✅ COMPLETE | 4h       |
+| #34   | Message parser               | Parse + route messages with WhatsApp | ✅ COMPLETE | 3h       |
+| #35   | Response builder             | Template-based message formatting    | ✅ COMPLETE | 3h       |
+| #36   | Error handling               | User-friendly errors                 | ✅ COMPLETE | 3h       |
+| #37   | Rate limiting                | Prevent abuse                        | ✅ COMPLETE | 2h       |
+| #38   | Health checks                | Monitoring endpoints                 | 📋 TODO     | 1h       |
+| #39   | Metrics                      | Track usage statistics               | 📋 TODO     | 2h       |
+| #40   | E2E tests                    | Full conversation tests              | 📋 TODO     | 4h       |
+| #91   | Geocoding                    | Location text to coordinates         | 📋 TODO     | 3h       |
+| #92   | Stolen date                  | Collect actual stolen date from user | 📋 TODO     | 2h       |
+| #94   | IP-based rate limiting       | Rate limit per IP for webhooks       | 📋 TODO     | 2h       |
+| #95   | Admin bypass for rate limits | Testing bypass mechanism             | 📋 TODO     | 1h       |
 
 ### Milestone 5: Production Ready (Issues #41-50) - Week 5
 
