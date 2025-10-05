@@ -9,6 +9,7 @@ from src.domain.exceptions.domain_exceptions import (
     ItemNotFoundError,
     RepositoryError,
 )
+from src.infrastructure.cache.rate_limiter import RateLimitExceeded
 from src.infrastructure.whatsapp.exceptions import (
     WhatsAppAPIError,
     WhatsAppError,
@@ -42,7 +43,9 @@ class ErrorHandler:
         )
 
         # Map specific exceptions to user-friendly messages
-        if isinstance(error, RepositoryError):
+        if isinstance(error, RateLimitExceeded):
+            return self._handle_rate_limit_exceeded_error(error)
+        elif isinstance(error, RepositoryError):
             return self._handle_repository_error(error)
         elif isinstance(error, InvalidLocationError):
             return self._handle_invalid_location_error(error)
@@ -133,6 +136,26 @@ class ErrorHandler:
         return (
             "❌ There was a problem processing your request.\n\n"
             "Please try again or type 'cancel' to start over."
+        )
+
+    def _handle_rate_limit_exceeded_error(self, error: RateLimitExceeded) -> str:
+        """Handle rate limit exceeded errors."""
+        retry_minutes = error.retry_after // 60 if error.retry_after >= 60 else 0
+        retry_seconds = error.retry_after % 60
+
+        if retry_minutes > 0:
+            retry_msg = f"{retry_minutes} minute{'s' if retry_minutes != 1 else ''}"
+            if retry_seconds > 0:
+                retry_msg += (
+                    f" and {retry_seconds} second{'s' if retry_seconds != 1 else ''}"
+                )
+        else:
+            retry_msg = f"{retry_seconds} second{'s' if retry_seconds != 1 else ''}"
+
+        return (
+            f"⏳ You're sending messages too quickly.\n\n"
+            f"Please wait {retry_msg} before trying again.\n"
+            f"This helps us keep the service running smoothly for everyone."
         )
 
     def _handle_unexpected_error(self, _error: Exception) -> str:
