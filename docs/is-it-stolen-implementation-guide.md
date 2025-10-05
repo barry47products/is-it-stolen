@@ -117,8 +117,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #33: State machine (conversation flow with Redis storage, 100% coverage)
 - ✅ Issue #34: Message parser and router (parsing + routing + WhatsApp integration, 100% coverage)
 - ✅ Issue #35: Response builder (formatted bot messages with templates, 100% coverage)
+- ✅ Issue #36: Error handling (ErrorHandler + MessageRouter integration, 100% coverage on both)
 
-**Current Status**: Milestone 4 Bot Presentation - 5/10 complete. 100% code coverage achieved (566 tests passing). Ready to start Issue #36 (Error handling)
+**Current Status**: Milestone 4 Bot Presentation - 6/10 complete (Issue #36 complete and awaiting review). 100% code coverage on ErrorHandler and MessageRouter (586 tests passing total).
 
 ---
 
@@ -317,7 +318,7 @@ Implement use cases that orchestrate the domain.
 | #29   | Export service        | Generate reports           | ✅ COMPLETE | 2h       |
 | #30   | Application tests     | Use case tests             | ✅ COMPLETE | 3h       |
 
-### Milestone 4: Bot Presentation (Issues #31-40) - Week 4 - 5/10 Complete
+### Milestone 4: Bot Presentation (Issues #31-40) - Week 4 - 6/10 Complete
 
 Build the WhatsApp bot interface.
 
@@ -328,7 +329,7 @@ Build the WhatsApp bot interface.
 | #33   | State machine    | Conversation flow management         | ✅ COMPLETE | 4h       |
 | #34   | Message parser   | Parse + route messages with WhatsApp | ✅ COMPLETE | 3h       |
 | #35   | Response builder | Template-based message formatting    | ✅ COMPLETE | 3h       |
-| #36   | Error handling   | User-friendly errors                 | 📋 TODO     | 2h       |
+| #36   | Error handling   | User-friendly errors                 | ✅ COMPLETE | 3h       |
 | #37   | Rate limiting    | Prevent abuse                        | 📋 TODO     | 2h       |
 | #38   | Health checks    | Monitoring endpoints                 | 📋 TODO     | 1h       |
 | #39   | Metrics          | Track usage statistics               | 📋 TODO     | 2h       |
