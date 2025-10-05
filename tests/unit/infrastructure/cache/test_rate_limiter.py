@@ -55,6 +55,7 @@ class TestRateLimiter:
         # Arrange
         redis_client = MagicMock()
         redis_client.get = AsyncMock(return_value=b"10")
+        redis_client.ttl = AsyncMock(return_value=60)
 
         limiter = RateLimiter(
             redis_client, max_requests=10, window=timedelta(minutes=1)
@@ -128,7 +129,7 @@ class TestRateLimiter:
         # Arrange
         redis_client = MagicMock()
         redis_client.get = AsyncMock(return_value=b"5")
-        redis_client.incr = AsyncMock()
+        redis_client.ttl = AsyncMock(return_value=60)
 
         limiter = RateLimiter(redis_client, max_requests=5, window=timedelta(minutes=1))
 
