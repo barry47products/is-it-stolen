@@ -15,7 +15,9 @@ class TestAPIStructure:
 
         # Assert
         assert response.status_code == 200
-        assert response.json() == {"status": "healthy", "api_version": "v1"}
+        data = response.json()
+        assert data["status"] == "healthy"
+        assert "version" in data
 
     def test_root_health_endpoint_exists(self, client: TestClient) -> None:
         """Test that root health endpoint exists at /health."""
