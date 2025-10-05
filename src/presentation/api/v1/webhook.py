@@ -1,6 +1,8 @@
 """WhatsApp webhook endpoints."""
 
-from fastapi import APIRouter, Header, HTTPException, Query, Request
+import logging
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse
 
 from src.infrastructure.config.settings import get_settings
@@ -8,6 +10,10 @@ from src.infrastructure.whatsapp.webhook_handler import (
     WebhookHandler,
     verify_webhook_signature,
 )
+from src.presentation.api.dependencies import get_message_processor
+from src.presentation.bot.message_processor import MessageProcessor
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["webhook"])
 
@@ -59,15 +65,18 @@ async def verify_webhook(  # type: ignore[no-any-unimported]
 async def receive_webhook(  # type: ignore[no-any-unimported]
     request: Request,
     x_hub_signature_256: str = Header(alias="X-Hub-Signature-256"),
+    message_processor: MessageProcessor = Depends(get_message_processor),
 ) -> dict[str, str | int]:
     """Receive webhook events from WhatsApp.
 
     This endpoint handles POST requests containing message events from WhatsApp.
-    It verifies the signature, parses messages, and queues them for processing.
+    It verifies the signature, parses messages, and processes them through
+    the conversation state machine.
 
     Args:
         request: FastAPI request containing the webhook payload
         x_hub_signature_256: HMAC SHA256 signature header for verification
+        message_processor: Message processor for handling conversations
 
     Returns:
         Success response dict
@@ -96,8 +105,52 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
     handler = get_webhook_handler()
     messages = handler.parse_webhook_payload(payload)
 
-    # TODO: Queue messages for processing
-    # For now, just acknowledge receipt
-    # In Issue #33 we'll implement the conversation state machine
+    # Process each message through state machine
+    # Messages will be processed asynchronously
+    # In Issue #34 we'll implement the full message routing logic
+    processed_count = 0
+    failed_count = 0
 
-    return {"status": "success", "messages_received": len(messages)}
+    for msg in messages:
+        phone_number = msg.get("from", "")
+        message_text = msg.get("text", "")
+
+        if not phone_number or not message_text:
+            logger.warning(
+                "Skipping message with missing phone_number or text",
+                extra={"webhook_message": msg},
+            )
+            failed_count += 1
+            continue
+
+        try:
+            # Process message through state machine
+            response = await message_processor.process_message(
+                phone_number, message_text
+            )
+            logger.info(
+                "Message processed successfully",
+                extra={
+                    "phone_number": phone_number,
+                    "state": response.get("state"),
+                },
+            )
+            processed_count += 1
+
+            # TODO: Send response back to user via WhatsApp API (Issue #34)
+
+        except Exception as e:
+            logger.error(
+                "Failed to process message",
+                extra={"phone_number": phone_number, "error": str(e)},
+                exc_info=True,
+            )
+            failed_count += 1
+            # Continue processing other messages even if one fails
+
+    return {
+        "status": "success",
+        "messages_received": len(messages),
+        "processed": processed_count,
+        "failed": failed_count,
+    }
