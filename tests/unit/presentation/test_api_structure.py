@@ -76,6 +76,60 @@ class TestMiddleware:
         request_id2 = response2.headers["X-Request-ID"]
         assert request_id1 != request_id2
 
+    @pytest.mark.asyncio
+    async def test_request_id_middleware_handles_non_http_connections(self) -> None:
+        """Test that RequestIDMiddleware passes through non-HTTP connections."""
+        from src.presentation.api.middleware import RequestIDMiddleware
+
+        # Arrange
+        called = False
+
+        async def mock_app(scope, receive, send):  # type: ignore[no-untyped-def]
+            nonlocal called
+            called = True
+
+        middleware = RequestIDMiddleware(app=mock_app)
+        scope = {"type": "websocket"}  # Non-HTTP connection
+
+        async def mock_receive():  # type: ignore[no-untyped-def]
+            return {}
+
+        async def mock_send(message):  # type: ignore[no-untyped-def]
+            pass
+
+        # Act
+        await middleware(scope, mock_receive, mock_send)
+
+        # Assert - should pass through to app without modification
+        assert called
+
+    @pytest.mark.asyncio
+    async def test_logging_middleware_handles_non_http_connections(self) -> None:
+        """Test that LoggingMiddleware passes through non-HTTP connections."""
+        from src.presentation.api.middleware import LoggingMiddleware
+
+        # Arrange
+        called = False
+
+        async def mock_app(scope, receive, send):  # type: ignore[no-untyped-def]
+            nonlocal called
+            called = True
+
+        middleware = LoggingMiddleware(app=mock_app)
+        scope = {"type": "lifespan"}  # Non-HTTP connection
+
+        async def mock_receive():  # type: ignore[no-untyped-def]
+            return {}
+
+        async def mock_send(message):  # type: ignore[no-untyped-def]
+            pass
+
+        # Act
+        await middleware(scope, mock_receive, mock_send)
+
+        # Assert - should pass through to app without modification
+        assert called
+
 
 @pytest.mark.unit
 class TestApplicationLifecycle:
