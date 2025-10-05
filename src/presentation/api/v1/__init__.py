@@ -2,6 +2,8 @@
 
 from fastapi import APIRouter
 
+from src.presentation.api.v1 import webhook
+
 # Create API router for v1
 api_router = APIRouter()
 
@@ -16,7 +18,5 @@ async def health_check_v1() -> dict[str, str]:
     return {"status": "healthy", "api_version": "v1"}
 
 
-# Import and include other routers here as they're created
-# Example:
-# from src.presentation.api.v1.routes import webhook
-# api_router.include_router(webhook.router, prefix="/webhook", tags=["webhook"])
+# Include webhook router
+api_router.include_router(webhook.router)
