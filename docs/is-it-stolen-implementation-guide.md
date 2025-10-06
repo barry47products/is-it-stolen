@@ -128,8 +128,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #95: Admin bypass for rate limiting (testing bypass mechanism, 100% coverage on RateLimiter and dependencies.py)
 - ✅ **Milestone 4: Bot Presentation - 14/14 Complete** ✅
 - ✅ Issue #41: Docker optimization (multi-stage builds, .dockerignore, Chainguard alternative, comprehensive documentation)
+- ✅ Issue #42: CI/CD pipeline (GitHub Actions workflows for CI, Docker builds, deployments with Slack notifications)
 
-**Current Status**: Milestone 5: Production Ready started (1/10 complete). Docker configuration optimized with security-focused Chainguard alternative.
+**Current Status**: Milestone 5: Production Ready in progress (2/10 complete). CI/CD pipelines fully automated with Docker builds, staging/production deployments, and comprehensive monitoring.
 
 ---
 
@@ -349,14 +350,14 @@ Build the WhatsApp bot interface.
 | #94   | IP-based rate limiting       | Rate limit per IP for webhooks       | ✅ COMPLETE | 2h       |
 | #95   | Admin bypass for rate limits | Testing bypass mechanism             | ✅ COMPLETE | 1h       |
 
-### Milestone 5: Production Ready (Issues #41-50) - Week 5 - 1/10 Complete
+### Milestone 5: Production Ready (Issues #41-50) - Week 5 - 2/10 Complete
 
 Polish for production deployment.
 
 | Issue | Title               | Description           | Status      | Estimate |
 | ----- | ------------------- | --------------------- | ----------- | -------- |
 | #41   | Docker optimisation | Multi-stage builds    | ✅ COMPLETE | 2h       |
-| #42   | CI/CD pipeline      | GitHub Actions setup  | 📋 TODO     | 3h       |
+| #42   | CI/CD pipeline      | GitHub Actions setup  | ✅ COMPLETE | 3h       |
 | #43   | Monitoring          | Sentry integration    | 📋 TODO     | 2h       |
 | #44   | Logging             | Structured logging    | 📋 TODO     | 2h       |
 | #45   | Documentation       | API docs, README      | 📋 TODO     | 3h       |
