@@ -21,7 +21,7 @@ def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:  # type
         >>> logger = get_logger(__name__)
         >>> logger.info("User logged in", user_id_hash="a1b2c3d4")
     """
-    return structlog.get_logger(name)
+    return structlog.get_logger(name)  # type: ignore[no-any-return]
 
 
 def bind_user(phone: str, **extra: Any) -> dict[str, Any]:
