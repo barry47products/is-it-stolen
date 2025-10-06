@@ -319,3 +319,37 @@ class TestSettings:
         del os.environ["DATABASE_URL"]
         del os.environ["RATE_LIMIT_WINDOW_SECONDS"]
         del os.environ["RATE_LIMIT_MAX_REQUESTS"]
+
+    def test_rejects_invalid_log_format(self) -> None:
+        """Should reject invalid log format values."""
+        # Arrange
+        os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5555/test"
+        os.environ["LOG_FORMAT"] = "xml"
+
+        # Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+
+        error_msg = str(exc_info.value).lower()
+        assert "log_format" in error_msg
+        assert "xml" in error_msg
+
+        # Cleanup
+        del os.environ["DATABASE_URL"]
+        del os.environ["LOG_FORMAT"]
+
+    def test_accepts_valid_log_formats(self) -> None:
+        """Should accept all valid log format values."""
+        # Arrange
+        valid_formats = ["console", "json"]
+        os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5555/test"
+
+        # Act & Assert
+        for fmt in valid_formats:
+            os.environ["LOG_FORMAT"] = fmt
+            settings = Settings()
+            assert settings.log_format == fmt.lower()
+
+        # Cleanup
+        del os.environ["DATABASE_URL"]
+        del os.environ["LOG_FORMAT"]

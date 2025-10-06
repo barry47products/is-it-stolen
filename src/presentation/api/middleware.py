@@ -1,13 +1,15 @@
 """Custom middleware for FastAPI application."""
 
-import logging
 import time
 import uuid
 
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-logger = logging.getLogger(__name__)
+from src.infrastructure.logging import get_logger
+from src.infrastructure.logging.context import clear_request_id, set_request_id
+
+logger = get_logger(__name__)
 
 
 class RequestIDMiddleware:
@@ -35,9 +37,12 @@ class RequestIDMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # Generate request ID and store in scope
+        # Generate request ID and store in scope and logging context
         request_id = str(uuid.uuid4())
         scope["state"] = {"request_id": request_id}
+
+        # Set request ID in logging context for correlation
+        set_request_id(request_id)
 
         async def send_with_request_id(  # type: ignore[no-any-unimported]
             message: Message,
@@ -53,7 +58,11 @@ class RequestIDMiddleware:
 
             await send(message)
 
-        await self.app(scope, receive, send_with_request_id)
+        try:
+            await self.app(scope, receive, send_with_request_id)
+        finally:
+            # Clear request ID from context after request completes
+            clear_request_id()
 
 
 class LoggingMiddleware:
@@ -82,7 +91,6 @@ class LoggingMiddleware:
             return
 
         # Extract request info from scope
-        request_id = scope.get("state", {}).get("request_id", "unknown")
         method = scope["method"]
         path = scope["path"]
         client_host = (
@@ -90,15 +98,12 @@ class LoggingMiddleware:
         )
         start_time = time.time()
 
-        # Log request
+        # Log request (request_id automatically added from context)
         logger.info(
             "Request started",
-            extra={
-                "request_id": request_id,
-                "method": method,
-                "path": path,
-                "client": client_host,
-            },
+            method=method,
+            path=path,
+            client=client_host,
         )
 
         status_code = 500  # Default to 500 if response never starts
@@ -126,13 +131,10 @@ class LoggingMiddleware:
 
                 logger.info(
                     "Request completed",
-                    extra={
-                        "request_id": request_id,
-                        "method": method,
-                        "path": path,
-                        "status_code": status_code,
-                        "duration_ms": round(duration_ms, 2),
-                    },
+                    method=method,
+                    path=path,
+                    status_code=status_code,
+                    duration_ms=round(duration_ms, 2),
                 )
 
         await self.app(scope, receive, send_with_logging)

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -17,18 +16,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.domain.value_objects.item_category import ItemCategory
 from src.infrastructure.config import load_category_keywords
 from src.infrastructure.config.settings import get_settings
+from src.infrastructure.logging import configure_logging, get_logger
 from src.infrastructure.monitoring.sentry import init_sentry
 from src.infrastructure.persistence.database import init_db
 from src.presentation.api.middleware import LoggingMiddleware, RequestIDMiddleware
 from src.presentation.api.prometheus import router as prometheus_router
 from src.presentation.api.v1 import api_router as v1_router
 
-# Configure structured logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+# Get settings and configure logging early
+settings = get_settings()
+configure_logging(
+    log_level=settings.log_level,
+    log_format=settings.log_format,
+    redact_sensitive=settings.log_redact_sensitive,
 )
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Load category keywords at module level (before app creation)
 ItemCategory.set_keywords(load_category_keywords())
@@ -52,12 +54,23 @@ async def lifespan(  # type: ignore[no-any-unimported]
         None during application runtime
     """
     # Startup
-    logger.info("Starting Is It Stolen API...")
-    settings = get_settings()
-    logger.info(f"Environment: {settings.environment}")
+    logger.info("Starting Is It Stolen API", version="0.1.0")
+    startup_settings = get_settings()
+    logger.info(
+        "Configuration loaded",
+        environment=startup_settings.environment,
+        log_level=startup_settings.log_level,
+        log_format=startup_settings.log_format,
+        debug=startup_settings.debug,
+    )
 
     # Initialize Sentry error tracking
-    init_sentry(settings)
+    init_sentry(startup_settings)
+    if startup_settings.sentry_dsn:
+        logger.info(
+            "Sentry initialized",
+            sentry_environment=startup_settings.sentry_environment,
+        )
 
     # Initialize database
     init_db()
@@ -68,7 +81,7 @@ async def lifespan(  # type: ignore[no-any-unimported]
     yield
 
     # Shutdown
-    logger.info("Shutting down Is It Stolen API...")
+    logger.info("Shutting down Is It Stolen API")
     logger.info("Application shutdown complete")
 
 

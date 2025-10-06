@@ -129,6 +129,14 @@ class Settings(BaseSettings):
         default="info",
         description="Logging level (debug, info, warning, error)",
     )
+    log_format: str = Field(
+        default="console",
+        description="Log output format (console for development, json for production)",
+    )
+    log_redact_sensitive: bool = Field(
+        default=True,
+        description="Whether to redact sensitive data from logs (passwords, tokens, etc.)",
+    )
 
     # Sentry Error Tracking
     sentry_dsn: str = Field(
@@ -170,6 +178,17 @@ class Settings(BaseSettings):
         allowed_levels = {"debug", "info", "warning", "error", "critical"}
         if value.lower() not in allowed_levels:
             raise ValueError(f"log_level must be one of {allowed_levels}, got: {value}")
+        return value.lower()
+
+    @field_validator("log_format")
+    @classmethod
+    def validate_log_format(cls, value: str) -> str:
+        """Validate log format is one of the allowed values."""
+        allowed_formats = {"console", "json"}
+        if value.lower() not in allowed_formats:
+            raise ValueError(
+                f"log_format must be one of {allowed_formats}, got: {value}"
+            )
         return value.lower()
 
     @field_validator("environment")
