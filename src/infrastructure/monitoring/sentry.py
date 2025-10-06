@@ -13,6 +13,9 @@ from src.infrastructure.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
+# Type alias for dictionary with string keys and any values
+DictStrAny = dict[str, Any]
+
 # Sensitive field patterns to scrub from error reports
 SENSITIVE_KEYS = {
     "password",
@@ -53,7 +56,7 @@ def before_send(event: Event, _hint: Hint) -> Event | None:  # type: ignore[no-a
 
         # Scrub headers
         if "headers" in request:
-            request["headers"] = _scrub_dict(cast("dict[str, Any]", request["headers"]))
+            request["headers"] = _scrub_dict(cast("DictStrAny", request["headers"]))
 
         # Scrub query parameters
         if "query_string" in request:
@@ -63,19 +66,19 @@ def before_send(event: Event, _hint: Hint) -> Event | None:  # type: ignore[no-a
 
         # Scrub cookies
         if "cookies" in request:
-            request["cookies"] = _scrub_dict(cast("dict[str, Any]", request["cookies"]))
+            request["cookies"] = _scrub_dict(cast("DictStrAny", request["cookies"]))
 
         # Scrub POST data
         if "data" in request and isinstance(request["data"], dict):
-            request["data"] = _scrub_dict(cast("dict[str, Any]", request["data"]))
+            request["data"] = _scrub_dict(cast("DictStrAny", request["data"]))
 
     # Scrub extra data
     if "extra" in event:
-        event["extra"] = _scrub_dict(cast("dict[str, Any]", event["extra"]))
+        event["extra"] = _scrub_dict(cast("DictStrAny", event["extra"]))
 
     # Scrub context
     if "contexts" in event:
-        event["contexts"] = _scrub_dict(cast("dict[str, Any]", event["contexts"]))
+        event["contexts"] = _scrub_dict(cast("DictStrAny", event["contexts"]))
 
     return event
 
