@@ -205,3 +205,107 @@ class TestRateLimiter:
 
         # Assert
         assert remaining == 10
+
+    @pytest.mark.asyncio
+    async def test_bypass_disabled_by_default(self) -> None:
+        """Test that bypass is disabled by default."""
+        # Arrange
+        redis_client = MagicMock()
+        redis_client.get = AsyncMock(return_value=b"10")
+        redis_client.ttl = AsyncMock(return_value=60)
+
+        limiter = RateLimiter(
+            redis_client, max_requests=10, window=timedelta(minutes=1)
+        )
+
+        # Act & Assert
+        with pytest.raises(RateLimitExceeded):
+            await limiter.check_rate_limit("admin_key")
+
+    @pytest.mark.asyncio
+    async def test_bypass_enabled_allows_requests(self) -> None:
+        """Test that bypass allows requests for configured keys."""
+        # Arrange
+        redis_client = MagicMock()
+        # Redis should not be called for bypass keys
+        redis_client.get = AsyncMock()
+
+        limiter = RateLimiter(
+            redis_client,
+            max_requests=10,
+            window=timedelta(minutes=1),
+            bypass_enabled=True,
+            bypass_keys={"admin_phone", "test_ip"},
+        )
+
+        # Act
+        result = await limiter.check_rate_limit("admin_phone")
+
+        # Assert
+        assert result is True
+        # Redis should NOT be called for bypass keys
+        redis_client.get.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_bypass_only_for_configured_keys(self) -> None:
+        """Test that bypass only applies to configured keys."""
+        # Arrange
+        redis_client = MagicMock()
+        redis_client.get = AsyncMock(return_value=b"10")
+        redis_client.ttl = AsyncMock(return_value=60)
+
+        limiter = RateLimiter(
+            redis_client,
+            max_requests=10,
+            window=timedelta(minutes=1),
+            bypass_enabled=True,
+            bypass_keys={"admin_phone"},
+        )
+
+        # Act & Assert - non-bypass key should still be rate limited
+        with pytest.raises(RateLimitExceeded):
+            await limiter.check_rate_limit("normal_user")
+
+    @pytest.mark.asyncio
+    async def test_bypass_requires_both_enabled_and_key(self) -> None:
+        """Test that bypass requires both enabled flag and matching key."""
+        # Arrange
+        redis_client = MagicMock()
+        redis_client.get = AsyncMock(return_value=b"10")
+        redis_client.ttl = AsyncMock(return_value=60)
+
+        # Bypass disabled even though key is in bypass_keys
+        limiter = RateLimiter(
+            redis_client,
+            max_requests=10,
+            window=timedelta(minutes=1),
+            bypass_enabled=False,
+            bypass_keys={"admin_phone"},
+        )
+
+        # Act & Assert - should still be rate limited
+        with pytest.raises(RateLimitExceeded):
+            await limiter.check_rate_limit("admin_phone")
+
+    @pytest.mark.asyncio
+    async def test_bypass_with_empty_keys_set(self) -> None:
+        """Test that bypass with empty keys set behaves normally."""
+        # Arrange
+        redis_client = MagicMock()
+        redis_client.get = AsyncMock(return_value=None)
+        redis_client.setex = AsyncMock()
+
+        limiter = RateLimiter(
+            redis_client,
+            max_requests=10,
+            window=timedelta(minutes=1),
+            bypass_enabled=True,
+            bypass_keys=set(),
+        )
+
+        # Act
+        result = await limiter.check_rate_limit("any_key")
+
+        # Assert - should work normally since key not in (empty) bypass set
+        assert result is True
+        redis_client.get.assert_called_once()

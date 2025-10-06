@@ -195,3 +195,36 @@ class TestDependencies:
 
         # Assert
         assert limiter1 is limiter2
+
+    def test_get_ip_rate_limiter_with_bypass_config(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test IP rate limiter parses bypass configuration correctly."""
+        from src.infrastructure.cache.rate_limiter import RateLimiter
+        from src.infrastructure.config.settings import Settings
+        from src.presentation.api import dependencies
+
+        # Reset singleton
+        dependencies._ip_rate_limiter = None
+
+        # Mock settings with bypass enabled
+        mock_settings = Settings(
+            database_url="postgresql://test:test@localhost/test",
+            rate_limit_bypass_enabled=True,
+            rate_limit_bypass_keys="+1234567890,192.168.1.1, test_ip",
+        )
+        monkeypatch.setattr(dependencies, "get_settings", lambda: mock_settings)
+
+        # Act
+        limiter = get_ip_rate_limiter()
+
+        # Assert
+        assert isinstance(limiter, RateLimiter)
+        assert limiter.bypass_enabled is True
+        assert "+1234567890" in limiter.bypass_keys
+        assert "192.168.1.1" in limiter.bypass_keys
+        assert "test_ip" in limiter.bypass_keys
+        assert len(limiter.bypass_keys) == 3
+
+        # Cleanup
+        dependencies._ip_rate_limiter = None

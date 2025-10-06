@@ -105,6 +105,16 @@ class Settings(BaseSettings):
         description="Max webhook requests per IP in time window",
     )
 
+    # Rate Limiting Bypass (Admin/Testing)
+    rate_limit_bypass_enabled: bool = Field(
+        default=False,
+        description="Enable rate limit bypass for admin/testing (ONLY use in dev/test)",
+    )
+    rate_limit_bypass_keys: str = Field(
+        default="",
+        description="Comma-separated list of keys to bypass (phone numbers or IPs)",
+    )
+
     # Media Storage
     media_storage_path: Path = Field(
         default=Path("./uploads"),

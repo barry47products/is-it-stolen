@@ -26,6 +26,8 @@ class RateLimiter:
         redis_client: Any,
         max_requests: int,
         window: timedelta,
+        bypass_enabled: bool = False,
+        bypass_keys: set[str] | None = None,
     ) -> None:
         """Initialize rate limiter.
 
@@ -33,10 +35,14 @@ class RateLimiter:
             redis_client: Redis client instance
             max_requests: Maximum requests allowed in window
             window: Time window for rate limiting
+            bypass_enabled: Whether bypass is enabled (dev/test only)
+            bypass_keys: Set of keys that bypass rate limiting
         """
         self.redis_client = redis_client
         self.max_requests = max_requests
         self.window_seconds = int(window.total_seconds())
+        self.bypass_enabled = bypass_enabled
+        self.bypass_keys = bypass_keys or set()
 
     async def check_rate_limit(self, key: str) -> bool:
         """Check if request is within rate limit.
@@ -50,6 +56,10 @@ class RateLimiter:
         Raises:
             RateLimitExceeded: If rate limit is exceeded
         """
+        # Check bypass first
+        if self.bypass_enabled and key in self.bypass_keys:
+            return True
+
         redis_key = f"rate_limit:{key}"
 
         # Get current count

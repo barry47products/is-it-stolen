@@ -161,10 +161,22 @@ def get_ip_rate_limiter() -> RateLimiter:
     if _ip_rate_limiter is None:
         settings = get_settings()
         redis_client = get_redis_client()
+
+        # Parse bypass keys from comma-separated string
+        bypass_keys_set: set[str] = set()
+        if settings.rate_limit_bypass_keys:
+            bypass_keys_set = {
+                key.strip()
+                for key in settings.rate_limit_bypass_keys.split(",")
+                if key.strip()
+            }
+
         _ip_rate_limiter = RateLimiter(
             redis_client=redis_client,
             max_requests=settings.ip_rate_limit_max_requests,
             window=timedelta(seconds=settings.ip_rate_limit_window_seconds),
+            bypass_enabled=settings.rate_limit_bypass_enabled,
+            bypass_keys=bypass_keys_set,
         )
     return _ip_rate_limiter
 
