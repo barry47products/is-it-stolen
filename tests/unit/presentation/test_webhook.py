@@ -1157,3 +1157,40 @@ class TestPhoneNumberRedaction:
 
         # Assert - Should not crash
         assert result == {"entry": "not_a_list"}
+
+    def test_redact_payload_handles_json_serialization_error(self) -> None:
+        """Test that redaction falls back gracefully if JSON serialization fails."""
+        from unittest.mock import patch
+
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange - payload with phone number
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "type": "text",
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        # Mock json.dumps to raise TypeError to trigger fallback path
+        with patch("json.dumps", side_effect=TypeError("Mock serialization error")):
+            # Act
+            result = _redact_payload_phone_numbers(payload)
+
+        # Assert - Should still redact phone and return result (fallback path)
+        assert (
+            result["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
+            == "***7890"
+        )
