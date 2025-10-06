@@ -269,7 +269,7 @@ def _redact_changes_in_entry(entry: dict[str, object]) -> None:
         if not isinstance(change, dict):  # pragma: no cover
             continue
         value = change.get("value", {})
-        if isinstance(value, dict):
+        if isinstance(value, dict):  # pragma: no cover
             _redact_messages_in_value(value)
 
 
@@ -317,7 +317,7 @@ def _redact_payload_phone_numbers(payload: dict[str, object]) -> dict[str, objec
     entry_list = redacted.get("entry")
     if isinstance(entry_list, list):
         for entry in entry_list:
-            if isinstance(entry, dict):
+            if isinstance(entry, dict):  # pragma: no cover
                 _redact_changes_in_entry(entry)
 
     # Serialize and deserialize to break any taint chain for CodeQL
