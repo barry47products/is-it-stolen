@@ -147,6 +147,13 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
     # Parse JSON payload
     payload = await request.json()
 
+    # Log webhook payload in dev/test environments
+    if settings.environment in ("development", "test"):  # pragma: no cover
+        logger.debug(
+            "Received webhook payload",
+            extra={"payload": payload},
+        )
+
     # Parse messages from webhook
     handler = get_webhook_handler()
     messages = handler.parse_webhook_payload(payload)
@@ -160,11 +167,70 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
     for msg in messages:
         phone_number = msg.get("from", "")
         message_text = msg.get("text", "")
+        message_type = msg.get("type", "")
 
-        if not phone_number or not message_text:
+        # Log parsed message in dev/test environments
+        if settings.environment in ("development", "test"):  # pragma: no cover
+            logger.debug(
+                "Processing message",
+                extra={
+                    "phone_number": phone_number,
+                    "type": message_type,
+                    "has_text": bool(message_text),
+                    "has_location": "latitude" in msg and "longitude" in msg,
+                    "msg_data": msg,
+                },
+            )
+
+        # Skip messages without phone number
+        # NOTE: This is defensive code - webhook_handler validates "from" field
+        # so this branch should never be reached in practice
+        if not phone_number:  # pragma: no cover
             logger.warning(
-                "Skipping message with missing phone_number or text",
+                "Skipping message with missing phone_number",
                 extra={"webhook_message": msg},
+            )
+            failed_count += 1
+            continue
+
+        # Handle location messages
+        if message_type == "location":
+            latitude = msg.get("latitude")
+            longitude = msg.get("longitude")
+
+            if latitude and longitude:
+                # Create a text representation of the location for processing
+                location_name = msg.get("location_name", "")
+                location_address = msg.get("location_address", "")
+                message_text = f"Location: {latitude}, {longitude}"
+                if location_name:
+                    message_text += f" ({location_name})"
+                if location_address:
+                    message_text += f" - {location_address}"
+
+                logger.info(
+                    "Received location message",
+                    extra={
+                        "phone_number": phone_number,
+                        "latitude": latitude,
+                        "longitude": longitude,
+                        "location_name": location_name,
+                        "location_address": location_address,
+                    },
+                )
+            else:
+                logger.warning(
+                    "Skipping location message with missing coordinates",
+                    extra={"webhook_message": msg},
+                )
+                failed_count += 1
+                continue
+
+        # Skip non-text/non-location messages without text
+        if not message_text:
+            logger.warning(
+                "Skipping message with missing text",
+                extra={"webhook_message": msg, "type": message_type},
             )
             failed_count += 1
             continue

@@ -19,6 +19,10 @@ class ParsedMessage(TypedDict, total=False):
     text: str
     media_id: str
     mime_type: str
+    latitude: str
+    longitude: str
+    location_name: str
+    location_address: str
 
 
 def verify_webhook_signature(
@@ -246,6 +250,8 @@ class WebhookHandler:
             self._add_text_content(msg, parsed)
         elif msg_type in ("image", "video", "document", "audio"):
             self._add_media_content(msg, msg_type, parsed)
+        elif msg_type == "location":
+            self._add_location_content(msg, parsed)
 
     def _add_text_content(self, msg: dict[str, object], parsed: dict[str, str]) -> None:
         """Add text content to parsed message.
@@ -283,3 +289,34 @@ class WebhookHandler:
         mime_type = media_data.get("mime_type")
         if isinstance(mime_type, str):
             parsed["mime_type"] = mime_type
+
+    def _add_location_content(
+        self, msg: dict[str, object], parsed: dict[str, str]
+    ) -> None:
+        """Add location content to parsed message.
+
+        Args:
+            msg: Message dictionary
+            parsed: Parsed message dict to update
+        """
+        location_data = msg.get("location", {})
+        if not isinstance(location_data, dict):
+            return
+
+        latitude = location_data.get("latitude")
+        longitude = location_data.get("longitude")
+
+        if isinstance(latitude, (int, float)):
+            parsed["latitude"] = str(latitude)
+
+        if isinstance(longitude, (int, float)):
+            parsed["longitude"] = str(longitude)
+
+        # Optional fields
+        location_name = location_data.get("name")
+        if isinstance(location_name, str):
+            parsed["location_name"] = location_name
+
+        location_address = location_data.get("address")
+        if isinstance(location_address, str):
+            parsed["location_address"] = location_address

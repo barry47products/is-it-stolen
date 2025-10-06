@@ -819,3 +819,308 @@ class TestWebhookPayloadParsing:
         assert len(messages) == 1
         assert messages[0]["media_id"] == "media_id_12345"
         assert "mime_type" not in messages[0]
+
+    async def test_parses_location_message(self) -> None:
+        """Should parse location message with coordinates."""
+        # Arrange
+        handler = WebhookHandler(
+            verify_token="test_verify_token",
+            app_secret="test_app_secret",
+        )
+
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "447911123456",
+                                        "id": "wamid.location123",
+                                        "timestamp": "1609459200",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": 51.5074,
+                                            "longitude": -0.1278,
+                                            "name": "London Eye",
+                                            "address": "Riverside Building, County Hall, London",
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+        # Act
+        messages = handler.parse_webhook_payload(payload)
+
+        # Assert
+        assert len(messages) == 1
+        message = messages[0]
+        assert message["type"] == "location"
+        assert message["latitude"] == "51.5074"
+        assert message["longitude"] == "-0.1278"
+        assert message["location_name"] == "London Eye"
+        assert message["location_address"] == "Riverside Building, County Hall, London"
+
+    async def test_parses_location_message_without_optional_fields(self) -> None:
+        """Should parse location message without name and address."""
+        # Arrange
+        handler = WebhookHandler(
+            verify_token="test_verify_token",
+            app_secret="test_app_secret",
+        )
+
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "447911123456",
+                                        "id": "wamid.location123",
+                                        "timestamp": "1609459200",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": 51.5074,
+                                            "longitude": -0.1278,
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+        # Act
+        messages = handler.parse_webhook_payload(payload)
+
+        # Assert
+        assert len(messages) == 1
+        message = messages[0]
+        assert message["type"] == "location"
+        assert message["latitude"] == "51.5074"
+        assert message["longitude"] == "-0.1278"
+        assert "location_name" not in message
+        assert "location_address" not in message
+
+    async def test_handles_location_with_integer_coordinates(self) -> None:
+        """Should handle location with integer coordinates."""
+        # Arrange
+        handler = WebhookHandler(
+            verify_token="test_verify_token",
+            app_secret="test_app_secret",
+        )
+
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "447911123456",
+                                        "id": "wamid.location123",
+                                        "timestamp": "1609459200",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": 52,  # Integer
+                                            "longitude": 0,  # Integer
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+        # Act
+        messages = handler.parse_webhook_payload(payload)
+
+        # Assert
+        assert len(messages) == 1
+        message = messages[0]
+        assert message["latitude"] == "52"
+        assert message["longitude"] == "0"
+
+    async def test_handles_location_with_malformed_location_field(self) -> None:
+        """Should handle location with malformed location field."""
+        # Arrange
+        handler = WebhookHandler(
+            verify_token="test_verify_token",
+            app_secret="test_app_secret",
+        )
+
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "447911123456",
+                                        "id": "wamid.location123",
+                                        "timestamp": "1609459200",
+                                        "type": "location",
+                                        "location": "not_a_dict",  # Should be a dict
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+        # Act
+        messages = handler.parse_webhook_payload(payload)
+
+        # Assert - Should parse message but without location fields
+        assert len(messages) == 1
+        assert "latitude" not in messages[0]
+        assert "longitude" not in messages[0]
+
+    async def test_handles_location_with_missing_coordinates(self) -> None:
+        """Should handle location with missing coordinates."""
+        # Arrange
+        handler = WebhookHandler(
+            verify_token="test_verify_token",
+            app_secret="test_app_secret",
+        )
+
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "447911123456",
+                                        "id": "wamid.location123",
+                                        "timestamp": "1609459200",
+                                        "type": "location",
+                                        "location": {
+                                            "name": "Some place",
+                                            # Missing latitude and longitude
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+        # Act
+        messages = handler.parse_webhook_payload(payload)
+
+        # Assert
+        assert len(messages) == 1
+        assert "latitude" not in messages[0]
+        assert "longitude" not in messages[0]
+        assert messages[0]["location_name"] == "Some place"
+
+    async def test_handles_location_with_non_numeric_coordinates(self) -> None:
+        """Should handle location with non-numeric coordinates."""
+        # Arrange
+        handler = WebhookHandler(
+            verify_token="test_verify_token",
+            app_secret="test_app_secret",
+        )
+
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "447911123456",
+                                        "id": "wamid.location123",
+                                        "timestamp": "1609459200",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": "not_a_number",
+                                            "longitude": "also_not_a_number",
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+        # Act
+        messages = handler.parse_webhook_payload(payload)
+
+        # Assert - Should not include invalid coordinates
+        assert len(messages) == 1
+        assert "latitude" not in messages[0]
+        assert "longitude" not in messages[0]
+
+    async def test_handles_location_with_non_string_name(self) -> None:
+        """Should handle location with non-string name field."""
+        # Arrange
+        handler = WebhookHandler(
+            verify_token="test_verify_token",
+            app_secret="test_app_secret",
+        )
+
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "447911123456",
+                                        "id": "wamid.location123",
+                                        "timestamp": "1609459200",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": 51.5,
+                                            "longitude": -0.1,
+                                            "name": 12345,  # Not a string
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+        # Act
+        messages = handler.parse_webhook_payload(payload)
+
+        # Assert - Should parse coordinates but not name
+        assert len(messages) == 1
+        assert messages[0]["latitude"] == "51.5"
+        assert messages[0]["longitude"] == "-0.1"
+        assert "location_name" not in messages[0]
