@@ -319,7 +319,7 @@ Implement use cases that orchestrate the domain.
 | #29   | Export service        | Generate reports           | ✅ COMPLETE | 2h       |
 | #30   | Application tests     | Use case tests             | ✅ COMPLETE | 3h       |
 
-### Milestone 4: Bot Presentation (Issues #31-40, #91-92, #94-95) - Week 4 - 11/14 Complete
+### Milestone 4: Bot Presentation (Issues #31-40, #91-92, #94-95) - Week 4 - 12/14 Complete
 
 Build the WhatsApp bot interface.
 
@@ -336,7 +336,7 @@ Build the WhatsApp bot interface.
 | #39   | Metrics                      | Track usage statistics               | ✅ COMPLETE | 2h       |
 | #40   | E2E tests                    | Full conversation tests              | ✅ COMPLETE | 4h       |
 | #91   | Geocoding                    | Location text to coordinates         | ✅ COMPLETE | 3h       |
-| #92   | Stolen date                  | Collect actual stolen date from user | 📋 TODO     | 2h       |
+| #92   | Stolen date                  | Collect actual stolen date from user | ✅ COMPLETE | 2h       |
 | #94   | IP-based rate limiting       | Rate limit per IP for webhooks       | 📋 TODO     | 2h       |
 | #95   | Admin bypass for rate limits | Testing bypass mechanism             | 📋 TODO     | 1h       |
 
