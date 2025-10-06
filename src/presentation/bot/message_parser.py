@@ -1,5 +1,9 @@
 """Message parser for extracting structured data from user input."""
 
+from datetime import UTC, datetime
+
+import dateparser
+
 from src.domain.value_objects.item_category import ItemCategory
 from src.infrastructure.config.category_keywords import load_category_keywords
 
@@ -132,3 +136,84 @@ class MessageParser:
         # For now, return the cleaned text
         # Future: implement NLP-based location extraction
         return text.strip()
+
+    def parse_date(self, text: str) -> datetime | None:
+        """Parse date from natural language text.
+
+        Supports formats like:
+        - "today"
+        - "yesterday"
+        - "2 days ago"
+        - "15 Jan 2024"
+        - "last week"
+
+        Args:
+            text: User input text with date
+
+        Returns:
+            Parsed datetime in UTC, or None if parsing fails or date is invalid
+        """
+        text_lower = text.lower().strip()
+
+        # Handle skip/unknown - return current time as default
+        if text_lower in ["skip", "unknown", "don't know", "dont know", "not sure"]:
+            return datetime.now(UTC)
+
+        # Quick validation: reject obviously invalid text to avoid slow dateparser calls
+        # Text should be reasonably short and contain date-related keywords or numbers
+        if len(text) > 100:
+            return None
+
+        has_date_indicator = any(
+            keyword in text_lower
+            for keyword in [
+                "today",
+                "yesterday",
+                "tomorrow",
+                "ago",
+                "last",
+                "week",
+                "month",
+                "year",
+                "jan",
+                "feb",
+                "mar",
+                "apr",
+                "may",
+                "jun",
+                "jul",
+                "aug",
+                "sep",
+                "oct",
+                "nov",
+                "dec",
+            ]
+        ) or any(char.isdigit() for char in text)
+
+        if not has_date_indicator:
+            return None
+
+        # Parse the date using dateparser
+        parsed = dateparser.parse(
+            text,
+            settings={
+                "TIMEZONE": "UTC",
+                "RETURN_AS_TIMEZONE_AWARE": True,
+                "PREFER_DATES_FROM": "past",  # Prefer past dates for "2 days"
+                "STRICT_PARSING": True,  # Stricter parsing to avoid false positives
+            },
+        )
+
+        if parsed is None:
+            return None
+
+        # Type narrowing for MyPy - ensure we have a datetime object
+        if not isinstance(parsed, datetime):
+            return None
+
+        # Validate: date must not be in the future
+        now = datetime.now(UTC)
+        if parsed > now:
+            return None
+
+        return parsed

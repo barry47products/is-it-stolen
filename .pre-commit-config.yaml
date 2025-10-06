@@ -27,6 +27,7 @@ repos:
           - sqlalchemy>=2.0.0
           - types-redis
           - types-pyyaml
+          - types-dateparser
           - phonenumbers>=9.0.15
         args: [--ignore-missing-imports]
         exclude: ^(tests/|alembic/)

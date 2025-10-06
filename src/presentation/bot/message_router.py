@@ -96,6 +96,8 @@ class MessageRouter:
             return await self._handle_reporting_description(context, message_text)
         elif context.state == ConversationState.REPORTING_LOCATION:
             return await self._handle_reporting_location(context, message_text)
+        elif context.state == ConversationState.REPORTING_DATE:
+            return await self._handle_reporting_date(context, message_text)
         else:
             # Terminal state or unknown - reset to idle
             context = await self.state_machine.get_or_create(phone_number)
@@ -294,6 +296,33 @@ class MessageRouter:
         new_context = await self.state_machine.update_data(
             context, {"location": location}
         )
+        await self.state_machine.transition(
+            new_context, ConversationState.REPORTING_DATE
+        )
+
+        return {
+            "reply": self.response_builder.format_reporting_date_prompt(),
+            "state": ConversationState.REPORTING_DATE.value,
+        }
+
+    async def _handle_reporting_date(
+        self, context: ConversationContext, message_text: str
+    ) -> dict[str, str]:
+        """Handle REPORTING_DATE state."""
+        # Parse the date
+        parsed_date = self.parser.parse_date(message_text)
+
+        if parsed_date is None:
+            # Invalid date - stay in same state and ask again
+            return {
+                "reply": self.response_builder.format_invalid_date(),
+                "state": ConversationState.REPORTING_DATE.value,
+            }
+
+        # Store date and complete reporting flow
+        new_context = await self.state_machine.update_data(
+            context, {"stolen_date": parsed_date}
+        )
         await self.state_machine.complete(new_context)
 
         # Save stolen item report if handler is available
@@ -402,13 +431,22 @@ class MessageRouter:
                 latitude = result.latitude
                 longitude = result.longitude
 
+        # Get stolen date from context, or default to now if not provided
+        stolen_date_raw = data.get("stolen_date")
+        if isinstance(stolen_date_raw, datetime):
+            stolen_date = stolen_date_raw
+        elif isinstance(stolen_date_raw, str):
+            # Parse ISO format string back to datetime
+            stolen_date = datetime.fromisoformat(stolen_date_raw)
+        else:
+            # No date provided, use current time
+            stolen_date = datetime.now(UTC)
+
         return ReportStolenItemCommand(
             reporter_phone=context.phone_number,
             item_type=str(category),
             description=description,
-            stolen_date=datetime.now(
-                UTC
-            ),  # TODO(#92): Collect actual stolen date from user
+            stolen_date=stolen_date,
             latitude=latitude,
             longitude=longitude,
             brand=brand_model,

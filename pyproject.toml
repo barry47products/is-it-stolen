@@ -27,6 +27,7 @@ anyio = "^4.11.0"
 pydantic-core = "^2.40.1"
 starlette = "^0.48.0"
 prometheus-client = "^0.21.0"
+dateparser = "^1.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
@@ -43,6 +44,7 @@ ipython = "^9.6.0"
 ipdb = "^0.13.13"
 types-pyyaml = "^6.0.12"
 pyyaml = "^6.0.3"
+types-dateparser = "^1.2.2.20250809"
 
 [build-system]
 requires = ["poetry-core"]
@@ -141,6 +143,9 @@ addopts = [
     "--durations=5",
 ]
 asyncio_mode = "auto"
+filterwarnings = [
+    "ignore:Parsing dates involving a day of month without a year:DeprecationWarning:dateparser.utils.strptime",
+]
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",

@@ -70,10 +70,18 @@ class ConversationContext:
         Returns:
             Dictionary representation of context
         """
+        # Serialize datetime objects in data dict
+        serialized_data: dict[str, object] = {}
+        for key, value in self.data.items():
+            if isinstance(value, datetime):
+                serialized_data[key] = value.isoformat()
+            else:
+                serialized_data[key] = value
+
         return {
             "phone_number": self.phone_number,
             "state": self.state.value,
-            "data": self.data,
+            "data": serialized_data,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }

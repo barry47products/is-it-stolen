@@ -5,6 +5,7 @@
         "anyio",
         "BUILDKIT",
         "cust",
+        "dateparser",
         "dlat",
         "dlon",
         "Dodds",

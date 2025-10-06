@@ -20,6 +20,7 @@ class ConversationState(str, Enum):
     REPORTING_CATEGORY = "reporting_category"
     REPORTING_DESCRIPTION = "reporting_description"
     REPORTING_LOCATION = "reporting_location"
+    REPORTING_DATE = "reporting_date"
     REPORTING_IMAGE = "reporting_image"
     REPORTING_CONFIRM = "reporting_confirm"
 
@@ -69,13 +70,18 @@ STATE_TRANSITIONS: dict[ConversationState, list[ConversationState]] = {
         ConversationState.CANCELLED,
     ],
     ConversationState.REPORTING_LOCATION: [
-        ConversationState.REPORTING_IMAGE,
+        ConversationState.REPORTING_DATE,
         ConversationState.REPORTING_DESCRIPTION,
+        ConversationState.CANCELLED,
+    ],
+    ConversationState.REPORTING_DATE: [
+        ConversationState.REPORTING_IMAGE,
+        ConversationState.REPORTING_LOCATION,
         ConversationState.CANCELLED,
     ],
     ConversationState.REPORTING_IMAGE: [
         ConversationState.REPORTING_CONFIRM,
-        ConversationState.REPORTING_LOCATION,
+        ConversationState.REPORTING_DATE,
         ConversationState.CANCELLED,
     ],
     ConversationState.REPORTING_CONFIRM: [

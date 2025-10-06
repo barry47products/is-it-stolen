@@ -145,6 +145,11 @@ class TestConversationFlows:
 
             # User provides location
             response = await message_processor.process_message(phone, "London, UK")
+            assert "when was it stolen" in response["reply"].lower()
+            assert response["state"] == ConversationState.REPORTING_DATE.value
+
+            # User provides stolen date
+            response = await message_processor.process_message(phone, "yesterday")
             assert (
                 "reported" in response["reply"].lower()
                 or "thank you" in response["reply"].lower()

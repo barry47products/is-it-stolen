@@ -301,8 +301,8 @@ class TestMessageRouter:
         assert "where" in response["reply"].lower()
 
     @pytest.mark.asyncio
-    async def test_reporting_location_completes_flow(self) -> None:
-        """Test reporting location completes the reporting flow."""
+    async def test_reporting_location_transitions_to_date(self) -> None:
+        """Test reporting location transitions to date collection."""
         # Arrange
         phone_number = "+1234567890"
         context = ConversationContext(
@@ -313,7 +313,7 @@ class TestMessageRouter:
         state_machine = MagicMock()
         state_machine.get_or_create = AsyncMock(return_value=context)
         state_machine.update_data = AsyncMock(return_value=context)
-        state_machine.complete = AsyncMock()
+        state_machine.transition = AsyncMock()
 
         parser = MagicMock()
         parser.parse_location_text = MagicMock(return_value="Downtown")
@@ -325,8 +325,11 @@ class TestMessageRouter:
 
         # Assert
         parser.parse_location_text.assert_called_once_with("Downtown")
-        state_machine.complete.assert_called_once()
-        assert "thank you" in response["reply"].lower()
+        state_machine.transition.assert_called_once_with(
+            context, ConversationState.REPORTING_DATE
+        )
+        assert "when was it stolen" in response["reply"].lower()
+        assert response["state"] == ConversationState.REPORTING_DATE.value
 
     @pytest.mark.asyncio
     async def test_terminal_state_resets_to_idle(self) -> None:
@@ -473,7 +476,7 @@ class TestMessageRouter:
         state_machine = MagicMock()
         state_machine.get_or_create = AsyncMock(return_value=context)
         state_machine.update_data = AsyncMock(return_value=context)
-        state_machine.complete = AsyncMock()
+        state_machine.transition = AsyncMock()
 
         parser = MagicMock()
         router = MessageRouter(state_machine, parser)
@@ -619,17 +622,21 @@ class TestMessageRouter:
         assert response["state"] == ConversationState.COMPLETE.value
 
     @pytest.mark.asyncio
-    async def test_reporting_location_executes_command_with_handler(self) -> None:
-        """Test reporting location executes command when handler is available."""
+    async def test_reporting_date_with_valid_date_completes_flow(self) -> None:
+        """Test reporting date with valid date completes flow and executes command."""
         # Arrange
+        from datetime import UTC, datetime, timedelta
+
         phone_number = "+1234567890"
+        yesterday = datetime.now(UTC) - timedelta(days=1)
         context = ConversationContext(
             phone_number=phone_number,
-            state=ConversationState.REPORTING_LOCATION,
+            state=ConversationState.REPORTING_DATE,
             data={
                 "category": ItemCategory.PHONE,
                 "description": "Black iPhone 13 Pro",
                 "brand_model": "iPhone 13",
+                "location": "Downtown",
             },
         )
         state_machine = MagicMock()
@@ -638,7 +645,7 @@ class TestMessageRouter:
         state_machine.complete = AsyncMock()
 
         parser = MagicMock()
-        parser.parse_location_text = MagicMock(return_value="Downtown")
+        parser.parse_date = MagicMock(return_value=yesterday)
 
         # Mock report handler
         report_handler = AsyncMock()
@@ -656,21 +663,98 @@ class TestMessageRouter:
         )
 
         # Act
-        response = await router.route_message(phone_number, "Downtown")
+        response = await router.route_message(phone_number, "yesterday")
 
         # Assert
+        parser.parse_date.assert_called_once_with("yesterday")
+        state_machine.update_data.assert_called_once()
+        # Check stolen_date was stored
+        call_args = state_machine.update_data.call_args[0]
+        assert call_args[1]["stolen_date"] == yesterday
+        state_machine.complete.assert_called_once()
         report_handler.handle.assert_called_once()
         assert "thank you" in response["reply"].lower()
         assert response["state"] == ConversationState.COMPLETE.value
 
     @pytest.mark.asyncio
-    async def test_reporting_location_handles_command_error(self) -> None:
-        """Test reporting location handles errors from command handler."""
+    async def test_reporting_date_with_invalid_date_stays_in_state(self) -> None:
+        """Test reporting date with invalid date stays in REPORTING_DATE state."""
         # Arrange
         phone_number = "+1234567890"
         context = ConversationContext(
             phone_number=phone_number,
-            state=ConversationState.REPORTING_LOCATION,
+            state=ConversationState.REPORTING_DATE,
+            data={
+                "category": ItemCategory.BICYCLE,
+                "description": "Red Trek 820",
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+
+        parser = MagicMock()
+        parser.parse_date = MagicMock(return_value=None)  # Invalid date
+
+        response_builder = ResponseBuilder()
+        router = MessageRouter(
+            state_machine,
+            parser,
+            response_builder=response_builder,
+        )
+
+        # Act
+        response = await router.route_message(phone_number, "invalid date xyz")
+
+        # Assert
+        parser.parse_date.assert_called_once_with("invalid date xyz")
+        assert "didn't understand" in response["reply"].lower()
+        assert response["state"] == ConversationState.REPORTING_DATE.value
+
+    @pytest.mark.asyncio
+    async def test_reporting_date_without_handler_completes(self) -> None:
+        """Test reporting date completes flow when no handler is available."""
+        # Arrange
+        from datetime import UTC, datetime
+
+        phone_number = "+1234567890"
+        today = datetime.now(UTC)
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.REPORTING_DATE,
+            data={
+                "category": ItemCategory.PHONE,
+                "description": "iPhone 13",
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_date = MagicMock(return_value=today)
+
+        # No handler provided
+        router = MessageRouter(state_machine, parser)
+
+        # Act
+        response = await router.route_message(phone_number, "today")
+
+        # Assert
+        assert "thank you" in response["reply"].lower()
+        assert response["state"] == ConversationState.COMPLETE.value
+
+    @pytest.mark.asyncio
+    async def test_reporting_date_handles_command_error(self) -> None:
+        """Test reporting date handles errors from command handler."""
+        # Arrange
+        from datetime import UTC, datetime
+
+        phone_number = "+1234567890"
+        today = datetime.now(UTC)
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.REPORTING_DATE,
             data={
                 "category": ItemCategory.BICYCLE,
                 "description": "Red Trek 820",
@@ -682,7 +766,7 @@ class TestMessageRouter:
         state_machine.complete = AsyncMock()
 
         parser = MagicMock()
-        parser.parse_location_text = MagicMock(return_value="Main Street")
+        parser.parse_date = MagicMock(return_value=today)
 
         # Mock report handler that raises error
         report_handler = AsyncMock()
@@ -701,7 +785,7 @@ class TestMessageRouter:
         )
 
         # Act
-        response = await router.route_message(phone_number, "Main Street")
+        response = await router.route_message(phone_number, "today")
 
         # Assert
         assert "doesn't exist" in response["reply"].lower()
@@ -763,10 +847,13 @@ class TestMessageRouter:
     async def test_build_report_command_with_all_fields(self) -> None:
         """Test building ReportStolenItemCommand with all fields populated."""
         # Arrange
+        from datetime import UTC, datetime, timedelta
+
         phone_number = "+1234567890"
+        yesterday = datetime.now(UTC) - timedelta(days=1)
         context = ConversationContext(
             phone_number=phone_number,
-            state=ConversationState.REPORTING_LOCATION,
+            state=ConversationState.REPORTING_DATE,
             data={
                 "category": ItemCategory.PHONE,
                 "description": "Black iPhone 13 Pro Max 256GB",
@@ -780,7 +867,7 @@ class TestMessageRouter:
         state_machine.complete = AsyncMock()
 
         parser = MagicMock()
-        parser.parse_location_text = MagicMock(return_value="Downtown Shopping Center")
+        parser.parse_date = MagicMock(return_value=yesterday)
 
         # Mock report handler to capture command
         report_handler = AsyncMock()
@@ -800,7 +887,7 @@ class TestMessageRouter:
         )
 
         # Act
-        await router.route_message(phone_number, "Downtown Shopping Center")
+        await router.route_message(phone_number, "yesterday")
 
         # Assert
         assert captured_command is not None
@@ -879,10 +966,13 @@ class TestMessageRouter:
     async def test_build_report_command_with_geocoding_service(self) -> None:
         """Test building ReportStolenItemCommand with geocoding service converts location."""
         # Arrange
+        from datetime import UTC, datetime, timedelta
+
         phone_number = "+1234567890"
+        yesterday = datetime.now(UTC) - timedelta(days=1)
         context = ConversationContext(
             phone_number=phone_number,
-            state=ConversationState.REPORTING_LOCATION,
+            state=ConversationState.REPORTING_DATE,
             data={
                 "category": ItemCategory.PHONE,
                 "description": "iPhone 13",
@@ -895,7 +985,7 @@ class TestMessageRouter:
         state_machine.complete = AsyncMock()
 
         parser = MagicMock()
-        parser.parse_location_text = MagicMock(return_value="Paris")
+        parser.parse_date = MagicMock(return_value=yesterday)
 
         # Mock geocoding service
         from src.infrastructure.geocoding.geocoding_service import GeocodingResult
@@ -929,13 +1019,116 @@ class TestMessageRouter:
         )
 
         # Act
-        await router.route_message(phone_number, "Paris")
+        await router.route_message(phone_number, "yesterday")
 
         # Assert
         assert captured_command is not None
         assert captured_command.latitude == 48.8566
         assert captured_command.longitude == 2.3522
         geocoding_service.geocode.assert_called_once_with("Paris")
+
+    @pytest.mark.asyncio
+    async def test_build_report_command_with_iso_date_string(self) -> None:
+        """Test building ReportStolenItemCommand with ISO date string from storage."""
+        # Arrange
+        from datetime import UTC, datetime, timedelta
+
+        phone_number = "+1234567890"
+        yesterday = datetime.now(UTC) - timedelta(days=1)
+        yesterday_iso = yesterday.isoformat()
+
+        # Simulate context loaded from storage with ISO string
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.REPORTING_DATE,
+            data={
+                "category": ItemCategory.PHONE,
+                "description": "iPhone 13",
+                "stolen_date": yesterday_iso,  # ISO string from storage
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_date = MagicMock(return_value=yesterday)
+
+        # Mock report handler to capture command
+        report_handler = AsyncMock()
+        captured_command: ReportStolenItemCommand | None = None
+
+        async def capture_command(command: ReportStolenItemCommand) -> UUID:
+            nonlocal captured_command
+            captured_command = command
+            return uuid4()
+
+        report_handler.handle = capture_command
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            report_stolen_item_handler=report_handler,
+        )
+
+        # Act
+        await router.route_message(phone_number, "yesterday")
+
+        # Assert - should parse ISO string to datetime
+        assert captured_command is not None
+        assert captured_command.stolen_date.date() == yesterday.date()
+
+    @pytest.mark.asyncio
+    async def test_build_report_command_with_datetime_object(self) -> None:
+        """Test building ReportStolenItemCommand with datetime object in context."""
+        # Arrange
+        from datetime import UTC, datetime, timedelta
+
+        phone_number = "+1234567890"
+        yesterday = datetime.now(UTC) - timedelta(days=1)
+
+        # Context with datetime object (edge case, not typical after serialization)
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.REPORTING_DATE,
+            data={
+                "category": ItemCategory.PHONE,
+                "description": "iPhone 13",
+                "stolen_date": yesterday,  # datetime object
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_date = MagicMock(return_value=yesterday)
+
+        # Mock report handler to capture command
+        report_handler = AsyncMock()
+        captured_command: ReportStolenItemCommand | None = None
+
+        async def capture_command(command: ReportStolenItemCommand) -> UUID:
+            nonlocal captured_command
+            captured_command = command
+            return uuid4()
+
+        report_handler.handle = capture_command
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            report_stolen_item_handler=report_handler,
+        )
+
+        # Act
+        await router.route_message(phone_number, "yesterday")
+
+        # Assert - should use datetime directly
+        assert captured_command is not None
+        assert captured_command.stolen_date == yesterday
 
     @pytest.mark.asyncio
     async def test_geocode_location_handles_exceptions_gracefully(self) -> None:
@@ -996,10 +1189,13 @@ class TestMessageRouter:
     async def test_geocode_location_returns_none_when_no_result(self) -> None:
         """Test _geocode_location handles None result from geocoding service."""
         # Arrange
+        from datetime import UTC, datetime
+
         phone_number = "+1234567890"
+        today = datetime.now(UTC)
         context = ConversationContext(
             phone_number=phone_number,
-            state=ConversationState.REPORTING_LOCATION,
+            state=ConversationState.REPORTING_DATE,
             data={
                 "category": ItemCategory.BICYCLE,
                 "description": "Red Trek 820",
@@ -1012,7 +1208,7 @@ class TestMessageRouter:
         state_machine.complete = AsyncMock()
 
         parser = MagicMock()
-        parser.parse_location_text = MagicMock(return_value="Unknown Place")
+        parser.parse_date = MagicMock(return_value=today)
 
         # Mock geocoding service that returns None
         geocoding_service = AsyncMock()
@@ -1037,7 +1233,7 @@ class TestMessageRouter:
         )
 
         # Act
-        await router.route_message(phone_number, "Unknown Place")
+        await router.route_message(phone_number, "today")
 
         # Assert - should use default coordinates
         assert captured_command is not None
