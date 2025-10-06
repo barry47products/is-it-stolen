@@ -20,7 +20,7 @@ redis = "^6.4.0"
 celery = "^5.3.4"
 httpx = "^0.28.1"
 tenacity = "^9.1.2"
-sentry-sdk = "^2.39.0"
+sentry-sdk = {extras = ["fastapi"], version = "^2.39.0"}
 pyyaml = "^6.0.1"
 phonenumbers = "^9.0.15"
 anyio = "^4.11.0"
@@ -122,6 +122,7 @@ module = [
     "redis.*",
     "celery.*",
     "alembic.*",
+    "sentry_sdk.*",
 ]
 ignore_missing_imports = true
 

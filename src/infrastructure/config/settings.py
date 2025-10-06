@@ -130,6 +130,32 @@ class Settings(BaseSettings):
         description="Logging level (debug, info, warning, error)",
     )
 
+    # Sentry Error Tracking
+    sentry_dsn: str = Field(
+        default="",
+        description="Sentry DSN for error tracking (leave empty to disable)",
+    )
+    sentry_environment: str = Field(
+        default="development",
+        description="Sentry environment (development, staging, production)",
+    )
+    sentry_release: str = Field(
+        default="",
+        description="Sentry release version (e.g., git SHA or version number)",
+    )
+    sentry_traces_sample_rate: float = Field(
+        default=0.1,
+        ge=0.0,
+        le=1.0,
+        description="Sentry traces sample rate (0.0-1.0, 0.1 = 10%)",
+    )
+    sentry_profiles_sample_rate: float = Field(
+        default=0.1,
+        ge=0.0,
+        le=1.0,
+        description="Sentry profiles sample rate (0.0-1.0, 0.1 = 10%)",
+    )
+
     # Application
     environment: str = Field(
         default="development",
