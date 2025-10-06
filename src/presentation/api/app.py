@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.domain.value_objects.item_category import ItemCategory
 from src.infrastructure.config import load_category_keywords
 from src.infrastructure.config.settings import get_settings
+from src.infrastructure.monitoring.sentry import init_sentry
 from src.infrastructure.persistence.database import init_db
 from src.presentation.api.middleware import LoggingMiddleware, RequestIDMiddleware
 from src.presentation.api.prometheus import router as prometheus_router
@@ -54,6 +55,9 @@ async def lifespan(  # type: ignore[no-any-unimported]
     logger.info("Starting Is It Stolen API...")
     settings = get_settings()
     logger.info(f"Environment: {settings.environment}")
+
+    # Initialize Sentry error tracking
+    init_sentry(settings)
 
     # Initialize database
     init_db()
