@@ -12,7 +12,12 @@
       "Bash(git checkout:*)",
       "Bash(git pull:*)",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(cd:*)",
+      "Bash(for:*)",
+      "Bash(do)",
+      "Bash(gh api:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

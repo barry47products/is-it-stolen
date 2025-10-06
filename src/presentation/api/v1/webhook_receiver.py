@@ -190,7 +190,7 @@ async def _process_single_message(
         logger.info(
             "Message processed and response sent",
             extra={
-                "phone_number": phone_number,
+                "phone_number": redact_phone_number(phone_number),
                 "state": response.get("state"),
             },
         )
@@ -199,7 +199,7 @@ async def _process_single_message(
     except Exception as e:
         logger.error(
             "Failed to process message",
-            extra={"phone_number": phone_number, "error": str(e)},
+            extra={"phone_number": redact_phone_number(phone_number), "error": str(e)},
             exc_info=True,
         )
         return (False, message_text)
