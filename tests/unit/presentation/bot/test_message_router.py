@@ -812,3 +812,306 @@ class TestMessageRouter:
         assert captured_command.latitude == 0.0
         assert captured_command.longitude == 0.0
         assert captured_command.stolen_date is not None
+
+    @pytest.mark.asyncio
+    async def test_build_check_query_with_geocoding_service(self) -> None:
+        """Test building CheckIfStolenQuery with geocoding service converts location."""
+        # Arrange
+        phone_number = "+1234567890"
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.CHECKING_LOCATION,
+            data={
+                "category": ItemCategory.BICYCLE,
+                "description": "Red Trek 820",
+                "location": "London",
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_location_text = MagicMock(return_value="London")
+
+        # Mock geocoding service
+        from src.infrastructure.geocoding.geocoding_service import GeocodingResult
+
+        geocoding_service = AsyncMock()
+        geocoding_service.geocode = AsyncMock(
+            return_value=GeocodingResult(
+                latitude=51.5074,
+                longitude=-0.1278,
+                display_name="London, UK",
+                raw_response={},
+            )
+        )
+
+        # Mock check handler to capture query
+        check_handler = AsyncMock()
+        captured_query: CheckIfStolenQuery | None = None
+
+        async def capture_query(query: CheckIfStolenQuery) -> CheckIfStolenResult:
+            nonlocal captured_query
+            captured_query = query
+            return CheckIfStolenResult(matches=[])
+
+        check_handler.handle = capture_query
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            check_if_stolen_handler=check_handler,
+            geocoding_service=geocoding_service,
+        )
+
+        # Act
+        await router.route_message(phone_number, "London")
+
+        # Assert
+        assert captured_query is not None
+        assert captured_query.latitude == 51.5074
+        assert captured_query.longitude == -0.1278
+        geocoding_service.geocode.assert_called_once_with("London")
+
+    @pytest.mark.asyncio
+    async def test_build_report_command_with_geocoding_service(self) -> None:
+        """Test building ReportStolenItemCommand with geocoding service converts location."""
+        # Arrange
+        phone_number = "+1234567890"
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.REPORTING_LOCATION,
+            data={
+                "category": ItemCategory.PHONE,
+                "description": "iPhone 13",
+                "location": "Paris",
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_location_text = MagicMock(return_value="Paris")
+
+        # Mock geocoding service
+        from src.infrastructure.geocoding.geocoding_service import GeocodingResult
+
+        geocoding_service = AsyncMock()
+        geocoding_service.geocode = AsyncMock(
+            return_value=GeocodingResult(
+                latitude=48.8566,
+                longitude=2.3522,
+                display_name="Paris, France",
+                raw_response={},
+            )
+        )
+
+        # Mock report handler to capture command
+        report_handler = AsyncMock()
+        captured_command: ReportStolenItemCommand | None = None
+
+        async def capture_command(command: ReportStolenItemCommand) -> UUID:
+            nonlocal captured_command
+            captured_command = command
+            return uuid4()
+
+        report_handler.handle = capture_command
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            report_stolen_item_handler=report_handler,
+            geocoding_service=geocoding_service,
+        )
+
+        # Act
+        await router.route_message(phone_number, "Paris")
+
+        # Assert
+        assert captured_command is not None
+        assert captured_command.latitude == 48.8566
+        assert captured_command.longitude == 2.3522
+        geocoding_service.geocode.assert_called_once_with("Paris")
+
+    @pytest.mark.asyncio
+    async def test_geocode_location_handles_exceptions_gracefully(self) -> None:
+        """Test _geocode_location handles exceptions and returns None."""
+        # Arrange
+        phone_number = "+1234567890"
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.CHECKING_LOCATION,
+            data={
+                "category": ItemCategory.BICYCLE,
+                "description": "Red Trek 820",
+                "location": "Invalid Location",
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_location_text = MagicMock(return_value="Invalid Location")
+
+        # Mock geocoding service that raises exception
+        geocoding_service = AsyncMock()
+        geocoding_service.geocode = AsyncMock(
+            side_effect=Exception("Geocoding service error")
+        )
+
+        # Mock check handler to capture query
+        check_handler = AsyncMock()
+        captured_query: CheckIfStolenQuery | None = None
+
+        async def capture_query(query: CheckIfStolenQuery) -> CheckIfStolenResult:
+            nonlocal captured_query
+            captured_query = query
+            return CheckIfStolenResult(matches=[])
+
+        check_handler.handle = capture_query
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            check_if_stolen_handler=check_handler,
+            geocoding_service=geocoding_service,
+        )
+
+        # Act
+        await router.route_message(phone_number, "Invalid Location")
+
+        # Assert - should still process without coordinates
+        assert captured_query is not None
+        assert captured_query.latitude is None
+        assert captured_query.longitude is None
+        geocoding_service.geocode.assert_called_once_with("Invalid Location")
+
+    @pytest.mark.asyncio
+    async def test_geocode_location_returns_none_when_no_result(self) -> None:
+        """Test _geocode_location handles None result from geocoding service."""
+        # Arrange
+        phone_number = "+1234567890"
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.REPORTING_LOCATION,
+            data={
+                "category": ItemCategory.BICYCLE,
+                "description": "Red Trek 820",
+                "location": "Unknown Place",
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_location_text = MagicMock(return_value="Unknown Place")
+
+        # Mock geocoding service that returns None
+        geocoding_service = AsyncMock()
+        geocoding_service.geocode = AsyncMock(return_value=None)
+
+        # Mock report handler to capture command
+        report_handler = AsyncMock()
+        captured_command: ReportStolenItemCommand | None = None
+
+        async def capture_command(command: ReportStolenItemCommand) -> UUID:
+            nonlocal captured_command
+            captured_command = command
+            return uuid4()
+
+        report_handler.handle = capture_command
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            report_stolen_item_handler=report_handler,
+            geocoding_service=geocoding_service,
+        )
+
+        # Act
+        await router.route_message(phone_number, "Unknown Place")
+
+        # Assert - should use default coordinates
+        assert captured_command is not None
+        assert captured_command.latitude == 0.0
+        assert captured_command.longitude == 0.0
+        geocoding_service.geocode.assert_called_once_with("Unknown Place")
+
+    @pytest.mark.asyncio
+    async def test_geocode_location_returns_none_when_no_service(self) -> None:
+        """Test _geocode_location returns None when geocoding service is not provided."""
+        # Arrange
+        phone_number = "+1234567890"
+        context = ConversationContext(
+            phone_number=phone_number,
+            state=ConversationState.CHECKING_LOCATION,
+            data={
+                "category": ItemCategory.BICYCLE,
+                "description": "Red Trek 820",
+                "location": "London",
+            },
+        )
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(return_value=context)
+        state_machine.update_data = AsyncMock(return_value=context)
+        state_machine.complete = AsyncMock()
+
+        parser = MagicMock()
+        parser.parse_location_text = MagicMock(return_value="London")
+
+        # Mock check handler to capture query
+        check_handler = AsyncMock()
+        captured_query: CheckIfStolenQuery | None = None
+
+        async def capture_query(query: CheckIfStolenQuery) -> CheckIfStolenResult:
+            nonlocal captured_query
+            captured_query = query
+            return CheckIfStolenResult(matches=[])
+
+        check_handler.handle = capture_query
+
+        # Create router WITHOUT geocoding service
+        router = MessageRouter(
+            state_machine,
+            parser,
+            check_if_stolen_handler=check_handler,
+            geocoding_service=None,  # No geocoding service
+        )
+
+        # Act
+        await router.route_message(phone_number, "London")
+
+        # Assert - should not have coordinates
+        assert captured_query is not None
+        assert captured_query.latitude is None
+        assert captured_query.longitude is None
+
+    @pytest.mark.asyncio
+    async def test_geocode_location_method_returns_none_without_service(
+        self,
+    ) -> None:
+        """Test _geocode_location method directly when service is None."""
+        # Arrange
+        state_machine = MagicMock()
+        parser = MagicMock()
+
+        # Create router WITHOUT geocoding service
+        router = MessageRouter(
+            state_machine,
+            parser,
+            geocoding_service=None,
+        )
+
+        # Act - call private method directly
+        result = await router._geocode_location("London")
+
+        # Assert
+        assert result is None

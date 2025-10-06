@@ -2,6 +2,7 @@
 
 import logging
 from datetime import UTC, datetime
+from typing import Any
 
 from src.application.commands.report_stolen_item import (
     ReportStolenItemCommand,
@@ -11,6 +12,7 @@ from src.application.queries.check_if_stolen import (
     CheckIfStolenHandler,
     CheckIfStolenQuery,
 )
+from src.infrastructure.geocoding.geocoding_service import GeocodingService
 from src.infrastructure.metrics.metrics_service import get_metrics_service
 from src.presentation.bot.context import ConversationContext
 from src.presentation.bot.error_handler import ErrorHandler
@@ -33,6 +35,7 @@ class MessageRouter:
         check_if_stolen_handler: CheckIfStolenHandler | None = None,
         report_stolen_item_handler: ReportStolenItemHandler | None = None,
         error_handler: ErrorHandler | None = None,
+        geocoding_service: GeocodingService | None = None,
     ) -> None:
         """Initialize message router.
 
@@ -43,6 +46,7 @@ class MessageRouter:
             check_if_stolen_handler: Handler for checking stolen items (optional)
             report_stolen_item_handler: Handler for reporting stolen items (optional)
             error_handler: Handler for mapping exceptions to user messages
+            geocoding_service: Service for converting location text to coordinates (optional)
         """
         self.state_machine = state_machine
         self.parser = parser
@@ -50,6 +54,7 @@ class MessageRouter:
         self.check_if_stolen_handler = check_if_stolen_handler
         self.report_stolen_item_handler = report_stolen_item_handler
         self.error_handler = error_handler or ErrorHandler()
+        self.geocoding_service = geocoding_service
 
     async def route_message(
         self, phone_number: str, message_text: str
@@ -197,7 +202,7 @@ class MessageRouter:
         if self.check_if_stolen_handler is not None:
             try:
                 # Build query from collected data
-                query = self._build_check_query(new_context)
+                query = await self._build_check_query(new_context)
 
                 # Execute query
                 result = await self.check_if_stolen_handler.handle(query)
@@ -295,7 +300,7 @@ class MessageRouter:
         if self.report_stolen_item_handler is not None:
             try:
                 # Build command from collected data
-                command = self._build_report_command(new_context)
+                command = await self._build_report_command(new_context)
 
                 # Execute command
                 item_id = await self.report_stolen_item_handler.handle(command)
@@ -335,7 +340,9 @@ class MessageRouter:
                 "state": ConversationState.COMPLETE.value,
             }
 
-    def _build_check_query(self, context: ConversationContext) -> CheckIfStolenQuery:
+    async def _build_check_query(
+        self, context: ConversationContext
+    ) -> CheckIfStolenQuery:
         """Build CheckIfStolenQuery from conversation context data.
 
         Args:
@@ -351,13 +358,14 @@ class MessageRouter:
         category = data.get("category")
         location_text = data.get("location")
 
-        # Parse location if provided
+        # Geocode location if provided
         latitude = None
         longitude = None
-        if location_text:
-            # TODO(#91): Parse actual coordinates from location text using geocoding
-            # For now, location is just text - will need geocoding service
-            pass
+        if location_text and self.geocoding_service:
+            result = await self._geocode_location(str(location_text))
+            if result:
+                latitude = result.latitude
+                longitude = result.longitude
 
         return CheckIfStolenQuery(
             description=description,
@@ -367,7 +375,7 @@ class MessageRouter:
             longitude=longitude,
         )
 
-    def _build_report_command(
+    async def _build_report_command(
         self, context: ConversationContext
     ) -> ReportStolenItemCommand:
         """Build ReportStolenItemCommand from conversation context data.
@@ -385,13 +393,14 @@ class MessageRouter:
         category = data.get("category", "unknown")
         location_text = data.get("location")
 
-        # Parse location if provided (use placeholder coordinates for now)
-        # TODO(#91): Implement geocoding to convert location text to coordinates
+        # Geocode location if provided, otherwise use default coordinates
         latitude = 0.0
         longitude = 0.0
-        if location_text:
-            # Placeholder - will need actual geocoding service
-            pass
+        if location_text and self.geocoding_service:
+            result = await self._geocode_location(str(location_text))
+            if result:
+                latitude = result.latitude
+                longitude = result.longitude
 
         return ReportStolenItemCommand(
             reporter_phone=context.phone_number,
@@ -404,3 +413,21 @@ class MessageRouter:
             longitude=longitude,
             brand=brand_model,
         )
+
+    async def _geocode_location(self, location_text: str) -> Any:
+        """Geocode location text to coordinates.
+
+        Args:
+            location_text: Location as text
+
+        Returns:
+            GeocodingResult if successful, None otherwise
+        """
+        if not self.geocoding_service:
+            return None
+
+        try:
+            return await self.geocoding_service.geocode(location_text)
+        except Exception as error:
+            logger.warning(f"Geocoding failed for '{location_text}': {error}")
+            return None
