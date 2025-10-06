@@ -113,11 +113,35 @@ See [.env.example](.env.example) for required variables.
 
 See [docs/python-codebase-evaluation-guide.md](docs/python-codebase-evaluation-guide.md) for complete standards.
 
-## Project Resources
+## Documentation
 
-- **Implementation Guide**: [docs/is-it-stolen-implementation-guide.md](docs/is-it-stolen-implementation-guide.md)
-- **Development Guide**: [CLAUDE.md](CLAUDE.md)
-- **Issues**: [GitHub Issues](https://github.com/barry47products/is-it-stolen/issues)
+### For Developers
+
+- **[Development Guide](CLAUDE.md)** - Coding standards and best practices
+- **[API Documentation](docs/API.md)** - REST API endpoints and usage
+- **[Architecture](docs/ARCHITECTURE.md)** - System design and component overview
+- **[Database Schema](docs/DATABASE.md)** - Database structure and queries
+- **[Implementation Guide](docs/is-it-stolen-implementation-guide.md)** - Feature roadmap and progress
+
+### For Operations
+
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Security Policy](SECURITY.md)** - Security guidelines and reporting
+- **[Monitoring](METRICS.md)** - Metrics and observability
+- **[CI/CD](CI-CD.md)** - Continuous integration and deployment
+
+### Quick References
+
+- **[Environment Setup](ENVIRONMENT-SETUP.md)** - Local development setup
+- **[Docker Guide](DOCKER.md)** - Docker configuration and usage
+- **[Sentry Integration](docs/SENTRY.md)** - Error tracking setup
+
+### External Resources
+
+- **[GitHub Issues](https://github.com/barry47products/is-it-stolen/issues)** - Bug reports and feature requests
+- **[GitHub Discussions](https://github.com/barry47products/is-it-stolen/discussions)** - Community discussions
+- **[WhatsApp API Docs](https://developers.facebook.com/docs/whatsapp)** - Official WhatsApp documentation
 
 ## License
 
