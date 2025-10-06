@@ -12,6 +12,7 @@ from src.infrastructure.whatsapp.webhook_handler import (
 )
 from src.presentation.api.dependencies import get_ip_rate_limiter, get_message_processor
 from src.presentation.bot.message_processor import MessageProcessor
+from src.presentation.utils.redaction import redact_phone_number
 
 logger = logging.getLogger(__name__)
 
@@ -203,22 +204,6 @@ async def _process_single_message(
             exc_info=True,
         )
         return (False, message_text)
-
-
-def redact_phone_number(phone: str) -> str:
-    """Redact phone number for logging, keeping only last 4 digits.
-
-    This function sanitizes phone numbers to prevent PII leakage in logs.
-
-    Args:
-        phone: Phone number to redact
-
-    Returns:
-        Redacted phone number (e.g., "***1234")
-    """
-    if not phone:
-        return "***"
-    return f"***{phone[-4:]}" if len(phone) > 4 else "***"
 
 
 def redact_message_data(msg: dict[str, str]) -> dict[str, str]:

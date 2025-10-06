@@ -20,6 +20,7 @@ from src.presentation.bot.message_parser import MessageParser
 from src.presentation.bot.response_builder import ResponseBuilder
 from src.presentation.bot.state_machine import ConversationStateMachine
 from src.presentation.bot.states import ConversationState
+from src.presentation.utils.redaction import redact_phone_number
 
 logger = logging.getLogger(__name__)
 
@@ -228,7 +229,9 @@ class MessageRouter:
                 logger.error(
                     f"Error checking stolen items: {error}",
                     exc_info=True,
-                    extra={"phone_number": new_context.phone_number},
+                    extra={
+                        "phone_number": redact_phone_number(new_context.phone_number)
+                    },
                 )
                 return {
                     "reply": self.error_handler.handle_error(error),
@@ -343,7 +346,7 @@ class MessageRouter:
                     "Stolen item reported successfully",
                     extra={
                         "item_id": str(item_id),
-                        "phone_number": new_context.phone_number,
+                        "phone_number": redact_phone_number(new_context.phone_number),
                     },
                 )
 
@@ -356,7 +359,9 @@ class MessageRouter:
                 logger.error(
                     f"Error reporting stolen item: {error}",
                     exc_info=True,
-                    extra={"phone_number": new_context.phone_number},
+                    extra={
+                        "phone_number": redact_phone_number(new_context.phone_number)
+                    },
                 )
                 return {
                     "reply": self.error_handler.handle_error(error),
