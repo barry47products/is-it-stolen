@@ -1,6 +1,8 @@
 # Multi-stage build for minimal image size
 # Note: python:3.13-slim currently has 1 known vulnerability in the Debian base
 # For production, consider Dockerfile.chainguard using Wolfi-based images
+
+# Builder stage - install dependencies
 FROM python:3.13-slim AS builder
 
 WORKDIR /app
@@ -15,33 +17,44 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Poetry
 RUN pip install --no-cache-dir poetry==1.7.1
 
-# Copy dependency files
-COPY pyproject.toml poetry.lock* ./
+# Copy only dependency files first (better layer caching)
+COPY pyproject.toml poetry.lock* README.md ./
 
-# Install dependencies
+# Install dependencies (--only main for production)
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+    && poetry install --only main --no-interaction --no-ansi --no-root
 
-# Final stage
+# Copy application code for poetry install
+COPY src ./src
+
+# Install the application
+RUN poetry install --only-root --no-interaction --no-ansi
+
+# Final runtime stage
 FROM python:3.13-slim
+
+# Security labels
+LABEL maintainer="Is It Stolen <noreply@isitstolen.com>" \
+      version="1.0" \
+      description="Is It Stolen WhatsApp Bot"
 
 WORKDIR /app
 
-# Install runtime dependencies
+# Install only runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-client \
     libpq5 \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Copy installed packages from builder
 COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy application code
-COPY . .
+# Copy application code with correct ownership
+COPY --chown=1000:1000 src ./src
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser
 USER appuser
 
 # Expose port
@@ -49,7 +62,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
-# Run application
-CMD ["uvicorn", "src.presentation.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run application with production settings
+CMD ["uvicorn", "src.presentation.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

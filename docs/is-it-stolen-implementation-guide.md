@@ -127,8 +127,9 @@ Create `.github/ISSUE_TEMPLATE/feature.md`:
 - ✅ Issue #94: IP-based rate limiting (webhook protection, 100% coverage on webhook.py and dependencies.py)
 - ✅ Issue #95: Admin bypass for rate limiting (testing bypass mechanism, 100% coverage on RateLimiter and dependencies.py)
 - ✅ **Milestone 4: Bot Presentation - 14/14 Complete** ✅
+- ✅ Issue #41: Docker optimization (multi-stage builds, .dockerignore, Chainguard alternative, comprehensive documentation)
 
-**Current Status**: Milestone 4 Bot Presentation fully complete! All core bot functionality implemented with comprehensive test coverage. Ready to move to Milestone 5: Production Ready.
+**Current Status**: Milestone 5: Production Ready started (1/10 complete). Docker configuration optimized with security-focused Chainguard alternative.
 
 ---
 
@@ -348,22 +349,22 @@ Build the WhatsApp bot interface.
 | #94   | IP-based rate limiting       | Rate limit per IP for webhooks       | ✅ COMPLETE | 2h       |
 | #95   | Admin bypass for rate limits | Testing bypass mechanism             | ✅ COMPLETE | 1h       |
 
-### Milestone 5: Production Ready (Issues #41-50) - Week 5
+### Milestone 5: Production Ready (Issues #41-50) - Week 5 - 1/10 Complete
 
 Polish for production deployment.
 
-| Issue | Title               | Description           | Estimate |
-| ----- | ------------------- | --------------------- | -------- |
-| #41   | Docker optimisation | Multi-stage builds    | 2h       |
-| #42   | CI/CD pipeline      | GitHub Actions setup  | 3h       |
-| #43   | Monitoring          | Sentry integration    | 2h       |
-| #44   | Logging             | Structured logging    | 2h       |
-| #45   | Documentation       | API docs, README      | 3h       |
-| #46   | Performance testing | Load testing          | 3h       |
-| #47   | Security audit      | Dependency scanning   | 2h       |
-| #48   | Backup strategy     | Database backups      | 2h       |
-| #49   | Deployment          | Production deployment | 3h       |
-| #50   | Launch preparation  | Final testing         | 2h       |
+| Issue | Title               | Description           | Status      | Estimate |
+| ----- | ------------------- | --------------------- | ----------- | -------- |
+| #41   | Docker optimisation | Multi-stage builds    | ✅ COMPLETE | 2h       |
+| #42   | CI/CD pipeline      | GitHub Actions setup  | 📋 TODO     | 3h       |
+| #43   | Monitoring          | Sentry integration    | 📋 TODO     | 2h       |
+| #44   | Logging             | Structured logging    | 📋 TODO     | 2h       |
+| #45   | Documentation       | API docs, README      | 📋 TODO     | 3h       |
+| #46   | Performance testing | Load testing          | 📋 TODO     | 3h       |
+| #47   | Security audit      | Dependency scanning   | 📋 TODO     | 2h       |
+| #48   | Backup strategy     | Database backups      | 📋 TODO     | 2h       |
+| #49   | Deployment          | Production deployment | 📋 TODO     | 3h       |
+| #50   | Launch preparation  | Final testing         | 📋 TODO     | 2h       |
 
 ## Quick Start Guide
 
