@@ -18,9 +18,10 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
-    environment:
-      name: staging
-      url: https://staging.isitstolen.com
+    # Uncomment environment section once configured in GitHub Settings → Environments
+    # environment:
+    #   name: staging
+    #   url: https://staging.isitstolen.com
 
     steps:
       - name: Checkout repository
@@ -86,9 +87,10 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
-    environment:
-      name: production
-      url: https://isitstolen.com
+    # Uncomment environment section once configured in GitHub Settings → Environments
+    # environment:
+    #   name: production
+    #   url: https://isitstolen.com
     needs: []  # Add dependencies if needed (e.g., tests, staging deployment)
 
     steps:

@@ -17,6 +17,7 @@ The project uses **GitHub Actions** for automated CI/CD with three main workflow
 **Triggers**: Every push and pull request to `main`
 
 **Jobs**:
+
 - ✅ Linting with Ruff
 - ✅ Formatting check with Ruff
 - ✅ Type checking with MyPy
@@ -26,10 +27,12 @@ The project uses **GitHub Actions** for automated CI/CD with three main workflow
 - ✅ Slack notifications on success/failure
 
 **Services**:
+
 - PostgreSQL with PostGIS (for integration tests)
 - Redis (for caching and rate limiting tests)
 
 **Caching Strategy**:
+
 - Pip packages cache
 - Poetry virtual environment cache
 - MyPy cache for faster type checking
@@ -39,11 +42,13 @@ The project uses **GitHub Actions** for automated CI/CD with three main workflow
 ### 2. Docker Pipeline (`docker.yml`)
 
 **Triggers**:
+
 - Push to `main` branch
 - Tags matching `v*` pattern
 - Pull requests to `main` (build only, no push)
 
 **Jobs**:
+
 - Build Standard Docker image (`python:3.13-slim` base)
 - Build Chainguard Docker image (secure, distroless)
 - Push images to GitHub Container Registry (ghcr.io)
@@ -51,12 +56,14 @@ The project uses **GitHub Actions** for automated CI/CD with three main workflow
 - Upload security results to GitHub Security tab
 
 **Image Tagging**:
+
 - `latest` - Latest main branch build
 - `<branch>-<sha>` - Branch-specific builds
 - `v1.0.0` - Semantic versioning from tags
 - `*-chainguard` - Chainguard variant suffix
 
 **Multi-Platform**:
+
 - linux/amd64
 - linux/arm64
 
@@ -65,18 +72,21 @@ The project uses **GitHub Actions** for automated CI/CD with three main workflow
 ### 3. Deployment Pipeline (`deploy.yml`)
 
 **Triggers**:
+
 - Automatic: Push to `main` → Deploy to staging
 - Manual: Workflow dispatch → Choose staging or production
 
 **Jobs**:
 
 #### Deploy to Staging
+
 - Runs automatically on `main` branch push
 - Deploys Chainguard image (secure)
 - Runs smoke tests
 - Slack notifications
 
 #### Deploy to Production
+
 - **Manual approval required** (GitHub Environments)
 - Runs only via workflow_dispatch
 - Deploys Chainguard image (secure)
@@ -87,7 +97,7 @@ The project uses **GitHub Actions** for automated CI/CD with three main workflow
 
 ## Pipeline Flow
 
-```
+```bash
 ┌─────────────┐
 │  Git Push   │
 └──────┬──────┘
@@ -113,12 +123,12 @@ The project uses **GitHub Actions** for automated CI/CD with three main workflow
 
 Required GitHub Secrets:
 
-| Secret                | Purpose                          | Required For    |
-|-----------------------|----------------------------------|-----------------|
-| `CODECOV_TOKEN`       | Code coverage reporting          | CI              |
-| `SONAR_TOKEN`         | SonarCloud security scanning     | CI              |
-| `SLACK_WEBHOOK_URL`   | Slack notifications              | All workflows   |
-| `GITHUB_TOKEN`        | Automatically provided by GitHub | Docker (GHCR)   |
+| Secret              | Purpose                          | Required For  |
+| ------------------- | -------------------------------- | ------------- |
+| `CODECOV_TOKEN`     | Code coverage reporting          | CI            |
+| `SONAR_TOKEN`       | SonarCloud security scanning     | CI            |
+| `SLACK_WEBHOOK_URL` | Slack notifications              | All workflows |
+| `GITHUB_TOKEN`      | Automatically provided by GitHub | Docker (GHCR) |
 
 ### Setting Up Secrets
 
@@ -127,6 +137,7 @@ Required GitHub Secrets:
 3. Add each secret with its value
 
 ### Codecov Setup
+
 ```bash
 # Visit https://codecov.io
 # Connect your GitHub repository
@@ -134,6 +145,7 @@ Required GitHub Secrets:
 ```
 
 ### SonarCloud Setup
+
 ```bash
 # Visit https://sonarcloud.io
 # Import your GitHub repository
@@ -141,6 +153,7 @@ Required GitHub Secrets:
 ```
 
 ### Slack Setup
+
 ```bash
 # Create a Slack app: https://api.slack.com/apps
 # Enable Incoming Webhooks
@@ -150,9 +163,23 @@ Required GitHub Secrets:
 
 ## GitHub Environments
 
+⚠️ **Important**: The deployment workflow requires GitHub Environments to be configured.
+
+### Initial Setup Required
+
+**Current State**: Environments are commented out in `deploy.yml` to prevent failures.
+
+**To Enable Deployments**:
+
+1. Follow the setup guide in [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)
+2. Configure staging and production environments
+3. Uncomment environment sections in `.github/workflows/deploy.yml`
+4. Update deployment commands for your infrastructure
+
 ### Staging Environment
 
 **Configuration**:
+
 - Name: `staging`
 - URL: `https://staging.isitstolen.com`
 - Protection rules: None (auto-deploy)
@@ -161,6 +188,7 @@ Required GitHub Secrets:
 ### Production Environment
 
 **Configuration**:
+
 - Name: `production`
 - URL: `https://isitstolen.com`
 - Protection rules:
@@ -168,16 +196,13 @@ Required GitHub Secrets:
   - ✅ Wait timer (optional, e.g., 5 minutes)
 - Secrets: Production credentials
 
-**Setting Up Environments**:
-1. Go to **Settings** → **Environments**
-2. Click **New environment**
-3. Enter environment name
-4. Configure protection rules
-5. Add environment-specific secrets
+**Quick Setup**:
+See [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md) for detailed step-by-step instructions.
 
 ## Caching Strategy
 
 ### Poetry Dependencies
+
 ```yaml
 - name: Load cached venv
   uses: actions/cache@v4
@@ -185,16 +210,20 @@ Required GitHub Secrets:
     path: .venv
     key: venv-${{ runner.os }}-3.13-${{ hashFiles('**/poetry.lock') }}
 ```
+
 **Speed improvement**: ~2-3 minutes saved per run
 
 ### Docker Layers
+
 ```yaml
 cache-from: type=gha
 cache-to: type=gha,mode=max
 ```
+
 **Speed improvement**: ~3-5 minutes saved per build
 
 ### MyPy Cache
+
 ```yaml
 - name: Cache MyPy
   uses: actions/cache@v4
@@ -202,6 +231,7 @@ cache-to: type=gha,mode=max
     path: .mypy_cache
     key: mypy-${{ runner.os }}-3.13-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('**/*.py') }}
 ```
+
 **Speed improvement**: ~30-60 seconds saved per run
 
 ## Notifications
@@ -209,19 +239,23 @@ cache-to: type=gha,mode=max
 ### Slack Notifications
 
 **CI Pipeline**:
+
 - ✅ Success (main branch only)
 - ❌ Failure (all branches)
 
 **Docker Pipeline**:
+
 - Not configured (can be added if needed)
 
 **Deployment Pipeline**:
+
 - ✅ Staging success
 - ❌ Staging failure
 - 🚀 Production success
 - 🚨 Production failure
 
 **Notification Format**:
+
 ```json
 {
   "text": "✅ CI pipeline passed",
@@ -240,20 +274,23 @@ cache-to: type=gha,mode=max
 ### Email Notifications
 
 GitHub automatically sends email notifications for:
+
 - Failed workflow runs (to committer)
 - Deployment approvals needed
 - Security alerts
 
 ## Manual Deployment
 
-### Deploy to Staging
+### Manual Deploy to Staging
+
 ```bash
 # Automatic on main branch push
 # Or manually trigger:
 gh workflow run deploy.yml -f environment=staging
 ```
 
-### Deploy to Production
+### Manual Deploy to Production
+
 ```bash
 # Requires manual trigger:
 gh workflow run deploy.yml -f environment=production
@@ -267,6 +304,7 @@ gh workflow run deploy.yml -f environment=production
 The deployment workflows include placeholder commands. Update them based on your infrastructure:
 
 ### Kubernetes
+
 ```yaml
 - name: Deploy to Production
   run: |
@@ -276,6 +314,7 @@ The deployment workflows include placeholder commands. Update them based on your
 ```
 
 ### AWS ECS
+
 ```yaml
 - name: Deploy to Production
   run: |
@@ -286,6 +325,7 @@ The deployment workflows include placeholder commands. Update them based on your
 ```
 
 ### Docker Compose
+
 ```yaml
 - name: Deploy to Production
   run: |
@@ -296,11 +336,13 @@ The deployment workflows include placeholder commands. Update them based on your
 ## Monitoring Pipeline Health
 
 ### GitHub Actions Dashboard
+
 - View all workflow runs: **Actions** tab
 - Filter by workflow, branch, or status
 - Download logs for debugging
 
 ### Metrics to Track
+
 - ✅ **Success rate**: Aim for >95%
 - ⏱️ **Duration**: CI <5min, Docker <10min, Deploy <5min
 - 📊 **Coverage**: Maintain >80%
@@ -323,16 +365,19 @@ The deployment workflows include placeholder commands. Update them based on your
 ## Best Practices
 
 1. **Always run CI locally first**:
+
    ```bash
    make check  # Runs lint, type-check, tests
    ```
 
 2. **Keep workflows fast**:
+
    - Use caching aggressively
    - Run jobs in parallel where possible
    - Minimize dependencies
 
 3. **Security first**:
+
    - Never commit secrets
    - Use Chainguard images for production
    - Scan images regularly
@@ -346,6 +391,7 @@ The deployment workflows include placeholder commands. Update them based on your
 ## Troubleshooting
 
 ### Viewing Logs
+
 ```bash
 # List recent workflow runs
 gh run list
@@ -358,6 +404,7 @@ gh run download <run-id>
 ```
 
 ### Re-running Failed Jobs
+
 ```bash
 # Re-run failed jobs only
 gh run rerun <run-id> --failed
@@ -367,7 +414,9 @@ gh run rerun <run-id>
 ```
 
 ### Debug Mode
+
 Add to workflow file:
+
 ```yaml
 - name: Setup tmate session
   uses: mxschmitt/action-tmate@v3
