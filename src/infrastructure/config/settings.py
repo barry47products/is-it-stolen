@@ -81,16 +81,28 @@ class Settings(BaseSettings):
         description="Conversation timeout in seconds",
     )
 
-    # Rate Limiting
+    # Rate Limiting (User-based)
     rate_limit_window_seconds: int = Field(
         default=60,
         ge=MIN_RATE_LIMIT,
-        description="Rate limit window in seconds",
+        description="Rate limit window in seconds (per user/phone number)",
     )
     rate_limit_max_requests: int = Field(
         default=10,
         ge=MIN_RATE_LIMIT,
-        description="Max requests per rate limit window",
+        description="Max requests per rate limit window (per user/phone number)",
+    )
+
+    # Rate Limiting (IP-based for webhooks)
+    ip_rate_limit_window_seconds: int = Field(
+        default=60,
+        ge=MIN_RATE_LIMIT,
+        description="IP rate limit window in seconds (for webhook endpoints)",
+    )
+    ip_rate_limit_max_requests: int = Field(
+        default=100,
+        ge=MIN_RATE_LIMIT,
+        description="Max webhook requests per IP in time window",
     )
 
     # Media Storage

@@ -12,6 +12,7 @@ from src.infrastructure.whatsapp.client import WhatsAppClient
 from src.presentation.api.dependencies import (
     get_conversation_storage,
     get_event_bus,
+    get_ip_rate_limiter,
     get_matching_service,
     get_message_processor,
     get_redis_client,
@@ -175,3 +176,22 @@ class TestDependencies:
             # Assert
             assert isinstance(repo, PostgresStolenItemRepository)
             break  # Only test first yield
+
+    def test_get_ip_rate_limiter_returns_rate_limiter(self) -> None:
+        """Test get_ip_rate_limiter returns rate limiter instance."""
+        from src.infrastructure.cache.rate_limiter import RateLimiter
+
+        # Act
+        rate_limiter = get_ip_rate_limiter()
+
+        # Assert
+        assert isinstance(rate_limiter, RateLimiter)
+
+    def test_get_ip_rate_limiter_returns_singleton(self) -> None:
+        """Test get_ip_rate_limiter returns same instance."""
+        # Act
+        limiter1 = get_ip_rate_limiter()
+        limiter2 = get_ip_rate_limiter()
+
+        # Assert
+        assert limiter1 is limiter2

@@ -11,6 +11,62 @@ from fastapi.testclient import TestClient
 from src.presentation.api.dependencies import get_message_processor
 
 
+def create_webhook_payload(
+    phone_number: str, message_text: str
+) -> dict[str, list[object]]:
+    """Create a test webhook payload.
+
+    Args:
+        phone_number: Phone number to use in payload
+        message_text: Message text to use in payload
+
+    Returns:
+        Webhook payload dictionary
+    """
+    return {
+        "entry": [
+            {
+                "changes": [
+                    {
+                        "value": {
+                            "messages": [
+                                {
+                                    "from": phone_number,
+                                    "id": "msg_123",
+                                    "timestamp": "1234567890",
+                                    "type": "text",
+                                    "text": {"body": message_text},
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+
+
+def sign_payload(
+    payload: dict[str, object], app_secret: str = "test_app_secret"
+) -> str:
+    """Sign a webhook payload.
+
+    Args:
+        payload: Payload to sign
+        app_secret: App secret to use for signing
+
+    Returns:
+        Signature header value (sha256=...)
+    """
+    payload_str = json.dumps(payload, separators=(",", ":"))
+    signature = hmac.new(
+        app_secret.encode("utf-8"),
+        payload_str.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"sha256={signature}"
+
+
 @pytest.fixture
 def mock_message_processor() -> MagicMock:
     """Create a mock message processor."""
@@ -25,10 +81,18 @@ def mock_message_processor() -> MagicMock:
 def client_with_mock_processor(
     client: TestClient, mock_message_processor: MagicMock
 ) -> TestClient:
-    """Override the message processor dependency with a mock."""
+    """Override the message processor and IP rate limiter dependencies with mocks."""
     from src.presentation.api.app import app
+    from src.presentation.api.dependencies import get_ip_rate_limiter
 
+    # Mock message processor
     app.dependency_overrides[get_message_processor] = lambda: mock_message_processor
+
+    # Mock IP rate limiter to always allow requests
+    mock_ip_rate_limiter = MagicMock()
+    mock_ip_rate_limiter.check_rate_limit = AsyncMock(return_value=None)
+    app.dependency_overrides[get_ip_rate_limiter] = lambda: mock_ip_rate_limiter
+
     yield client
     app.dependency_overrides.clear()
 
@@ -406,3 +470,202 @@ class TestWebhookMessages:
         assert (
             response.status_code == 422
         )  # FastAPI validation error for missing header
+
+
+@pytest.mark.unit
+class TestWebhookIPRateLimiting:
+    """Test IP-based rate limiting for webhook endpoints."""
+
+    @pytest.mark.asyncio
+    async def test_webhook_allows_requests_within_ip_rate_limit(
+        self, client_with_mock_processor: TestClient
+    ) -> None:
+        """Test that webhook POST requests within IP rate limit are allowed."""
+        # Arrange
+        payload = create_webhook_payload("1234567890", "test message")
+        signature = sign_payload(payload)
+        headers = {"X-Hub-Signature-256": signature}
+
+        # Act - Make request from specific IP
+        response = client_with_mock_processor.post(
+            "/v1/webhook", json=payload, headers=headers
+        )
+
+        # Assert
+        assert response.status_code == 200
+        assert response.json()["status"] == "success"
+
+    def test_webhook_blocks_requests_exceeding_ip_rate_limit(
+        self, client: TestClient
+    ) -> None:
+        """Test that webhook POST requests exceeding IP rate limit are blocked."""
+        # Arrange
+        from unittest.mock import AsyncMock, MagicMock
+
+        from src.infrastructure.cache.rate_limiter import RateLimitExceeded
+        from src.presentation.api.app import app
+        from src.presentation.api.dependencies import (
+            get_ip_rate_limiter,
+            get_message_processor,
+        )
+
+        payload = create_webhook_payload("1234567890", "test message")
+        signature = sign_payload(payload)
+        headers = {"X-Hub-Signature-256": signature}
+
+        # Mock message processor
+        mock_processor = MagicMock()
+        mock_processor.process_message = AsyncMock(
+            return_value={"reply": "test", "state": "idle"}
+        )
+        app.dependency_overrides[get_message_processor] = lambda: mock_processor
+
+        # Mock the IP rate limiter to raise RateLimitExceeded
+        mock_rate_limiter = MagicMock()
+        mock_rate_limiter.check_rate_limit = AsyncMock(
+            side_effect=RateLimitExceeded("Rate limit exceeded", retry_after=60)
+        )
+        app.dependency_overrides[get_ip_rate_limiter] = lambda: mock_rate_limiter
+
+        # Act
+        response = client.post("/v1/webhook", json=payload, headers=headers)
+
+        # Assert
+        assert response.status_code == 429
+        assert "rate limit" in response.json()["detail"].lower()
+        assert "retry-after" in response.headers
+        assert response.headers["retry-after"] == "60"
+
+        # Cleanup
+        app.dependency_overrides.clear()
+
+    def test_webhook_get_not_affected_by_post_ip_rate_limit(
+        self, client: TestClient
+    ) -> None:
+        """Test that webhook GET (verify) is not affected by POST rate limiting."""
+        # Arrange - GET request for webhook verification
+        params = {
+            "hub.mode": "subscribe",
+            "hub.verify_token": "test_verify_token",
+            "hub.challenge": "test_challenge",
+        }
+
+        # Act - Make GET request (should not be rate limited by IP limiter)
+        response = client.get("/v1/webhook", params=params)
+
+        # Assert - Should work (GET endpoint doesn't use IP rate limiter)
+        assert response.status_code == 200
+        assert response.text == "test_challenge"
+
+    def test_webhook_different_ips_have_separate_rate_limits(
+        self, client: TestClient
+    ) -> None:
+        """Test that different IP addresses have independent rate limits."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from src.presentation.api.app import app
+        from src.presentation.api.dependencies import (
+            get_ip_rate_limiter,
+            get_message_processor,
+        )
+
+        # Arrange
+        payload = create_webhook_payload("1234567890", "test message")
+        signature = sign_payload(payload)
+        headers = {"X-Hub-Signature-256": signature}
+
+        # Mock dependencies - both processor and rate limiter
+        mock_processor = MagicMock()
+        mock_processor.process_message = AsyncMock(
+            return_value={"reply": "test", "state": "idle"}
+        )
+        app.dependency_overrides[get_message_processor] = lambda: mock_processor
+
+        # Mock rate limiter to always allow requests (simulating separate IP limits)
+        mock_rate_limiter = MagicMock()
+        mock_rate_limiter.check_rate_limit = AsyncMock(return_value=None)
+        app.dependency_overrides[get_ip_rate_limiter] = lambda: mock_rate_limiter
+
+        # Act - Make requests from different IPs (via X-Forwarded-For)
+        # These should both succeed as they use different IP limits
+        response1 = client.post(
+            "/v1/webhook",
+            json=payload,
+            headers={**headers, "X-Forwarded-For": "192.168.1.1"},
+        )
+        response2 = client.post(
+            "/v1/webhook",
+            json=payload,
+            headers={**headers, "X-Forwarded-For": "192.168.1.2"},
+        )
+
+        # Assert - Both should succeed (separate limits per IP)
+        assert response1.status_code == 200
+        assert response2.status_code == 200
+
+        # Verify rate limiter was called for both IPs
+        assert mock_rate_limiter.check_rate_limit.call_count == 2
+        mock_rate_limiter.check_rate_limit.assert_any_call("192.168.1.1")
+        mock_rate_limiter.check_rate_limit.assert_any_call("192.168.1.2")
+
+        # Cleanup
+        app.dependency_overrides.clear()
+
+    def test_webhook_rate_limit_error_includes_retry_after(
+        self, client: TestClient
+    ) -> None:
+        """Test that rate limit error response includes Retry-After header."""
+        # Arrange
+        from unittest.mock import AsyncMock, MagicMock
+
+        from src.infrastructure.cache.rate_limiter import RateLimitExceeded
+        from src.presentation.api.app import app
+        from src.presentation.api.dependencies import (
+            get_ip_rate_limiter,
+            get_message_processor,
+        )
+
+        payload = create_webhook_payload("1234567890", "test message")
+        signature = sign_payload(payload)
+        headers = {"X-Hub-Signature-256": signature}
+
+        # Mock dependencies
+        mock_processor = MagicMock()
+        mock_processor.process_message = AsyncMock(
+            return_value={"reply": "test", "state": "idle"}
+        )
+        app.dependency_overrides[get_message_processor] = lambda: mock_processor
+
+        mock_rate_limiter = MagicMock()
+        mock_rate_limiter.check_rate_limit = AsyncMock(
+            side_effect=RateLimitExceeded("Rate limit exceeded", retry_after=120)
+        )
+        app.dependency_overrides[get_ip_rate_limiter] = lambda: mock_rate_limiter
+
+        # Act
+        response = client.post("/v1/webhook", json=payload, headers=headers)
+
+        # Assert
+        assert response.status_code == 429
+        assert "retry after 120 seconds" in response.json()["detail"].lower()
+        assert response.headers["retry-after"] == "120"
+
+        # Cleanup
+        app.dependency_overrides.clear()
+
+    def test_get_client_ip_fallback_to_unknown(self) -> None:
+        """Test that get_client_ip returns 'unknown' when no client info available."""
+        from unittest.mock import MagicMock
+
+        from src.presentation.api.v1.webhook import get_client_ip
+
+        # Arrange - Mock request with no X-Forwarded-For and no client
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = None
+        mock_request.client = None
+
+        # Act
+        result = get_client_ip(mock_request)
+
+        # Assert
+        assert result == "unknown"

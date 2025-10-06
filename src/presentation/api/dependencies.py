@@ -1,11 +1,13 @@
 """Dependency injection for FastAPI routes."""
 
 from collections.abc import AsyncGenerator
+from datetime import timedelta
 
 from redis.asyncio import Redis
 
 from src.domain.services.matching_service import ItemMatchingService
 from src.domain.services.verification_service import VerificationService
+from src.infrastructure.cache.rate_limiter import RateLimiter
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.messaging.event_bus import InMemoryEventBus
 from src.infrastructure.persistence.repositories.postgres_stolen_item_repository import (
@@ -25,6 +27,7 @@ _conversation_storage: RedisConversationStorage | None = None
 _state_machine: ConversationStateMachine | None = None
 _whatsapp_client: WhatsAppClient | None = None
 _message_processor: MessageProcessor | None = None
+_ip_rate_limiter: RateLimiter | None = None
 
 
 def get_event_bus() -> InMemoryEventBus:
@@ -148,9 +151,28 @@ def get_message_processor() -> MessageProcessor:
     return _message_processor
 
 
+def get_ip_rate_limiter() -> RateLimiter:
+    """Get or create IP rate limiter singleton for webhook endpoints.
+
+    Returns:
+        Rate limiter instance configured for IP-based limiting
+    """
+    global _ip_rate_limiter
+    if _ip_rate_limiter is None:
+        settings = get_settings()
+        redis_client = get_redis_client()
+        _ip_rate_limiter = RateLimiter(
+            redis_client=redis_client,
+            max_requests=settings.ip_rate_limit_max_requests,
+            window=timedelta(seconds=settings.ip_rate_limit_window_seconds),
+        )
+    return _ip_rate_limiter
+
+
 # Use these functions with Depends() in route handlers:
 # event_bus: InMemoryEventBus = Depends(get_event_bus)
 # matching_service: ItemMatchingService = Depends(get_matching_service)
 # verification_service: VerificationService = Depends(get_verification_service)
 # repository: PostgresStolenItemRepository = Depends(get_repository)
 # message_processor: MessageProcessor = Depends(get_message_processor)
+# ip_rate_limiter: RateLimiter = Depends(get_ip_rate_limiter)

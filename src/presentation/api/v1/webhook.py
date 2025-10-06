@@ -5,17 +5,46 @@ import logging
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse
 
+from src.infrastructure.cache.rate_limiter import RateLimiter, RateLimitExceeded
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.whatsapp.webhook_handler import (
     WebhookHandler,
     verify_webhook_signature,
 )
-from src.presentation.api.dependencies import get_message_processor
+from src.presentation.api.dependencies import get_ip_rate_limiter, get_message_processor
 from src.presentation.bot.message_processor import MessageProcessor
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["webhook"])
+
+
+def get_client_ip(request: Request) -> str:  # type: ignore[no-any-unimported]
+    """Extract client IP address from request.
+
+    Checks X-Forwarded-For header first (for proxies), then falls back
+    to direct client IP.
+
+    Args:
+        request: FastAPI request object
+
+    Returns:
+        Client IP address as string
+    """
+    # Check X-Forwarded-For header (set by proxies/load balancers)
+    forwarded_for: str | None = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # X-Forwarded-For can be comma-separated list, first is the original client
+        first_ip: str = forwarded_for.split(",")[0].strip()
+        return first_ip
+
+    # Fall back to direct client IP
+    if request.client:
+        client_host: str = request.client.host
+        return client_host
+
+    # Fallback if no client info available
+    return "unknown"
 
 
 def get_webhook_handler() -> WebhookHandler:
@@ -66,6 +95,7 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
     request: Request,
     x_hub_signature_256: str = Header(alias="X-Hub-Signature-256"),
     message_processor: MessageProcessor = Depends(get_message_processor),
+    ip_rate_limiter: RateLimiter = Depends(get_ip_rate_limiter),
 ) -> dict[str, str | int]:
     """Receive webhook events from WhatsApp.
 
@@ -77,14 +107,30 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
         request: FastAPI request containing the webhook payload
         x_hub_signature_256: HMAC SHA256 signature header for verification
         message_processor: Message processor for handling conversations
+        ip_rate_limiter: Rate limiter for IP-based rate limiting
 
     Returns:
         Success response dict
 
     Raises:
-        HTTPException: If signature verification fails (403)
+        HTTPException: If signature verification fails (403) or rate limit exceeded (429)
     """
     settings = get_settings()
+
+    # Check IP-based rate limit
+    client_ip = get_client_ip(request)
+    try:
+        await ip_rate_limiter.check_rate_limit(client_ip)
+    except RateLimitExceeded as e:
+        logger.warning(
+            f"IP rate limit exceeded for {client_ip}",
+            extra={"client_ip": client_ip, "retry_after": e.retry_after},
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Retry after {e.retry_after} seconds.",
+            headers={"Retry-After": str(e.retry_after)},
+        ) from e
 
     # Read raw body for signature verification
     body = await request.body()
