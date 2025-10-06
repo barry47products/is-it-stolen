@@ -120,3 +120,8 @@ Thumbs.db
 # Backup files
 *.bak
 *.tmp
+
+# SSL Certs
+infra/certs/*.crt
+infra/certs/*.csr
+infra/certs/*.key

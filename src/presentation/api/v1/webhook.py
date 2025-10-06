@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse
 
 from src.infrastructure.cache.rate_limiter import RateLimiter, RateLimitExceeded
-from src.infrastructure.config.settings import get_settings
+from src.infrastructure.config.settings import Settings, get_settings
 from src.infrastructure.whatsapp.webhook_handler import (
     WebhookHandler,
     verify_webhook_signature,
@@ -58,6 +58,152 @@ def get_webhook_handler() -> WebhookHandler:
         verify_token=settings.whatsapp_webhook_verify_token,
         app_secret=settings.whatsapp_app_secret,
     )
+
+
+async def _check_rate_limit(client_ip: str, ip_rate_limiter: RateLimiter) -> None:
+    """Check IP-based rate limit and raise HTTPException if exceeded."""
+    try:
+        await ip_rate_limiter.check_rate_limit(client_ip)
+    except RateLimitExceeded as e:
+        logger.warning(
+            f"IP rate limit exceeded for {client_ip}",
+            extra={"client_ip": client_ip, "retry_after": e.retry_after},
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Retry after {e.retry_after} seconds.",
+            headers={"Retry-After": str(e.retry_after)},
+        ) from e
+
+
+def _verify_webhook_signature(
+    payload_str: str, signature_header: str, app_secret: str
+) -> None:
+    """Verify webhook signature and raise HTTPException if invalid."""
+    if not verify_webhook_signature(
+        payload=payload_str,
+        signature_header=signature_header,
+        app_secret=app_secret,
+    ):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+
+def _convert_location_to_text(msg: dict[str, str]) -> str | None:
+    """Convert location message to text representation.
+
+    Returns:
+        Text representation of location, or None if coordinates missing
+    """
+    latitude = msg.get("latitude")
+    longitude = msg.get("longitude")
+
+    if not latitude or not longitude:
+        return None
+
+    location_name = msg.get("location_name", "")
+    location_address = msg.get("location_address", "")
+    message_text = f"Location: {latitude}, {longitude}"
+
+    if location_name:
+        message_text += f" ({location_name})"
+    if location_address:
+        message_text += f" - {location_address}"
+
+    return message_text
+
+
+def _log_location_message(msg: dict[str, str], phone_number: str) -> None:
+    """Log location message details."""
+    logger.info(
+        "Received location message",
+        extra={
+            "phone_number": redact_phone_number(phone_number),
+            "latitude": msg.get("latitude"),
+            "longitude": msg.get("longitude"),
+            "location_name": msg.get("location_name", ""),
+            "location_address": msg.get("location_address", ""),
+        },
+    )
+
+
+async def _process_single_message(
+    msg: dict[str, str],
+    message_processor: MessageProcessor,
+    settings: Settings,
+) -> tuple[bool, str]:
+    """Process a single webhook message.
+
+    Returns:
+        Tuple of (success: bool, message_text: str)
+    """
+    phone_number = msg.get("from", "")
+    message_text = msg.get("text", "")
+    message_type = msg.get("type", "")
+
+    # Log in dev/test environments
+    if settings.environment in ("development", "test"):  # pragma: no cover
+        logger.debug(
+            "Processing message",
+            extra={
+                "phone_number": redact_phone_number(phone_number),
+                "type": message_type,
+                "has_text": bool(message_text),
+                "has_location": "latitude" in msg and "longitude" in msg,
+                "msg_data": redact_message_data(msg),
+            },
+        )
+
+    # Validate phone number
+    if not phone_number:  # pragma: no cover
+        logger.warning(
+            "Skipping message with missing phone_number",
+            extra={"webhook_message": redact_message_data(msg)},
+        )
+        return (False, "")
+
+    # Handle location messages
+    if message_type == "location":
+        location_text = _convert_location_to_text(msg)
+        if location_text:
+            _log_location_message(msg, phone_number)
+            message_text = location_text
+        else:
+            logger.warning(
+                "Skipping location message with missing coordinates",
+                extra={"webhook_message": redact_message_data(msg)},
+            )
+            return (False, "")
+
+    # Validate message text
+    if not message_text:
+        logger.warning(
+            "Skipping message with missing text",
+            extra={
+                "webhook_message": redact_message_data(msg),
+                "type": message_type,
+            },
+        )
+        return (False, "")
+
+    # Process message
+    try:
+        response = await message_processor.process_message(phone_number, message_text)
+        logger.info(
+            "Message processed and response sent",
+            extra={
+                "phone_number": phone_number,
+                "state": response.get("state"),
+            },
+        )
+        return (True, message_text)
+
+    except Exception as e:
+        logger.error(
+            "Failed to process message",
+            extra={"phone_number": phone_number, "error": str(e)},
+            exc_info=True,
+        )
+        return (False, message_text)
 
 
 @router.get("/webhook")
@@ -209,30 +355,14 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
 
     # Check IP-based rate limit
     client_ip = get_client_ip(request)
-    try:
-        await ip_rate_limiter.check_rate_limit(client_ip)
-    except RateLimitExceeded as e:
-        logger.warning(
-            f"IP rate limit exceeded for {client_ip}",
-            extra={"client_ip": client_ip, "retry_after": e.retry_after},
-        )
-        raise HTTPException(
-            status_code=429,
-            detail=f"Rate limit exceeded. Retry after {e.retry_after} seconds.",
-            headers={"Retry-After": str(e.retry_after)},
-        ) from e
+    await _check_rate_limit(client_ip, ip_rate_limiter)
 
-    # Read raw body for signature verification
+    # Read and verify webhook payload
     body = await request.body()
     payload_str = body.decode("utf-8")
-
-    # Verify signature
-    if not verify_webhook_signature(
-        payload=payload_str,
-        signature_header=x_hub_signature_256,
-        app_secret=settings.whatsapp_app_secret,
-    ):
-        raise HTTPException(status_code=403, detail="Invalid signature")
+    _verify_webhook_signature(
+        payload_str, x_hub_signature_256, settings.whatsapp_app_secret
+    )
 
     # Parse JSON payload
     payload = await request.json()
@@ -271,107 +401,15 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
     messages = handler.parse_webhook_payload(payload)
 
     # Process each message through state machine
-    # Messages will be processed asynchronously
-    # In Issue #34 we'll implement the full message routing logic
     processed_count = 0
     failed_count = 0
 
     for msg in messages:
-        phone_number = msg.get("from", "")
-        message_text = msg.get("text", "")
-        message_type = msg.get("type", "")
-
-        # Log parsed message in dev/test environments
-        if settings.environment in ("development", "test"):  # pragma: no cover
-            logger.debug(
-                "Processing message",
-                extra={
-                    "phone_number": redact_phone_number(phone_number),
-                    "type": message_type,
-                    "has_text": bool(message_text),
-                    "has_location": "latitude" in msg and "longitude" in msg,
-                    "msg_data": redact_message_data(msg),
-                },
-            )
-
-        # Skip messages without phone number
-        # NOTE: This is defensive code - webhook_handler validates "from" field
-        # so this branch should never be reached in practice
-        if not phone_number:  # pragma: no cover
-            logger.warning(
-                "Skipping message with missing phone_number",
-                extra={"webhook_message": redact_message_data(msg)},
-            )
-            failed_count += 1
-            continue
-
-        # Handle location messages
-        if message_type == "location":
-            latitude = msg.get("latitude")
-            longitude = msg.get("longitude")
-
-            if latitude and longitude:
-                # Create a text representation of the location for processing
-                location_name = msg.get("location_name", "")
-                location_address = msg.get("location_address", "")
-                message_text = f"Location: {latitude}, {longitude}"
-                if location_name:
-                    message_text += f" ({location_name})"
-                if location_address:
-                    message_text += f" - {location_address}"
-
-                logger.info(
-                    "Received location message",
-                    extra={
-                        "phone_number": redact_phone_number(phone_number),
-                        "latitude": latitude,
-                        "longitude": longitude,
-                        "location_name": location_name,
-                        "location_address": location_address,
-                    },
-                )
-            else:
-                logger.warning(
-                    "Skipping location message with missing coordinates",
-                    extra={"webhook_message": redact_message_data(msg)},
-                )
-                failed_count += 1
-                continue
-
-        # Skip non-text/non-location messages without text
-        if not message_text:
-            logger.warning(
-                "Skipping message with missing text",
-                extra={
-                    "webhook_message": redact_message_data(msg),
-                    "type": message_type,
-                },
-            )
-            failed_count += 1
-            continue
-
-        try:
-            # Process message through state machine and send response
-            response = await message_processor.process_message(
-                phone_number, message_text
-            )
-            logger.info(
-                "Message processed and response sent",
-                extra={
-                    "phone_number": phone_number,
-                    "state": response.get("state"),
-                },
-            )
+        success, _ = await _process_single_message(msg, message_processor, settings)
+        if success:
             processed_count += 1
-
-        except Exception as e:
-            logger.error(
-                "Failed to process message",
-                extra={"phone_number": phone_number, "error": str(e)},
-                exc_info=True,
-            )
+        else:
             failed_count += 1
-            # Continue processing other messages even if one fails
 
     return {
         "status": "success",
