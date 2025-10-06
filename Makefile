@@ -74,6 +74,11 @@ clean: ## Clean up generated files
 run: ## Run the application locally
 	$(UVICORN) src.presentation.api.app:app --reload --host 0.0.0.0 --port 8000
 
+run-https: ## Run the application locally with HTTPS
+	$(UVICORN) src.presentation.api.app:app --reload --host 0.0.0.0 --port 8000 \
+		--ssl-keyfile infra/certs/dev.key \
+		--ssl-certfile infra/certs/dev.crt
+
 run-prod: ## Run the application in production mode
 	$(UVICORN) src.presentation.api.app:app --host 0.0.0.0 --port 8000 --workers 4
 

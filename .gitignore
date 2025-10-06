@@ -95,6 +95,11 @@ media/
 # Ngrok
 ngrok.log
 
+# SSL Certificates (local development)
+infra/certs/*.key
+infra/certs/*.crt
+infra/certs/*.csr
+
 # Jupyter Notebook
 .ipynb_checkpoints
 

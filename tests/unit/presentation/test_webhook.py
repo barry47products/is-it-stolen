@@ -669,3 +669,528 @@ class TestWebhookIPRateLimiting:
 
         # Assert
         assert result == "unknown"
+
+
+@pytest.mark.unit
+class TestWebhookLocationMessages:
+    """Test location message handling in webhook endpoint."""
+
+    def test_location_message_processing(
+        self, client_with_mock_processor: TestClient
+    ) -> None:
+        """Test that location messages are processed correctly."""
+        # Arrange
+        app_secret = "test_app_secret"
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "id": "msg_location",
+                                        "timestamp": "1234567890",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": 51.5074,
+                                            "longitude": -0.1278,
+                                            "name": "London Eye",
+                                            "address": "County Hall, London",
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload_str = json.dumps(payload, separators=(",", ":"))
+
+        # Generate valid signature
+        signature = hmac.new(
+            app_secret.encode("utf-8"),
+            payload_str.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        # Act
+        response = client_with_mock_processor.post(
+            "/v1/webhook",
+            json=payload,
+            headers={"X-Hub-Signature-256": f"sha256={signature}"},
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["messages_received"] == 1
+        assert data["processed"] == 1
+        assert data["failed"] == 0
+
+    def test_location_message_without_optional_fields(
+        self, client_with_mock_processor: TestClient
+    ) -> None:
+        """Test location message without name and address."""
+        # Arrange
+        app_secret = "test_app_secret"
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "id": "msg_location",
+                                        "timestamp": "1234567890",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": 51.5074,
+                                            "longitude": -0.1278,
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload_str = json.dumps(payload, separators=(",", ":"))
+
+        signature = hmac.new(
+            app_secret.encode("utf-8"),
+            payload_str.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        # Act
+        response = client_with_mock_processor.post(
+            "/v1/webhook",
+            json=payload,
+            headers={"X-Hub-Signature-256": f"sha256={signature}"},
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["messages_received"] == 1
+        assert data["processed"] == 1
+        assert data["failed"] == 0
+
+    def test_location_message_without_coordinates_is_skipped(
+        self, client_with_mock_processor: TestClient
+    ) -> None:
+        """Test that location message without coordinates is skipped."""
+        # Arrange
+        app_secret = "test_app_secret"
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "id": "msg_location",
+                                        "timestamp": "1234567890",
+                                        "type": "location",
+                                        "location": {
+                                            "name": "Some place",
+                                            # Missing latitude and longitude
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload_str = json.dumps(payload, separators=(",", ":"))
+
+        signature = hmac.new(
+            app_secret.encode("utf-8"),
+            payload_str.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        # Act
+        response = client_with_mock_processor.post(
+            "/v1/webhook",
+            json=payload,
+            headers={"X-Hub-Signature-256": f"sha256={signature}"},
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["messages_received"] == 1
+        assert data["processed"] == 0
+        assert data["failed"] == 1  # Skipped due to missing coordinates
+
+    def test_message_without_phone_number_is_skipped(
+        self, client_with_mock_processor: TestClient
+    ) -> None:
+        """Test that message without phone number is skipped."""
+        # Arrange
+        app_secret = "test_app_secret"
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        # Missing "from" field
+                                        "id": "msg_123",
+                                        "timestamp": "1234567890",
+                                        "type": "text",
+                                        "text": {"body": "Hello"},
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload_str = json.dumps(payload, separators=(",", ":"))
+
+        signature = hmac.new(
+            app_secret.encode("utf-8"),
+            payload_str.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        # Act
+        response = client_with_mock_processor.post(
+            "/v1/webhook",
+            json=payload,
+            headers={"X-Hub-Signature-256": f"sha256={signature}"},
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        # Message won't be parsed due to missing required field
+        assert data["messages_received"] == 0
+        assert data["processed"] == 0
+        assert data["failed"] == 0
+
+    def test_mixed_text_and_location_messages(
+        self, client_with_mock_processor: TestClient
+    ) -> None:
+        """Test handling of both text and location messages in one payload."""
+        # Arrange
+        app_secret = "test_app_secret"
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "id": "msg_text",
+                                        "timestamp": "1234567890",
+                                        "type": "text",
+                                        "text": {"body": "Hello"},
+                                    },
+                                    {
+                                        "from": "1234567890",
+                                        "id": "msg_location",
+                                        "timestamp": "1234567891",
+                                        "type": "location",
+                                        "location": {
+                                            "latitude": 51.5,
+                                            "longitude": -0.1,
+                                        },
+                                    },
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload_str = json.dumps(payload, separators=(",", ":"))
+
+        signature = hmac.new(
+            app_secret.encode("utf-8"),
+            payload_str.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        # Act
+        response = client_with_mock_processor.post(
+            "/v1/webhook",
+            json=payload,
+            headers={"X-Hub-Signature-256": f"sha256={signature}"},
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["messages_received"] == 2
+        assert data["processed"] == 2
+        assert data["failed"] == 0
+
+    def test_debug_logging_in_dev_environment(
+        self, client_with_mock_processor: TestClient, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test that debug logging is enabled in dev/test environment."""
+        import logging
+
+        # Arrange
+        app_secret = "test_app_secret"
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "id": "msg_test",
+                                        "timestamp": "1234567890",
+                                        "type": "text",
+                                        "text": {"body": "Test message"},
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload_str = json.dumps(payload, separators=(",", ":"))
+
+        signature = hmac.new(
+            app_secret.encode("utf-8"),
+            payload_str.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        # Act - capture logs at DEBUG level
+        with caplog.at_level(logging.DEBUG):
+            response = client_with_mock_processor.post(
+                "/v1/webhook",
+                json=payload,
+                headers={"X-Hub-Signature-256": f"sha256={signature}"},
+            )
+
+        # Assert
+        assert response.status_code == 200
+
+        # Check that debug logs were created (environment is "test")
+        debug_messages = [
+            record.message
+            for record in caplog.records
+            if record.levelno == logging.DEBUG
+        ]
+        assert any("Received webhook payload" in msg for msg in debug_messages)
+        assert any("Processing message" in msg for msg in debug_messages)
+
+    # NOTE: Branch coverage gaps 151->158, 173->186, 187-192 are intentionally not tested:
+    # - 151->158 & 173->186: FALSE branch for production environment (no debug logging)
+    #   Testing this would require reloading modules mid-test which is unreliable
+    # - 187-192: Defensive code for missing phone_number that can never be reached
+    #   because webhook_handler validates "from" field before messages reach this code
+
+
+@pytest.mark.unit
+class TestPhoneNumberRedaction:
+    """Test phone number redaction for logging security."""
+
+    def test_redact_phone_number_with_full_number(self) -> None:
+        """Test redacting a full phone number."""
+        from src.presentation.api.v1.webhook import redact_phone_number
+
+        # Arrange
+        phone = "1234567890"
+
+        # Act
+        result = redact_phone_number(phone)
+
+        # Assert
+        assert result == "***7890"
+        assert "1234" not in result
+
+    def test_redact_phone_number_with_short_number(self) -> None:
+        """Test redacting a short phone number (4 digits or less)."""
+        from src.presentation.api.v1.webhook import redact_phone_number
+
+        # Arrange
+        phone = "1234"
+
+        # Act
+        result = redact_phone_number(phone)
+
+        # Assert
+        assert result == "***"
+
+    def test_redact_phone_number_with_empty_string(self) -> None:
+        """Test redacting an empty phone number."""
+        from src.presentation.api.v1.webhook import redact_phone_number
+
+        # Arrange
+        phone = ""
+
+        # Act
+        result = redact_phone_number(phone)
+
+        # Assert
+        assert result == "***"
+
+    def test_redact_message_data_with_phone(self) -> None:
+        """Test redacting phone number from message data."""
+        from src.presentation.api.v1.webhook import redact_message_data
+
+        # Arrange
+        msg = {
+            "from": "1234567890",
+            "text": "Hello",
+            "type": "text",
+        }
+
+        # Act
+        result = redact_message_data(msg)
+
+        # Assert
+        assert result["from"] == "***7890"
+        assert result["text"] == "Hello"
+        assert result["type"] == "text"
+        # Ensure original is not modified
+        assert msg["from"] == "1234567890"
+
+    def test_redact_message_data_without_phone(self) -> None:
+        """Test redacting message data without phone number."""
+        from src.presentation.api.v1.webhook import redact_message_data
+
+        # Arrange
+        msg = {
+            "text": "Hello",
+            "type": "text",
+        }
+
+        # Act
+        result = redact_message_data(msg)
+
+        # Assert
+        assert "from" not in result
+        assert result["text"] == "Hello"
+        assert result["type"] == "text"
+
+    def test_redact_payload_phone_numbers(self) -> None:
+        """Test redacting phone numbers from full webhook payload."""
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange - WhatsApp webhook structure
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "text": {"body": "Hello"},
+                                        "type": "text",
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        # Act
+        result = _redact_payload_phone_numbers(payload)
+
+        # Assert
+        assert (
+            result["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
+            == "***7890"
+        )
+        # Ensure original is not modified
+        assert (
+            payload["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
+            == "1234567890"
+        )
+
+    def test_redact_payload_phone_numbers_empty_payload(self) -> None:
+        """Test redacting phone numbers from empty payload."""
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange
+        payload: dict[str, object] = {}
+
+        # Act
+        result = _redact_payload_phone_numbers(payload)
+
+        # Assert
+        assert result == {}
+
+    def test_redact_payload_phone_numbers_malformed_structure(self) -> None:
+        """Test redacting phone numbers handles malformed structures."""
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange - malformed webhook structure
+        payload = {
+            "entry": "not_a_list",  # Should be list
+        }
+
+        # Act
+        result = _redact_payload_phone_numbers(payload)
+
+        # Assert - Should not crash
+        assert result == {"entry": "not_a_list"}
+
+    def test_redact_payload_handles_json_serialization_error(self) -> None:
+        """Test that redaction falls back gracefully if JSON serialization fails."""
+        from unittest.mock import patch
+
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange - payload with phone number
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "type": "text",
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        # Mock json.dumps to raise TypeError to trigger fallback path
+        with patch("json.dumps", side_effect=TypeError("Mock serialization error")):
+            # Act
+            result = _redact_payload_phone_numbers(payload)
+
+        # Assert - Should still redact phone and return result (fallback path)
+        assert (
+            result["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
+            == "***7890"
+        )
