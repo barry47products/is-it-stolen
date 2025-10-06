@@ -1090,3 +1090,70 @@ class TestPhoneNumberRedaction:
         assert "from" not in result
         assert result["text"] == "Hello"
         assert result["type"] == "text"
+
+    def test_redact_payload_phone_numbers(self) -> None:
+        """Test redacting phone numbers from full webhook payload."""
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange - WhatsApp webhook structure
+        payload = {
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "messages": [
+                                    {
+                                        "from": "1234567890",
+                                        "text": {"body": "Hello"},
+                                        "type": "text",
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        # Act
+        result = _redact_payload_phone_numbers(payload)
+
+        # Assert
+        assert (
+            result["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
+            == "***7890"
+        )
+        # Ensure original is not modified
+        assert (
+            payload["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
+            == "1234567890"
+        )
+
+    def test_redact_payload_phone_numbers_empty_payload(self) -> None:
+        """Test redacting phone numbers from empty payload."""
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange
+        payload: dict[str, object] = {}
+
+        # Act
+        result = _redact_payload_phone_numbers(payload)
+
+        # Assert
+        assert result == {}
+
+    def test_redact_payload_phone_numbers_malformed_structure(self) -> None:
+        """Test redacting phone numbers handles malformed structures."""
+        from src.presentation.api.v1.webhook import _redact_payload_phone_numbers
+
+        # Arrange - malformed webhook structure
+        payload = {
+            "entry": "not_a_list",  # Should be list
+        }
+
+        # Act
+        result = _redact_payload_phone_numbers(payload)
+
+        # Assert - Should not crash
+        assert result == {"entry": "not_a_list"}

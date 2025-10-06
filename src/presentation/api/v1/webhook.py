@@ -93,6 +93,8 @@ async def verify_webhook(  # type: ignore[no-any-unimported]
 def redact_phone_number(phone: str) -> str:
     """Redact phone number for logging, keeping only last 4 digits.
 
+    This function sanitizes phone numbers to prevent PII leakage in logs.
+
     Args:
         phone: Phone number to redact
 
@@ -107,6 +109,8 @@ def redact_phone_number(phone: str) -> str:
 def redact_message_data(msg: dict[str, str]) -> dict[str, str]:
     """Redact sensitive data from message for logging.
 
+    This function sanitizes message data to prevent PII leakage in logs.
+
     Args:
         msg: Message data that may contain sensitive information
 
@@ -117,6 +121,50 @@ def redact_message_data(msg: dict[str, str]) -> dict[str, str]:
     if "from" in redacted:
         redacted["from"] = redact_phone_number(redacted["from"])
     return redacted
+
+
+def _redact_payload_phone_numbers(payload: dict[str, object]) -> dict[str, object]:
+    """Redact phone numbers from webhook payload for logging.
+
+    Recursively traverses the WhatsApp webhook payload structure and redacts
+    phone numbers in the 'from' fields to prevent PII leakage in logs.
+
+    Args:
+        payload: Webhook payload that may contain phone numbers
+
+    Returns:
+        Payload with phone numbers redacted
+    """
+    import copy
+    from typing import Any, cast
+
+    redacted: dict[str, Any] = copy.deepcopy(payload)
+
+    # WhatsApp webhook structure: entry[].changes[].value.messages[].from
+    entry_list = redacted.get("entry")
+    if isinstance(entry_list, list):
+        for entry in entry_list:
+            if not isinstance(entry, dict):
+                continue
+            changes = entry.get("changes", [])
+            if not isinstance(changes, list):
+                continue
+            for change in changes:
+                if not isinstance(change, dict):
+                    continue
+                value = change.get("value", {})
+                if not isinstance(value, dict):
+                    continue
+                messages = value.get("messages", [])
+                if not isinstance(messages, list):
+                    continue
+                for message in messages:
+                    if isinstance(message, dict) and "from" in message:
+                        phone = message["from"]
+                        if isinstance(phone, str):
+                            message["from"] = redact_phone_number(phone)
+
+    return cast("dict[str, object]", redacted)
 
 
 @router.post("/webhook", status_code=200)
@@ -176,11 +224,13 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
     # Parse JSON payload
     payload = await request.json()
 
-    # Log webhook payload in dev/test environments
+    # Log webhook payload in dev/test environments (with phone numbers redacted)
     if settings.environment in ("development", "test"):  # pragma: no cover
+        # Redact phone numbers from payload for security
+        redacted_payload = _redact_payload_phone_numbers(payload)
         logger.debug(
             "Received webhook payload",
-            extra={"payload": payload},
+            extra={"payload": redacted_payload},
         )
 
     # Parse messages from webhook
