@@ -1,8 +1,38 @@
 # Security Policy
 
+## Supported Versions
+
+Currently supported versions of Is It Stolen:
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 0.1.x   | :white_check_mark: |
+
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability, please email `security@example.com` (or create a private security advisory on GitHub) instead of opening a public issue.
+If you discover a security vulnerability, please report it responsibly:
+
+1. **GitHub Security Advisories** (Preferred): Go to the [Security tab](https://github.com/barry47products/is-it-stolen/security) and click "Report a vulnerability"
+2. **Email**: `security@example.com`
+
+**DO NOT** create public GitHub issues for security vulnerabilities.
+
+### Response Timeline
+
+- **Initial Response**: Within 48 hours
+- **Status Update**: Within 5 business days
+- **Fix Timeline**: Varies based on severity
+
+## Automated Security Scanning
+
+We use multiple automated tools to identify vulnerabilities:
+
+- **pip-audit**: Python dependency vulnerability scanning (runs weekly)
+- **detect-secrets**: Hardcoded secret detection (pre-commit hook)
+- **Trivy**: Docker image vulnerability scanning
+- **CodeQL**: Static code security analysis
+- **SonarCloud**: Code quality and security issues
+- **Dependabot**: Automated dependency updates
 
 ## Secure Configuration
 

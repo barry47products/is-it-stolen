@@ -147,6 +147,39 @@ ci-lint: ## Run CI linting
 	$(RUFF) check src tests --format=github
 	$(MYPY) src --no-error-summary
 
+# Security commands
+security-scan: ## Run all security scans locally
+	@echo "Running security scans..."
+	@echo "\n1. Dependency vulnerability scan..."
+	@poetry export -f requirements.txt --without-hashes -o requirements.txt
+	@poetry run pip install -q pip-audit || pip install pip-audit
+	@poetry run pip-audit --desc -r requirements.txt || echo "⚠️  Vulnerabilities found"
+	@rm requirements.txt
+	@echo "\n2. Secret detection scan..."
+	@poetry run pip install -q detect-secrets || pip install detect-secrets
+	@poetry run detect-secrets scan --all-files --force-use-all-plugins --exclude-files '.secrets.baseline|poetry.lock|.git/'
+	@echo "\n✅ Security scans complete!"
+
+security-scan-docker: ## Scan Docker image for vulnerabilities
+	@echo "Building Docker image..."
+	@docker build -t is-it-stolen:latest . -q
+	@echo "Scanning with Trivy..."
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+		aquasec/trivy image --severity HIGH,CRITICAL is-it-stolen:latest
+
+secrets-baseline: ## Update secrets baseline
+	@poetry run pip install -q detect-secrets || pip install detect-secrets
+	@poetry run detect-secrets scan > .secrets.baseline
+	@echo "✅ Secrets baseline updated"
+
+security-audit: ## Generate security audit report
+	@echo "Generating security audit..."
+	@poetry export -f requirements.txt --without-hashes -o requirements.txt
+	@poetry run pip install -q pip-audit || pip install pip-audit
+	@poetry run pip-audit --desc -r requirements.txt > docs/security-scan-$(shell date +%Y%m%d).txt || true
+	@rm requirements.txt
+	@echo "✅ Audit report saved to docs/security-scan-$(shell date +%Y%m%d).txt"
+
 ci-build: ## Build for CI
 	poetry build
 

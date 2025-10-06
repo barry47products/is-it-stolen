@@ -113,6 +113,26 @@ See [.env.example](.env.example) for required variables.
 
 See [docs/python-codebase-evaluation-guide.md](docs/python-codebase-evaluation-guide.md) for complete standards.
 
+## Security
+
+Security is a top priority. We use automated scanning and best practices:
+
+- **Dependency Scanning**: pip-audit (weekly)
+- **Secret Detection**: detect-secrets (pre-commit hook)
+- **Docker Scanning**: Trivy (on builds)
+- **Static Analysis**: CodeQL + SonarCloud
+- **Auto Updates**: Dependabot
+
+```bash
+# Run security scans locally
+make security-scan
+
+# Scan Docker image
+make security-scan-docker
+```
+
+See [SECURITY.md](SECURITY.md) for our security policy and reporting vulnerabilities.
+
 ## Documentation
 
 ### For Developers

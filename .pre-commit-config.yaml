@@ -31,3 +31,10 @@ repos:
           - phonenumbers>=9.0.15
         args: [--ignore-missing-imports]
         exclude: ^(tests/|alembic/)
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: (poetry\.lock|\.git/)
