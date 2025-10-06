@@ -1,12 +1,13 @@
 """Sentry error tracking integration."""
 
 import logging
-from typing import Any
+from typing import Any, Literal, cast
 
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.types import Event, Hint  # type: ignore[import-untyped]
 
 from src.infrastructure.config.settings import Settings
 
@@ -36,7 +37,7 @@ SENSITIVE_KEYS = {
 }
 
 
-def before_send(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any] | None:
+def before_send(event: Event, _hint: Hint) -> Event | None:  # type: ignore[no-any-unimported]
     """Filter sensitive data before sending to Sentry.
 
     Args:
@@ -52,27 +53,29 @@ def before_send(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any] 
 
         # Scrub headers
         if "headers" in request:
-            request["headers"] = _scrub_dict(request["headers"])
+            request["headers"] = _scrub_dict(cast("dict[str, Any]", request["headers"]))
 
         # Scrub query parameters
         if "query_string" in request:
-            request["query_string"] = _scrub_sensitive_params(request["query_string"])
+            request["query_string"] = _scrub_sensitive_params(
+                cast("str", request["query_string"])
+            )
 
         # Scrub cookies
         if "cookies" in request:
-            request["cookies"] = _scrub_dict(request["cookies"])
+            request["cookies"] = _scrub_dict(cast("dict[str, Any]", request["cookies"]))
 
         # Scrub POST data
         if "data" in request and isinstance(request["data"], dict):
-            request["data"] = _scrub_dict(request["data"])
+            request["data"] = _scrub_dict(cast("dict[str, Any]", request["data"]))
 
     # Scrub extra data
     if "extra" in event:
-        event["extra"] = _scrub_dict(event["extra"])
+        event["extra"] = _scrub_dict(cast("dict[str, Any]", event["extra"]))
 
     # Scrub context
     if "contexts" in event:
-        event["contexts"] = _scrub_dict(event["contexts"])
+        event["contexts"] = _scrub_dict(cast("dict[str, Any]", event["contexts"]))
 
     return event
 
@@ -206,7 +209,11 @@ def capture_exception(error: Exception, **context: Any) -> None:
         sentry_sdk.capture_exception(error)
 
 
-def capture_message(message: str, level: str = "info", **context: Any) -> None:
+def capture_message(
+    message: str,
+    level: Literal["fatal", "critical", "error", "warning", "info", "debug"] = "info",
+    **context: Any,
+) -> None:
     """Capture a message with additional context.
 
     Args:

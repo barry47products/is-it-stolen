@@ -122,6 +122,7 @@ module = [
     "redis.*",
     "celery.*",
     "alembic.*",
+    "sentry_sdk.*",
 ]
 ignore_missing_imports = true
 
