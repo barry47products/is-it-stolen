@@ -105,7 +105,7 @@ class GeocodingService:
         Returns:
             GeocodingResult if found, None otherwise
         """
-        params = {
+        params: dict[str, str | int] = {
             "q": location_text,
             "format": "json",
             "limit": 1,
