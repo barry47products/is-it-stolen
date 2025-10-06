@@ -90,6 +90,35 @@ async def verify_webhook(  # type: ignore[no-any-unimported]
     )
 
 
+def redact_phone_number(phone: str) -> str:
+    """Redact phone number for logging, keeping only last 4 digits.
+
+    Args:
+        phone: Phone number to redact
+
+    Returns:
+        Redacted phone number (e.g., "***1234")
+    """
+    if not phone:
+        return "***"
+    return f"***{phone[-4:]}" if len(phone) > 4 else "***"
+
+
+def redact_message_data(msg: dict[str, str]) -> dict[str, str]:
+    """Redact sensitive data from message for logging.
+
+    Args:
+        msg: Message data that may contain sensitive information
+
+    Returns:
+        Message data with phone number redacted
+    """
+    redacted = msg.copy()
+    if "from" in redacted:
+        redacted["from"] = redact_phone_number(redacted["from"])
+    return redacted
+
+
 @router.post("/webhook", status_code=200)
 async def receive_webhook(  # type: ignore[no-any-unimported]
     request: Request,
@@ -174,11 +203,11 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
             logger.debug(
                 "Processing message",
                 extra={
-                    "phone_number": phone_number,
+                    "phone_number": redact_phone_number(phone_number),
                     "type": message_type,
                     "has_text": bool(message_text),
                     "has_location": "latitude" in msg and "longitude" in msg,
-                    "msg_data": msg,
+                    "msg_data": redact_message_data(msg),
                 },
             )
 
@@ -188,7 +217,7 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
         if not phone_number:  # pragma: no cover
             logger.warning(
                 "Skipping message with missing phone_number",
-                extra={"webhook_message": msg},
+                extra={"webhook_message": redact_message_data(msg)},
             )
             failed_count += 1
             continue
@@ -211,7 +240,7 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
                 logger.info(
                     "Received location message",
                     extra={
-                        "phone_number": phone_number,
+                        "phone_number": redact_phone_number(phone_number),
                         "latitude": latitude,
                         "longitude": longitude,
                         "location_name": location_name,
@@ -221,7 +250,7 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
             else:
                 logger.warning(
                     "Skipping location message with missing coordinates",
-                    extra={"webhook_message": msg},
+                    extra={"webhook_message": redact_message_data(msg)},
                 )
                 failed_count += 1
                 continue
@@ -230,7 +259,10 @@ async def receive_webhook(  # type: ignore[no-any-unimported]
         if not message_text:
             logger.warning(
                 "Skipping message with missing text",
-                extra={"webhook_message": msg, "type": message_type},
+                extra={
+                    "webhook_message": redact_message_data(msg),
+                    "type": message_type,
+                },
             )
             failed_count += 1
             continue

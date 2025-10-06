@@ -1006,3 +1006,87 @@ class TestWebhookLocationMessages:
     #   Testing this would require reloading modules mid-test which is unreliable
     # - 187-192: Defensive code for missing phone_number that can never be reached
     #   because webhook_handler validates "from" field before messages reach this code
+
+
+@pytest.mark.unit
+class TestPhoneNumberRedaction:
+    """Test phone number redaction for logging security."""
+
+    def test_redact_phone_number_with_full_number(self) -> None:
+        """Test redacting a full phone number."""
+        from src.presentation.api.v1.webhook import redact_phone_number
+
+        # Arrange
+        phone = "1234567890"
+
+        # Act
+        result = redact_phone_number(phone)
+
+        # Assert
+        assert result == "***7890"
+        assert "1234" not in result
+
+    def test_redact_phone_number_with_short_number(self) -> None:
+        """Test redacting a short phone number (4 digits or less)."""
+        from src.presentation.api.v1.webhook import redact_phone_number
+
+        # Arrange
+        phone = "1234"
+
+        # Act
+        result = redact_phone_number(phone)
+
+        # Assert
+        assert result == "***"
+
+    def test_redact_phone_number_with_empty_string(self) -> None:
+        """Test redacting an empty phone number."""
+        from src.presentation.api.v1.webhook import redact_phone_number
+
+        # Arrange
+        phone = ""
+
+        # Act
+        result = redact_phone_number(phone)
+
+        # Assert
+        assert result == "***"
+
+    def test_redact_message_data_with_phone(self) -> None:
+        """Test redacting phone number from message data."""
+        from src.presentation.api.v1.webhook import redact_message_data
+
+        # Arrange
+        msg = {
+            "from": "1234567890",
+            "text": "Hello",
+            "type": "text",
+        }
+
+        # Act
+        result = redact_message_data(msg)
+
+        # Assert
+        assert result["from"] == "***7890"
+        assert result["text"] == "Hello"
+        assert result["type"] == "text"
+        # Ensure original is not modified
+        assert msg["from"] == "1234567890"
+
+    def test_redact_message_data_without_phone(self) -> None:
+        """Test redacting message data without phone number."""
+        from src.presentation.api.v1.webhook import redact_message_data
+
+        # Arrange
+        msg = {
+            "text": "Hello",
+            "type": "text",
+        }
+
+        # Act
+        result = redact_message_data(msg)
+
+        # Assert
+        assert "from" not in result
+        assert result["text"] == "Hello"
+        assert result["type"] == "text"
