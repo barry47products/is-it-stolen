@@ -59,15 +59,15 @@ class MessageRouter:
 
     async def route_message(
         self, phone_number: str, message_text: str
-    ) -> dict[str, str]:
+    ) -> dict[str, Any]:
         """Route message based on current conversation state.
 
         Args:
             phone_number: User's phone number
-            message_text: Message text from user
+            message_text: Message text from user (or button_id/list_id)
 
         Returns:
-            Response dictionary with reply and state
+            Response dictionary with reply (str or dict) and state (str)
         """
         # Get current context
         context = await self.state_machine.get_or_create(phone_number)
@@ -104,23 +104,27 @@ class MessageRouter:
             context = await self.state_machine.get_or_create(phone_number)
             return await self._handle_idle(context)
 
-    async def _handle_idle(self, context: ConversationContext) -> dict[str, str]:
-        """Handle IDLE state - transition to main menu."""
+    async def _handle_idle(self, context: ConversationContext) -> dict[str, Any]:
+        """Handle IDLE state - transition to main menu with interactive buttons."""
         new_context = await self.state_machine.transition(
             context, ConversationState.MAIN_MENU
         )
         return {
-            "reply": self.response_builder.format_welcome(),
+            "reply": self.response_builder.build_welcome_buttons(),
             "state": new_context.state.value,
         }
 
     async def _handle_main_menu(
         self, context: ConversationContext, message_text: str
     ) -> dict[str, str]:
-        """Handle MAIN_MENU state - route to check or report flow."""
+        """Handle MAIN_MENU state - route to check or report flow.
+
+        Supports both interactive button IDs and text input for backward compatibility.
+        """
         choice = message_text.strip()
 
-        if choice in ["1", "check", "Check"]:
+        # Handle interactive button IDs or text input
+        if choice in ["1", "check", "Check", "check_item"]:
             new_context = await self.state_machine.transition(
                 context, ConversationState.CHECKING_CATEGORY
             )
@@ -128,7 +132,7 @@ class MessageRouter:
                 "reply": self.response_builder.format_checking_category_prompt(),
                 "state": new_context.state.value,
             }
-        elif choice in ["2", "report", "Report"]:
+        elif choice in ["2", "report", "Report", "report_item"]:
             new_context = await self.state_machine.transition(
                 context, ConversationState.REPORTING_CATEGORY
             )

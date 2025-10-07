@@ -140,6 +140,16 @@ async def _process_single_message(
     message_text = msg.get("text", "")
     message_type = msg.get("type", "")
 
+    # Handle interactive messages (button/list replies)
+    if message_type == "interactive":
+        # Extract button_id or list_id as the message text
+        button_id = msg.get("button_id")
+        list_id = msg.get("list_id")
+        if button_id:
+            message_text = button_id
+        elif list_id:
+            message_text = list_id
+
     # Log in dev/test environments
     if settings.environment in ("development", "test"):  # pragma: no cover
         logger.debug(

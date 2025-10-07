@@ -340,3 +340,19 @@ class ResponseBuilder:
             button_text="Select Category",
             sections=sections,
         )
+
+    def build_welcome_buttons(self) -> dict[str, Any]:
+        """Build welcome/main menu buttons.
+
+        Returns:
+            Dict with Meta WhatsApp Cloud API interactive button message
+        """
+        buttons = [
+            {"id": "check_item", "title": "Check Item"},
+            {"id": "report_item", "title": "Report Item"},
+        ]
+
+        return self.build_reply_buttons(
+            body="👋 Welcome to Is It Stolen!\n\nWhat would you like to do?",
+            buttons=buttons,
+        )
