@@ -1,0 +1,49 @@
+# Conversation Flow Configurations
+# This file defines all conversation flows for the WhatsApp bot
+
+flows:
+  check_item:
+    name: "Check if Stolen"
+    description: "Check if an item matches any reported stolen items"
+    initial_step: "category"
+    steps:
+      category:
+        prompt: "What type of item would you like to check?"
+        prompt_type: "list"
+        next: "description"
+      description:
+        prompt: "Please describe the item (brand, model, color, distinguishing features)"
+        prompt_type: "text"
+        next: "location"
+      location:
+        prompt: "Where was the item last seen? (Send location or type address)"
+        prompt_type: "text"
+        next: "execute_search"
+      execute_search:
+        handler: "check_if_stolen"
+        handler_type: "query"
+
+  report_item:
+    name: "Report Stolen Item"
+    description: "Report a stolen item to the database"
+    initial_step: "category"
+    steps:
+      category:
+        prompt: "What type of item was stolen?"
+        prompt_type: "list"
+        next: "description"
+      description:
+        prompt: "Please describe the stolen item in detail (brand, model, serial number, color, etc.)"
+        prompt_type: "text"
+        next: "location"
+      location:
+        prompt: "Where was the item stolen from? (Send location or type address)"
+        prompt_type: "text"
+        next: "date"
+      date:
+        prompt: "When was the item stolen? (e.g., 'today', 'yesterday', '2023-10-15')"
+        prompt_type: "text"
+        next: "execute_report"
+      execute_report:
+        handler: "report_stolen_item"
+        handler_type: "command"
