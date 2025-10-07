@@ -10,13 +10,16 @@ class ConversationState(str, Enum):
     IDLE = "idle"
     MAIN_MENU = "main_menu"
 
-    # Check item flow
+    # Active flow (configuration-driven)
+    ACTIVE_FLOW = "active_flow"
+
+    # Check item flow (legacy)
     CHECKING_CATEGORY = "checking_category"
     CHECKING_DESCRIPTION = "checking_description"
     CHECKING_LOCATION = "checking_location"
     CHECKING_RESULTS = "checking_results"
 
-    # Report item flow
+    # Report item flow (legacy)
     REPORTING_CATEGORY = "reporting_category"
     REPORTING_DESCRIPTION = "reporting_description"
     REPORTING_LOCATION = "reporting_location"
@@ -35,8 +38,14 @@ STATE_TRANSITIONS: dict[ConversationState, list[ConversationState]] = {
         ConversationState.MAIN_MENU,
     ],
     ConversationState.MAIN_MENU: [
+        ConversationState.ACTIVE_FLOW,
         ConversationState.CHECKING_CATEGORY,
         ConversationState.REPORTING_CATEGORY,
+        ConversationState.CANCELLED,
+    ],
+    ConversationState.ACTIVE_FLOW: [
+        ConversationState.ACTIVE_FLOW,  # Can stay in ACTIVE_FLOW while processing
+        ConversationState.COMPLETE,
         ConversationState.CANCELLED,
     ],
     ConversationState.CHECKING_CATEGORY: [

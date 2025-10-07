@@ -30,7 +30,9 @@ flows:
 ## Step Types
 
 ### Input Steps
+
 Steps that prompt the user for input:
+
 - `prompt`: The message shown to the user
 - `prompt_type`: How to collect input
   - `text`: Free-form text input
@@ -39,7 +41,9 @@ Steps that prompt the user for input:
 - `next`: The next step to transition to
 
 ### Handler Steps
+
 Terminal steps that execute business logic:
+
 - `handler`: Name of the handler to execute (from handler registry)
 - `handler_type`:
   - `query`: Read-only operations (searches, lookups)
@@ -69,6 +73,7 @@ flows:
 ## Validation
 
 The flow configuration loader validates:
+
 - All step references exist
 - Initial step exists
 - No circular dependencies

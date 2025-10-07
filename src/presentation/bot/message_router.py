@@ -2,7 +2,7 @@
 
 import logging
 from datetime import UTC, datetime
-from typing import Any, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
 from src.application.commands.report_stolen_item import (
     ReportStolenItemCommand,
@@ -16,7 +16,11 @@ from src.infrastructure.geocoding.geocoding_service import GeocodingService
 from src.infrastructure.metrics.metrics_service import get_metrics_service
 from src.presentation.bot.context import ConversationContext
 from src.presentation.bot.error_handler import ErrorHandler
+from src.presentation.bot.flow_engine import FlowEngine
 from src.presentation.bot.message_parser import MessageParser
+
+if TYPE_CHECKING:
+    from src.presentation.bot.flow_engine import FlowContext
 from src.presentation.bot.response_builder import ResponseBuilder
 from src.presentation.bot.state_machine import ConversationStateMachine
 from src.presentation.bot.states import ConversationState
@@ -40,6 +44,7 @@ class MessageRouter:
         report_stolen_item_handler: ReportStolenItemHandler | None = None,
         error_handler: ErrorHandler | None = None,
         geocoding_service: GeocodingService | None = None,
+        flow_engine: FlowEngine | None = None,
     ) -> None:
         """Initialize message router.
 
@@ -51,6 +56,7 @@ class MessageRouter:
             report_stolen_item_handler: Handler for reporting stolen items (optional)
             error_handler: Handler for mapping exceptions to user messages
             geocoding_service: Service for converting location text to coordinates (optional)
+            flow_engine: Flow execution engine for configuration-driven flows (optional)
         """
         self.state_machine = state_machine
         self.parser = parser
@@ -59,6 +65,7 @@ class MessageRouter:
         self.report_stolen_item_handler = report_stolen_item_handler
         self.error_handler = error_handler or ErrorHandler()
         self.geocoding_service = geocoding_service
+        self.flow_engine = flow_engine
 
     async def route_message(
         self, phone_number: str, message_text: str
@@ -88,6 +95,8 @@ class MessageRouter:
             return await self._handle_idle(context)
         elif context.state == ConversationState.MAIN_MENU:
             return await self._handle_main_menu(context, message_text)
+        elif context.state == ConversationState.ACTIVE_FLOW:
+            return await self._handle_active_flow(context, message_text)
         elif context.state == ConversationState.CHECKING_CATEGORY:
             return await self._handle_checking_category(context, message_text)
         elif context.state == ConversationState.CHECKING_DESCRIPTION:
@@ -123,18 +132,38 @@ class MessageRouter:
         """Handle MAIN_MENU state - route to check or report flow.
 
         Supports both interactive button IDs and text input for backward compatibility.
+        Uses flow engine if available, otherwise uses legacy state-based routing.
         """
         choice = message_text.strip()
 
         # Handle interactive button IDs or text input
         if choice in ["1", "check", "Check", "check_item"]:
-            new_context = await self.state_machine.transition(
-                context, ConversationState.CHECKING_CATEGORY
-            )
-            return {
-                "reply": self.response_builder.build_category_list(),
-                "state": new_context.state.value,
-            }
+            # Use flow engine if available
+            if self.flow_engine is not None:
+                flow_context = await self.flow_engine.start_flow(
+                    "check_item", context.phone_number
+                )
+                new_context = await self.state_machine.transition(
+                    context, ConversationState.ACTIVE_FLOW
+                )
+                new_context = await self.state_machine.update_data(
+                    new_context,
+                    {"flow_id": "check_item", "flow_context": flow_context},
+                )
+                prompt = self.flow_engine.get_prompt(flow_context)
+                return {
+                    "reply": prompt or "Please provide information",
+                    "state": new_context.state.value,
+                }
+            else:
+                # Legacy state-based flow
+                new_context = await self.state_machine.transition(
+                    context, ConversationState.CHECKING_CATEGORY
+                )
+                return {
+                    "reply": self.response_builder.build_category_list(),
+                    "state": new_context.state.value,
+                }
         elif choice in ["2", "report", "Report", "report_item"]:
             new_context = await self.state_machine.transition(
                 context, ConversationState.REPORTING_CATEGORY
@@ -147,6 +176,53 @@ class MessageRouter:
             return {
                 "reply": self.response_builder.format_main_menu_invalid_choice(),
                 "state": context.state.value,
+            }
+
+    async def _handle_active_flow(
+        self, context: ConversationContext, message_text: str
+    ) -> RouterResponse:
+        """Handle ACTIVE_FLOW state - process input through flow engine."""
+        if self.flow_engine is None:
+            # Fall back to idle if no flow engine
+            return await self._handle_idle(context)
+
+        # Get flow context from conversation data
+        flow_context = context.data.get("flow_context")
+        if flow_context is None:
+            # No active flow - reset to idle
+            return await self._handle_idle(context)
+
+        # Process input through flow engine
+        new_flow_context = await self.flow_engine.process_input(
+            cast("FlowContext", flow_context), message_text
+        )
+
+        # Check if flow is complete
+        if new_flow_context.is_complete:
+            # Flow completed - format results and transition to COMPLETE
+            await self.state_machine.complete(context)
+            result = new_flow_context.result or {}
+
+            # Format result message
+            if "matches" in result:
+                reply = f"Search complete. Found {result['matches']} matching items."
+            else:
+                reply = "Flow completed successfully."
+
+            return {
+                "reply": reply,
+                "state": ConversationState.COMPLETE.value,
+            }
+        else:
+            # Flow still in progress - update context and get next prompt
+            new_context = await self.state_machine.update_data(
+                context,
+                {"flow_context": new_flow_context},
+            )
+            prompt = self.flow_engine.get_prompt(new_flow_context)
+            return {
+                "reply": prompt or "Please continue",
+                "state": new_context.state.value,
             }
 
     async def _handle_checking_category(
