@@ -562,31 +562,33 @@ Build handler registry that dynamically loads command/query handlers based on co
 
 **Tasks:**
 
-1. Write failing tests for HandlerRegistry
-2. Implement dynamic class loading from module paths
-3. Implement dependency injection for handler dependencies
-4. Create handlers.yaml with existing handlers mapped
-5. Add service registry for shared dependencies
-6. Support singleton pattern for services
-7. Run `make check` (100% coverage, mypy, ruff)
-8. Commit and create PR
+1. ✅ Write failing tests for HandlerRegistry
+2. ✅ Implement dynamic class loading from module paths
+3. ✅ Implement dependency injection for handler dependencies
+4. ✅ Create handlers.yaml with existing handlers mapped
+5. ✅ Add service registry for shared dependencies
+6. ✅ Support singleton pattern for services
+7. ✅ Run `make check` (100% coverage, mypy, ruff)
+8. ✅ Commit and create PR
 
 **Test Coverage:**
 
-- Test loading handler by name
-- Test dependency injection works correctly
-- Test singleton services cached properly
-- Test error handling for missing handlers/services
-- Test error handling for invalid class paths
+- ✅ Test loading handler by name
+- ✅ Test dependency injection works correctly
+- ✅ Test singleton services cached properly
+- ✅ Test error handling for missing handlers/services
+- ✅ Test error handling for invalid class paths
+- ✅ Test malformed YAML handling
+- ✅ Test file not found errors
 
 **Acceptance Criteria:**
 
-- [ ] HandlerRegistry loads handlers from YAML
-- [ ] Handlers can declare dependencies in configuration
-- [ ] Services support singleton pattern
-- [ ] All tests pass with 100% coverage
-- [ ] No mypy or ruff errors
-- [ ] Pre-commit checks pass
+- [x] HandlerRegistry loads handlers from YAML
+- [x] Handlers can declare dependencies in configuration
+- [x] Services support singleton pattern
+- [x] All tests pass with 100% coverage (17 tests)
+- [x] No mypy or ruff errors
+- [x] Pre-commit checks pass
 
 ---
 
