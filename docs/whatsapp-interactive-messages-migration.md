@@ -1005,7 +1005,7 @@ Each issue is isolated and can be reverted independently.
 | [#104](https://github.com/barry47products/is-it-stolen/issues/104) | Add Interactive Message Parsing | None | ✅ Complete | [#117](https://github.com/barry47products/is-it-stolen/pull/117) | ✅ |
 | [#105](https://github.com/barry47products/is-it-stolen/issues/105) | Add Interactive Response Builder | None | ✅ Complete | [#118](https://github.com/barry47products/is-it-stolen/pull/118) | ✅ |
 | [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | ✅ Complete | [#119](https://github.com/barry47products/is-it-stolen/pull/119) | ✅ |
-| [#107](https://github.com/barry47products/is-it-stolen/issues/107) | Migrate Category Selection to Lists | #103, #104, #105 | 🔲 Not Started | - | - |
+| [#107](https://github.com/barry47products/is-it-stolen/issues/107) | Migrate Category Selection to Lists | #103, #104, #105 | ✅ Complete | [#120](https://github.com/barry47products/is-it-stolen/pull/120) | ✅ |
 | [#108](https://github.com/barry47products/is-it-stolen/issues/108) | Create Configuration Loader | None | 🔲 Not Started | - | - |
 | [#109](https://github.com/barry47products/is-it-stolen/issues/109) | Create Handler Registry | None | 🔲 Not Started | - | - |
 | [#110](https://github.com/barry47products/is-it-stolen/issues/110) | Build Flow Execution Engine | #108, #109 | 🔲 Not Started | - | - |
