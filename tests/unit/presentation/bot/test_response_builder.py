@@ -509,3 +509,28 @@ class TestBuildCategoryList:
         assert "phone" in category_ids
         assert "laptop" in category_ids
         assert "car" in category_ids
+
+
+class TestBuildWelcomeButtons:
+    """Tests for building welcome/main menu buttons."""
+
+    def test_builds_welcome_buttons_with_check_and_report(self) -> None:
+        """Test building welcome message with Check and Report buttons."""
+        builder = ResponseBuilder()
+
+        result = builder.build_welcome_buttons()
+
+        assert result["type"] == "interactive"
+        assert result["interactive"]["type"] == "button"
+        assert "welcome" in result["interactive"]["body"]["text"].lower()
+        assert len(result["interactive"]["action"]["buttons"]) == 2
+
+        # Check button IDs and titles
+        buttons = result["interactive"]["action"]["buttons"]
+        button_ids = [btn["reply"]["id"] for btn in buttons]
+        button_titles = [btn["reply"]["title"] for btn in buttons]
+
+        assert "check_item" in button_ids
+        assert "report_item" in button_ids
+        assert "Check Item" in button_titles
+        assert "Report Item" in button_titles
