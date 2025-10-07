@@ -2,7 +2,7 @@
 
 import logging
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TypeAlias
 
 from src.application.commands.report_stolen_item import (
     ReportStolenItemCommand,
@@ -23,6 +23,9 @@ from src.presentation.bot.states import ConversationState
 from src.presentation.utils.redaction import redact_phone_number
 
 logger = logging.getLogger(__name__)
+
+# Type alias for router responses that can be text or interactive messages
+RouterResponse: TypeAlias = dict[str, str | dict[str, Any]]
 
 
 class MessageRouter:
@@ -104,7 +107,7 @@ class MessageRouter:
             context = await self.state_machine.get_or_create(phone_number)
             return await self._handle_idle(context)
 
-    async def _handle_idle(self, context: ConversationContext) -> dict[str, Any]:
+    async def _handle_idle(self, context: ConversationContext) -> RouterResponse:
         """Handle IDLE state - transition to main menu with interactive buttons."""
         new_context = await self.state_machine.transition(
             context, ConversationState.MAIN_MENU
@@ -116,7 +119,7 @@ class MessageRouter:
 
     async def _handle_main_menu(
         self, context: ConversationContext, message_text: str
-    ) -> dict[str, str]:
+    ) -> RouterResponse:
         """Handle MAIN_MENU state - route to check or report flow.
 
         Supports both interactive button IDs and text input for backward compatibility.
@@ -129,7 +132,7 @@ class MessageRouter:
                 context, ConversationState.CHECKING_CATEGORY
             )
             return {
-                "reply": self.response_builder.format_checking_category_prompt(),
+                "reply": self.response_builder.build_category_list(),
                 "state": new_context.state.value,
             }
         elif choice in ["2", "report", "Report", "report_item"]:
@@ -137,7 +140,7 @@ class MessageRouter:
                 context, ConversationState.REPORTING_CATEGORY
             )
             return {
-                "reply": self.response_builder.format_reporting_category_prompt(),
+                "reply": self.response_builder.build_category_list(),
                 "state": new_context.state.value,
             }
         else:

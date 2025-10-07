@@ -470,29 +470,29 @@ Replace text-based category input with interactive list (Bicycle / Phone / Lapto
 
 **Tasks:**
 
-1. Write failing tests for category list in check flow
-2. Update category prompt to send list message
-3. Update category parsing to handle `list_reply.id`
-4. Repeat for reporting flow
-5. Keep backward compatibility with text category names
-6. Run `make check` (100% coverage, mypy, ruff)
-7. Commit and create PR
+1. ✅ Write failing tests for category list in check flow
+2. ✅ Update category prompt to send list message
+3. ✅ Update category parsing to handle `list_reply.id`
+4. ✅ Repeat for reporting flow
+5. ✅ Keep backward compatibility with text category names
+6. ✅ Run `make check` (100% coverage, mypy, ruff)
+7. ✅ Commit and create PR
 
 **Test Coverage:**
 
-- Test check flow sends category list (5 options)
-- Test report flow sends category list (5 options)
-- Test selecting list item extracts correct category
-- Test fallback text parsing still works
+- ✅ Test check flow sends category list (4 options)
+- ✅ Test report flow sends category list (4 options)
+- ✅ Test selecting list item extracts correct category
+- ✅ Test fallback text parsing still works
 
 **Acceptance Criteria:**
 
-- [ ] Category prompts use list messages
-- [ ] List selections correctly extract ItemCategory
-- [ ] Backward compatible with text category names
-- [ ] All tests pass with 100% coverage
-- [ ] No mypy or ruff errors
-- [ ] Pre-commit checks pass
+- [x] Category prompts use list messages
+- [x] List selections correctly extract ItemCategory
+- [x] Backward compatible with text category names
+- [x] All tests pass with 100% coverage
+- [x] No mypy or ruff errors
+- [x] Pre-commit checks pass
 
 ---
 
@@ -1003,8 +1003,8 @@ Each issue is isolated and can be reverted independently.
 |-------|-------|--------------|--------|----|----|
 | [#103](https://github.com/barry47products/is-it-stolen/issues/103) | Add Interactive Message Support (Meta API) | None | ✅ Complete | [#116](https://github.com/barry47products/is-it-stolen/pull/116) | ✅ |
 | [#104](https://github.com/barry47products/is-it-stolen/issues/104) | Add Interactive Message Parsing | None | ✅ Complete | [#117](https://github.com/barry47products/is-it-stolen/pull/117) | ✅ |
-| [#105](https://github.com/barry47products/is-it-stolen/issues/105) | Add Interactive Response Builder | None | ✅ Complete | [#118](https://github.com/barry47products/is-it-stolen/pull/118) | 🔲 |
-| [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | ✅ Complete | [#119](https://github.com/barry47products/is-it-stolen/pull/119) | 🔲 |
+| [#105](https://github.com/barry47products/is-it-stolen/issues/105) | Add Interactive Response Builder | None | ✅ Complete | [#118](https://github.com/barry47products/is-it-stolen/pull/118) | ✅ |
+| [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | ✅ Complete | [#119](https://github.com/barry47products/is-it-stolen/pull/119) | ✅ |
 | [#107](https://github.com/barry47products/is-it-stolen/issues/107) | Migrate Category Selection to Lists | #103, #104, #105 | 🔲 Not Started | - | - |
 | [#108](https://github.com/barry47products/is-it-stolen/issues/108) | Create Configuration Loader | None | 🔲 Not Started | - | - |
 | [#109](https://github.com/barry47products/is-it-stolen/issues/109) | Create Handler Registry | None | 🔲 Not Started | - | - |

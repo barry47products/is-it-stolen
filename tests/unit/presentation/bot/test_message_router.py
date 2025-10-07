@@ -105,8 +105,11 @@ class TestMessageRouter:
         # Act
         response = await router.route_message(phone_number, "1")
 
-        # Assert
-        assert "check" in response["reply"].lower()
+        # Assert - should return interactive list message
+        assert isinstance(response["reply"], dict)
+        assert response["reply"]["type"] == "interactive"
+        assert response["reply"]["interactive"]["type"] == "list"
+        assert "item" in response["reply"]["interactive"]["body"]["text"].lower()
 
     @pytest.mark.asyncio
     async def test_main_menu_routes_to_reporting_flow(self) -> None:
@@ -133,8 +136,11 @@ class TestMessageRouter:
         # Act
         response = await router.route_message(phone_number, "2")
 
-        # Assert
-        assert "report" in response["reply"].lower()
+        # Assert - should return interactive list message
+        assert isinstance(response["reply"], dict)
+        assert response["reply"]["type"] == "interactive"
+        assert response["reply"]["interactive"]["type"] == "list"
+        assert "item" in response["reply"]["interactive"]["body"]["text"].lower()
 
     @pytest.mark.asyncio
     async def test_checking_category_parses_category(self) -> None:
@@ -172,6 +178,82 @@ class TestMessageRouter:
 
         # Assert
         parser.parse_category.assert_called_once_with("bike")
+        assert "describe" in response["reply"].lower()
+
+    @pytest.mark.asyncio
+    async def test_checking_category_handles_list_id(self) -> None:
+        """Test checking category handles interactive list_id (e.g., 'bicycle')."""
+        # Arrange
+        phone_number = "+1234567890"
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.CHECKING_CATEGORY,
+            )
+        )
+        state_machine.update_data = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.CHECKING_CATEGORY,
+                data={"category": "bicycle"},
+            )
+        )
+        state_machine.transition = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.CHECKING_DESCRIPTION,
+            )
+        )
+
+        parser = MagicMock()
+        parser.parse_category = MagicMock(return_value=ItemCategory.BICYCLE)
+
+        router = MessageRouter(state_machine, parser)
+
+        # Act - list_id comes as "bicycle" from interactive list
+        response = await router.route_message(phone_number, "bicycle")
+
+        # Assert
+        parser.parse_category.assert_called_once_with("bicycle")
+        assert "describe" in response["reply"].lower()
+
+    @pytest.mark.asyncio
+    async def test_reporting_category_handles_list_id(self) -> None:
+        """Test reporting category handles interactive list_id (e.g., 'phone')."""
+        # Arrange
+        phone_number = "+1234567890"
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.REPORTING_CATEGORY,
+            )
+        )
+        state_machine.update_data = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.REPORTING_CATEGORY,
+                data={"category": "phone"},
+            )
+        )
+        state_machine.transition = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.REPORTING_DESCRIPTION,
+            )
+        )
+
+        parser = MagicMock()
+        parser.parse_category = MagicMock(return_value=ItemCategory.PHONE)
+
+        router = MessageRouter(state_machine, parser)
+
+        # Act - list_id comes as "phone" from interactive list
+        response = await router.route_message(phone_number, "phone")
+
+        # Assert
+        parser.parse_category.assert_called_once_with("phone")
         assert "describe" in response["reply"].lower()
 
     @pytest.mark.asyncio
