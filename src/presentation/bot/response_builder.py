@@ -1,5 +1,7 @@
 """Response builder for formatting bot messages."""
 
+from typing import Any
+
 from src.domain.value_objects.item_category import ItemCategory
 
 
@@ -219,4 +221,122 @@ class ResponseBuilder:
             "1️⃣ Check if an item is stolen\n"
             "2️⃣ Report a stolen item\n\n"
             "Type 'cancel' to exit."
+        )
+
+    def build_reply_buttons(
+        self, body: str, buttons: list[dict[str, str]]
+    ) -> dict[str, Any]:
+        """Build reply buttons interactive message payload.
+
+        Args:
+            body: Message body text
+            buttons: List of button dicts with 'id' and 'title' keys (max 3)
+
+        Returns:
+            Dict with Meta WhatsApp Cloud API interactive message payload
+
+        Raises:
+            ValueError: If buttons list is invalid (empty, >3 buttons, title too long)
+        """
+        if not buttons:
+            raise ValueError("At least 1 button required")
+        if len(buttons) > 3:
+            raise ValueError("Maximum 3 buttons allowed")
+
+        # Validate button title lengths (Meta API limit: 20 characters)
+        for button in buttons:
+            if len(button["title"]) > 20:
+                raise ValueError(
+                    f"Button title '{button['title']}' cannot exceed 20 characters"
+                )
+
+        action_buttons = [
+            {"type": "reply", "reply": {"id": btn["id"], "title": btn["title"]}}
+            for btn in buttons
+        ]
+
+        return {
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {"text": body},
+                "action": {"buttons": action_buttons},
+            },
+        }
+
+    def build_list_message(
+        self,
+        body: str,
+        button_text: str,
+        sections: list[dict[str, Any]],
+        header: str | None = None,
+    ) -> dict[str, Any]:
+        """Build list message interactive message payload.
+
+        Args:
+            body: Message body text
+            button_text: Text for list button
+            sections: List of section dicts with 'title' and 'rows' keys
+            header: Optional header text
+
+        Returns:
+            Dict with Meta WhatsApp Cloud API interactive message payload
+
+        Raises:
+            ValueError: If sections is invalid (empty, >10 sections, >10 total rows)
+        """
+        if not sections:
+            raise ValueError("At least 1 section required")
+        if len(sections) > 10:
+            raise ValueError("Maximum 10 sections allowed")
+
+        total_rows = sum(len(section.get("rows", [])) for section in sections)
+        if total_rows > 10:
+            raise ValueError("Maximum 10 rows allowed across all sections")
+
+        interactive: dict[str, Any] = {
+            "type": "list",
+            "body": {"text": body},
+            "action": {"button": button_text, "sections": sections},
+        }
+
+        if header:
+            interactive["header"] = {"type": "text", "text": header}
+
+        return {"type": "interactive", "interactive": interactive}
+
+    def build_category_list(self) -> dict[str, Any]:
+        """Build category selection list message.
+
+        Returns:
+            Dict with Meta WhatsApp Cloud API interactive list message
+        """
+        sections = [
+            {
+                "title": "Common Items",
+                "rows": [
+                    {
+                        "id": "bicycle",
+                        "title": "Bicycle",
+                        "description": "Bikes, e-bikes, scooters",
+                    },
+                    {
+                        "id": "phone",
+                        "title": "Phone",
+                        "description": "Mobile phones, smartphones",
+                    },
+                    {
+                        "id": "laptop",
+                        "title": "Laptop",
+                        "description": "Laptops, tablets, computers",
+                    },
+                    {"id": "car", "title": "Car", "description": "Cars, vehicles"},
+                ],
+            }
+        ]
+
+        return self.build_list_message(
+            body="What type of item?",
+            button_text="Select Category",
+            sections=sections,
         )
