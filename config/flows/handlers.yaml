@@ -1,0 +1,46 @@
+# Handler Registry Configuration
+# Maps handler names to their implementation classes and dependencies
+
+handlers:
+  # Query Handlers (read-only operations)
+  check_if_stolen:
+    class: "src.application.queries.check_if_stolen.CheckIfStolenHandler"
+    dependencies:
+      - stolen_item_repository
+      - matching_service
+
+  find_nearby_items:
+    class: "src.application.queries.find_nearby_items.FindNearbyItemsHandler"
+    dependencies:
+      - stolen_item_repository
+
+  list_user_items:
+    class: "src.application.queries.list_user_items.ListUserItemsHandler"
+    dependencies:
+      - stolen_item_repository
+
+  # Command Handlers (write operations)
+  report_stolen_item:
+    class: "src.application.commands.report_stolen_item.ReportStolenItemHandler"
+    dependencies:
+      - stolen_item_repository
+      - event_publisher
+
+  verify_item:
+    class: "src.application.commands.verify_item.VerifyItemHandler"
+    dependencies:
+      - stolen_item_repository
+      - verification_service
+      - event_publisher
+
+  update_item:
+    class: "src.application.commands.update_item.UpdateItemHandler"
+    dependencies:
+      - stolen_item_repository
+      - event_publisher
+
+  delete_item:
+    class: "src.application.commands.delete_item.DeleteItemHandler"
+    dependencies:
+      - stolen_item_repository
+      - event_publisher
