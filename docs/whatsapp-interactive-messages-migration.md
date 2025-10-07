@@ -1012,7 +1012,7 @@ Each issue is isolated and can be reverted independently.
 | [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | ✅ Complete | [#119](https://github.com/barry47products/is-it-stolen/pull/119) | ✅ |
 | [#107](https://github.com/barry47products/is-it-stolen/issues/107) | Migrate Category Selection to Lists | #103, #104, #105 | ✅ Complete | [#120](https://github.com/barry47products/is-it-stolen/pull/120) | ✅ |
 | [#108](https://github.com/barry47products/is-it-stolen/issues/108) | Create Configuration Loader | None | ✅ Complete | [#121](https://github.com/barry47products/is-it-stolen/pull/121) | ✅ |
-| [#109](https://github.com/barry47products/is-it-stolen/issues/109) | Create Handler Registry | None | 🔲 Not Started | - | - |
+| [#109](https://github.com/barry47products/is-it-stolen/issues/109) | Create Handler Registry | None | ✅ Complete | [#122](https://github.com/barry47products/is-it-stolen/pull/122) | ✅ |
 | [#110](https://github.com/barry47products/is-it-stolen/issues/110) | Build Flow Execution Engine | #108, #109 | 🔲 Not Started | - | - |
 | [#111](https://github.com/barry47products/is-it-stolen/issues/111) | Migrate Check Flow to Config | #110 | 🔲 Not Started | - | - |
 | [#112](https://github.com/barry47products/is-it-stolen/issues/112) | Migrate Report Flow to Config | #111 | 🔲 Not Started | - | - |
