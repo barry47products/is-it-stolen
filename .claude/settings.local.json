@@ -17,7 +17,9 @@
       "Bash(for:*)",
       "Bash(do)",
       "Bash(gh api:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(gh label list:*)",
+      "Bash(gh label create:*)"
     ],
     "deny": [],
     "ask": []

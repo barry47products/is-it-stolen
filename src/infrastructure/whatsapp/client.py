@@ -146,6 +146,103 @@ class WhatsAppClient:
         response = await self._send_message(payload)
         return str(response["messages"][0]["id"])
 
+    async def send_reply_buttons(
+        self, to: str, body: str, buttons: list[dict[str, str]]
+    ) -> str:
+        """Send interactive message with reply buttons.
+
+        Args:
+            to: Recipient phone number in E.164 format
+            body: Message body text
+            buttons: List of button dicts with 'id' and 'title' keys (max 3)
+
+        Returns:
+            Message ID from WhatsApp
+
+        Raises:
+            ValueError: If buttons list is invalid (empty or >3 buttons)
+            WhatsAppAPIError: If API returns an error
+            WhatsAppRateLimitError: If rate limit exceeded after retries
+        """
+        if not buttons:
+            raise ValueError("At least 1 button required")
+        if len(buttons) > 3:
+            raise ValueError("Maximum 3 buttons allowed")
+
+        action_buttons = [
+            {"type": "reply", "reply": {"id": btn["id"], "title": btn["title"]}}
+            for btn in buttons
+        ]
+
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": to,
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {"text": body},
+                "action": {"buttons": action_buttons},
+            },
+        }
+
+        response = await self._send_message(payload)
+        return str(response["messages"][0]["id"])
+
+    async def send_list_message(
+        self,
+        to: str,
+        body: str,
+        button_text: str,
+        sections: list[dict[str, Any]],
+        header: str | None = None,
+    ) -> str:
+        """Send interactive list message.
+
+        Args:
+            to: Recipient phone number in E.164 format
+            body: Message body text
+            button_text: Text for list button
+            sections: List of section dicts with 'title' and 'rows' keys
+            header: Optional header text
+
+        Returns:
+            Message ID from WhatsApp
+
+        Raises:
+            ValueError: If sections is invalid (empty, >10 sections, >10 total rows)
+            WhatsAppAPIError: If API returns an error
+            WhatsAppRateLimitError: If rate limit exceeded after retries
+        """
+        if not sections:
+            raise ValueError("At least 1 section required")
+        if len(sections) > 10:
+            raise ValueError("Maximum 10 sections allowed")
+
+        total_rows = sum(len(section.get("rows", [])) for section in sections)
+        if total_rows > 10:
+            raise ValueError("Maximum 10 rows allowed across all sections")
+
+        interactive: dict[str, Any] = {
+            "type": "list",
+            "body": {"text": body},
+            "action": {"button": button_text, "sections": sections},
+        }
+
+        if header:
+            interactive["header"] = {"type": "text", "text": header}
+
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": to,
+            "type": "interactive",
+            "interactive": interactive,
+        }
+
+        response = await self._send_message(payload)
+        return str(response["messages"][0]["id"])
+
     async def download_media(self, media_id: str) -> bytes:
         """Download media from WhatsApp.
 
