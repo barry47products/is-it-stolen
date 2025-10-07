@@ -252,6 +252,8 @@ class WebhookHandler:
             self._add_media_content(msg, msg_type, parsed)
         elif msg_type == "location":
             self._add_location_content(msg, parsed)
+        elif msg_type == "interactive":
+            self._add_interactive_content(msg, parsed)
 
     def _add_text_content(self, msg: dict[str, object], parsed: dict[str, str]) -> None:
         """Add text content to parsed message.
@@ -320,3 +322,74 @@ class WebhookHandler:
         location_address = location_data.get("address")
         if isinstance(location_address, str):
             parsed["location_address"] = location_address
+
+    def _add_interactive_content(
+        self, msg: dict[str, object], parsed: dict[str, str]
+    ) -> None:
+        """Add interactive message content to parsed message.
+
+        Args:
+            msg: Message dictionary
+            parsed: Parsed message dict to update
+        """
+        interactive_data = msg.get("interactive", {})
+        if not isinstance(interactive_data, dict):
+            return
+
+        interactive_type = interactive_data.get("type")
+        if not isinstance(interactive_type, str):
+            return
+
+        parsed["interactive_type"] = interactive_type
+
+        if interactive_type == "button_reply":
+            self._add_button_reply_content(interactive_data, parsed)
+        elif interactive_type == "list_reply":
+            self._add_list_reply_content(interactive_data, parsed)
+
+    def _add_button_reply_content(
+        self, interactive_data: dict[str, object], parsed: dict[str, str]
+    ) -> None:
+        """Add button reply content to parsed message.
+
+        Args:
+            interactive_data: Interactive data dictionary
+            parsed: Parsed message dict to update
+        """
+        button_reply = interactive_data.get("button_reply", {})
+        if not isinstance(button_reply, dict):
+            return
+
+        button_id = button_reply.get("id")
+        if isinstance(button_id, str):
+            parsed["button_id"] = button_id
+
+        button_title = button_reply.get("title")
+        if isinstance(button_title, str):
+            parsed["button_title"] = button_title
+
+    def _add_list_reply_content(
+        self, interactive_data: dict[str, object], parsed: dict[str, str]
+    ) -> None:
+        """Add list reply content to parsed message.
+
+        Args:
+            interactive_data: Interactive data dictionary
+            parsed: Parsed message dict to update
+        """
+        list_reply = interactive_data.get("list_reply", {})
+        if not isinstance(list_reply, dict):
+            return
+
+        list_id = list_reply.get("id")
+        if isinstance(list_id, str):
+            parsed["list_id"] = list_id
+
+        list_title = list_reply.get("title")
+        if isinstance(list_title, str):
+            parsed["list_title"] = list_title
+
+        # Description is optional
+        list_description = list_reply.get("description")
+        if isinstance(list_description, str):
+            parsed["list_description"] = list_description
