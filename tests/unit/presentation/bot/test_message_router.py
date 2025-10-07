@@ -49,7 +49,11 @@ class TestMessageRouter:
         response = await router.route_message(phone_number, "Hi")
 
         # Assert
-        assert "welcome" in response["reply"].lower()
+        # Response should now be interactive buttons dict
+        assert isinstance(response["reply"], dict)
+        assert response["reply"]["type"] == "interactive"
+        assert response["reply"]["interactive"]["type"] == "button"
+        assert "welcome" in response["reply"]["interactive"]["body"]["text"].lower()
         state_machine.transition.assert_called_once()
 
     @pytest.mark.asyncio
@@ -364,7 +368,10 @@ class TestMessageRouter:
         response = await router.route_message(phone_number, "Hi")
 
         # Assert
-        assert "welcome" in response["reply"].lower()
+        # Response should now be interactive buttons dict
+        assert isinstance(response["reply"], dict)
+        assert response["reply"]["type"] == "interactive"
+        assert "welcome" in response["reply"]["interactive"]["body"]["text"].lower()
 
     @pytest.mark.asyncio
     async def test_category_not_recognized_returns_error(self) -> None:

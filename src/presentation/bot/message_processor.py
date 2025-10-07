@@ -75,14 +75,48 @@ class MessageProcessor:
         # Route message through state machine
         response = await self.router.route_message(phone_number, message_text)
 
-        # Send response via WhatsApp
-        await self.whatsapp_client.send_text_message(
-            to=phone_number, text=response["reply"]
-        )
+        # Send response via WhatsApp (handle both text and interactive messages)
+        reply = response["reply"]
+        reply_text = ""  # For response dict
+
+        if isinstance(reply, dict):
+            # Interactive message - check type and send appropriately
+            if reply.get("type") == "interactive":
+                interactive_type = reply.get("interactive", {}).get("type")
+                if interactive_type == "button":
+                    # Send reply buttons
+                    body = reply["interactive"]["body"]["text"]
+                    buttons = [
+                        {"id": btn["reply"]["id"], "title": btn["reply"]["title"]}
+                        for btn in reply["interactive"]["action"]["buttons"]
+                    ]
+                    await self.whatsapp_client.send_reply_buttons(
+                        to=phone_number, body=body, buttons=buttons
+                    )
+                    reply_text = body  # Use body text for response
+                elif interactive_type == "list":
+                    # Send list message
+                    body = reply["interactive"]["body"]["text"]
+                    button_text = reply["interactive"]["action"]["button"]
+                    sections = reply["interactive"]["action"]["sections"]
+                    header = reply["interactive"].get("header", {}).get("text")
+                    await self.whatsapp_client.send_list_message(
+                        to=phone_number,
+                        body=body,
+                        button_text=button_text,
+                        sections=sections,
+                        header=header,
+                    )
+                    reply_text = body  # Use body text for response
+        else:
+            # Text message
+            await self.whatsapp_client.send_text_message(to=phone_number, text=reply)
+            reply_text = reply
 
         # Track response sent and response time
         metrics.increment_messages_sent()
         response_time = time.time() - start_time
         metrics.record_response_time(response_time)
 
-        return response
+        # Return response with text version of reply for backward compatibility
+        return {"reply": reply_text, "state": response["state"]}
