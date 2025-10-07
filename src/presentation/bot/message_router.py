@@ -18,13 +18,13 @@ from src.presentation.bot.context import ConversationContext
 from src.presentation.bot.error_handler import ErrorHandler
 from src.presentation.bot.flow_engine import FlowEngine
 from src.presentation.bot.message_parser import MessageParser
-
-if TYPE_CHECKING:
-    from src.presentation.bot.flow_engine import FlowContext
 from src.presentation.bot.response_builder import ResponseBuilder
 from src.presentation.bot.state_machine import ConversationStateMachine
 from src.presentation.bot.states import ConversationState
 from src.presentation.utils.redaction import redact_phone_number
+
+if TYPE_CHECKING:
+    from src.presentation.bot.flow_engine import FlowContext
 
 logger = logging.getLogger(__name__)
 
