@@ -379,30 +379,30 @@ Add methods to ResponseBuilder for creating interactive message payloads.
 
 **Tasks:**
 
-1. Write failing tests for `build_reply_buttons(body, buttons[])`
-2. Implement `build_reply_buttons()` returning Meta API dict
-3. Write failing tests for `build_list_message(body, button_text, sections[])`
-4. Implement `build_list_message()` returning Meta API dict
-5. Add helper for building category list
-6. Validate button/row limits (max 3 buttons, max 10 rows)
-7. Run `make check` (100% coverage, mypy, ruff)
-8. Commit and create PR
+1. ✅ Write failing tests for `build_reply_buttons(body, buttons[])`
+2. ✅ Implement `build_reply_buttons()` returning Meta API dict
+3. ✅ Write failing tests for `build_list_message(body, button_text, sections[])`
+4. ✅ Implement `build_list_message()` returning Meta API dict
+5. ✅ Add helper for building category list
+6. ✅ Validate button/row limits (max 3 buttons, max 10 rows)
+7. ✅ Run `make check` (100% coverage, mypy, ruff)
+8. ✅ Commit and create PR
 
 **Test Coverage:**
 
-- Test building 1, 2, 3 button payloads
-- Test building list with single section
-- Test building list with multiple sections
-- Test validation errors for exceeding limits
+- ✅ Test building 1, 2, 3 button payloads
+- ✅ Test building list with single section
+- ✅ Test building list with multiple sections
+- ✅ Test validation errors for exceeding limits
 
 **Acceptance Criteria:**
 
-- [ ] `build_reply_buttons()` returns valid Meta API payload
-- [ ] `build_list_message()` returns valid Meta API payload
-- [ ] Methods validate button/row limits
-- [ ] All tests pass with 100% coverage
-- [ ] No mypy or ruff errors
-- [ ] Pre-commit checks pass
+- [x] `build_reply_buttons()` returns valid Meta API payload
+- [x] `build_list_message()` returns valid Meta API payload
+- [x] Methods validate button/row limits
+- [x] All tests pass with 100% coverage
+- [x] No mypy or ruff errors
+- [x] Pre-commit checks pass
 
 ---
 
@@ -999,8 +999,8 @@ Each issue is isolated and can be reverted independently.
 | Issue | Title | Dependencies | Status | PR | Merged |
 |-------|-------|--------------|--------|----|----|
 | [#103](https://github.com/barry47products/is-it-stolen/issues/103) | Add Interactive Message Support (Meta API) | None | ✅ Complete | [#116](https://github.com/barry47products/is-it-stolen/pull/116) | ✅ |
-| [#104](https://github.com/barry47products/is-it-stolen/issues/104) | Add Interactive Message Parsing | None | ✅ Complete | [#117](https://github.com/barry47products/is-it-stolen/pull/117) | 🔲 |
-| [#105](https://github.com/barry47products/is-it-stolen/issues/105) | Add Interactive Response Builder | None | 🔲 Not Started | - | - |
+| [#104](https://github.com/barry47products/is-it-stolen/issues/104) | Add Interactive Message Parsing | None | ✅ Complete | [#117](https://github.com/barry47products/is-it-stolen/pull/117) | ✅ |
+| [#105](https://github.com/barry47products/is-it-stolen/issues/105) | Add Interactive Response Builder | None | ✅ Complete | TBD | 🔲 |
 | [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | 🔲 Not Started | - | - |
 | [#107](https://github.com/barry47products/is-it-stolen/issues/107) | Migrate Category Selection to Lists | #103, #104, #105 | 🔲 Not Started | - | - |
 | [#108](https://github.com/barry47products/is-it-stolen/issues/108) | Create Configuration Loader | None | 🔲 Not Started | - | - |
