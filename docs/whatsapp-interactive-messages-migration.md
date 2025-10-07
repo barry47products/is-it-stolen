@@ -289,30 +289,30 @@ Add methods to WhatsApp client for sending interactive messages using **Meta's o
 
 **Tasks:**
 
-1. Write failing tests for `send_reply_buttons(to, body, buttons[])`
-2. Implement `send_reply_buttons()` with Meta API payload
-3. Write failing tests for `send_list_message(to, body, button_text, sections[])`
-4. Implement `send_list_message()` with Meta API payload
-5. Update type hints and docstrings
-6. Run `make check` (100% coverage, mypy, ruff)
-7. Commit and create PR
+1. ✅ Write failing tests for `send_reply_buttons(to, body, buttons[])`
+2. ✅ Implement `send_reply_buttons()` with Meta API payload
+3. ✅ Write failing tests for `send_list_message(to, body, button_text, sections[])`
+4. ✅ Implement `send_list_message()` with Meta API payload
+5. ✅ Update type hints and docstrings
+6. ✅ Run `make check` (100% coverage, mypy, ruff)
+7. ✅ Commit and create PR
 
 **Test Coverage:**
 
-- Test sending 1, 2, 3 button messages
-- Test sending list with single section
-- Test sending list with multiple sections
-- Test error handling for invalid payloads
-- Test rate limiting and retries
+- ✅ Test sending 1, 2, 3 button messages
+- ✅ Test sending list with single section
+- ✅ Test sending list with multiple sections
+- ✅ Test error handling for invalid payloads
+- ✅ Test rate limiting and retries
 
 **Acceptance Criteria:**
 
-- [ ] `send_reply_buttons()` sends correct Meta API payload
-- [ ] `send_list_message()` sends correct Meta API payload
-- [ ] Payloads match official Meta specifications exactly
-- [ ] All tests pass with 100% coverage
-- [ ] No mypy or ruff errors
-- [ ] Pre-commit checks pass
+- [x] `send_reply_buttons()` sends correct Meta API payload
+- [x] `send_list_message()` sends correct Meta API payload
+- [x] Payloads match official Meta specifications exactly
+- [x] All tests pass with 100% coverage
+- [x] No mypy or ruff errors
+- [x] Pre-commit checks pass
 
 ---
 
@@ -336,30 +336,30 @@ Parse interactive message callbacks from Meta's WhatsApp Cloud API webhooks.
 
 **Tasks:**
 
-1. Write failing tests for parsing `button_reply` webhooks
-2. Implement button reply parsing (extract `id` and `title`)
-3. Write failing tests for parsing `list_reply` webhooks
-4. Implement list reply parsing (extract `id`, `title`, `description`)
-5. Update `extract_message_data()` to handle interactive types
-6. Keep backward compatibility with text messages
-7. Run `make check` (100% coverage, mypy, ruff)
-8. Commit and create PR
+1. ✅ Write failing tests for parsing `button_reply` webhooks
+2. ✅ Implement button reply parsing (extract `id` and `title`)
+3. ✅ Write failing tests for parsing `list_reply` webhooks
+4. ✅ Implement list reply parsing (extract `id`, `title`, `description`)
+5. ✅ Update `_add_message_content()` to handle interactive types
+6. ✅ Keep backward compatibility with text messages
+7. ✅ Run `make check` (100% coverage, mypy, ruff)
+8. ✅ Commit and create PR
 
 **Test Coverage:**
 
-- Test parsing button reply with ID and title
-- Test parsing list reply with ID, title, description
-- Test fallback to text parsing for non-interactive messages
-- Test error handling for malformed interactive payloads
+- ✅ Test parsing button reply with ID and title
+- ✅ Test parsing list reply with ID, title, description
+- ✅ Test fallback to text parsing for non-interactive messages
+- ✅ Test error handling for malformed interactive payloads
 
 **Acceptance Criteria:**
 
-- [ ] Webhook handler extracts `button_reply.id` and `button_reply.title`
-- [ ] Webhook handler extracts `list_reply.id`, `list_reply.title`, `list_reply.description`
-- [ ] Backward compatible with text message parsing
-- [ ] All tests pass with 100% coverage
-- [ ] No mypy or ruff errors
-- [ ] Pre-commit checks pass
+- [x] Webhook handler extracts `button_reply.id` and `button_reply.title`
+- [x] Webhook handler extracts `list_reply.id`, `list_reply.title`, `list_reply.description`
+- [x] Backward compatible with text message parsing
+- [x] All tests pass with 100% coverage
+- [x] No mypy or ruff errors
+- [x] Pre-commit checks pass
 
 ---
 
@@ -998,8 +998,8 @@ Each issue is isolated and can be reverted independently.
 
 | Issue | Title | Dependencies | Status | PR | Merged |
 |-------|-------|--------------|--------|----|----|
-| [#103](https://github.com/barry47products/is-it-stolen/issues/103) | Add Interactive Message Support (Meta API) | None | 🔲 Not Started | - | - |
-| [#104](https://github.com/barry47products/is-it-stolen/issues/104) | Add Interactive Message Parsing | None | 🔲 Not Started | - | - |
+| [#103](https://github.com/barry47products/is-it-stolen/issues/103) | Add Interactive Message Support (Meta API) | None | ✅ Complete | [#116](https://github.com/barry47products/is-it-stolen/pull/116) | ✅ |
+| [#104](https://github.com/barry47products/is-it-stolen/issues/104) | Add Interactive Message Parsing | None | ✅ Complete | [#117](https://github.com/barry47products/is-it-stolen/pull/117) | 🔲 |
 | [#105](https://github.com/barry47products/is-it-stolen/issues/105) | Add Interactive Response Builder | None | 🔲 Not Started | - | - |
 | [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | 🔲 Not Started | - | - |
 | [#107](https://github.com/barry47products/is-it-stolen/issues/107) | Migrate Category Selection to Lists | #103, #104, #105 | 🔲 Not Started | - | - |
