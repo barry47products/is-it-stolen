@@ -423,24 +423,27 @@ Replace text-based main menu with reply buttons (Check / Report / Cancel).
 
 **Tasks:**
 
-1. Write failing test for IDLE → MAIN_MENU with reply buttons
-2. Update `_handle_idle()` to send interactive buttons
-3. Write failing tests for button click handling
-4. Update `_handle_main_menu()` to parse `button_reply.id`
-5. Keep backward compatibility with text "1" and "2"
-6. Run `make check` (100% coverage, mypy, ruff)
-7. Commit and create PR
+1. ✅ Add `build_welcome_buttons()` method to ResponseBuilder
+2. ⏳ Update webhook_receiver to extract `button_id` from parsed messages
+3. ⏳ Update `_handle_idle()` to return interactive button payload
+4. ⏳ Write failing tests for button click handling
+5. ⏳ Update `_handle_main_menu()` to parse `button_reply.id`
+6. ⏳ Keep backward compatibility with text "1" and "2"
+7. ⏳ Update message_processor to send interactive messages
+8. ⏳ Run `make check` (100% coverage, mypy, ruff)
+9. ⏳ Commit and create PR
 
 **Test Coverage:**
 
-- Test IDLE sends 3 reply buttons
-- Test clicking "check" button routes correctly
-- Test clicking "report" button routes correctly
-- Test clicking "cancel" button routes correctly
-- Test fallback text parsing still works
+- ✅ Test `build_welcome_buttons()` returns correct payload
+- ⏳ Test IDLE sends interactive reply buttons
+- ⏳ Test clicking "check_item" button routes correctly
+- ⏳ Test clicking "report_item" button routes correctly
+- ⏳ Test fallback text parsing still works ("1", "2")
 
 **Acceptance Criteria:**
 
+- [x] `build_welcome_buttons()` method implemented
 - [ ] Welcome message uses reply buttons
 - [ ] Button clicks route correctly
 - [ ] Backward compatible with text input
@@ -1001,7 +1004,7 @@ Each issue is isolated and can be reverted independently.
 | [#103](https://github.com/barry47products/is-it-stolen/issues/103) | Add Interactive Message Support (Meta API) | None | ✅ Complete | [#116](https://github.com/barry47products/is-it-stolen/pull/116) | ✅ |
 | [#104](https://github.com/barry47products/is-it-stolen/issues/104) | Add Interactive Message Parsing | None | ✅ Complete | [#117](https://github.com/barry47products/is-it-stolen/pull/117) | ✅ |
 | [#105](https://github.com/barry47products/is-it-stolen/issues/105) | Add Interactive Response Builder | None | ✅ Complete | [#118](https://github.com/barry47products/is-it-stolen/pull/118) | 🔲 |
-| [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | 🔲 Not Started | - | - |
+| [#106](https://github.com/barry47products/is-it-stolen/issues/106) | Migrate Main Menu to Reply Buttons | #103, #104, #105 | 🔄 In Progress | - | - |
 | [#107](https://github.com/barry47products/is-it-stolen/issues/107) | Migrate Category Selection to Lists | #103, #104, #105 | 🔲 Not Started | - | - |
 | [#108](https://github.com/barry47products/is-it-stolen/issues/108) | Create Configuration Loader | None | 🔲 Not Started | - | - |
 | [#109](https://github.com/barry47products/is-it-stolen/issues/109) | Create Handler Registry | None | 🔲 Not Started | - | - |
