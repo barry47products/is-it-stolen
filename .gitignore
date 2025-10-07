@@ -12,9 +12,6 @@ ENV/
 env/
 .virtualenv
 
-# Poetry
-poetry.lock
-
 # Distribution / packaging
 build/
 develop-eggs/
