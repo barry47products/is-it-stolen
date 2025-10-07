@@ -470,29 +470,29 @@ Replace text-based category input with interactive list (Bicycle / Phone / Lapto
 
 **Tasks:**
 
-1. Write failing tests for category list in check flow
-2. Update category prompt to send list message
-3. Update category parsing to handle `list_reply.id`
-4. Repeat for reporting flow
-5. Keep backward compatibility with text category names
-6. Run `make check` (100% coverage, mypy, ruff)
-7. Commit and create PR
+1. ✅ Write failing tests for category list in check flow
+2. ✅ Update category prompt to send list message
+3. ✅ Update category parsing to handle `list_reply.id`
+4. ✅ Repeat for reporting flow
+5. ✅ Keep backward compatibility with text category names
+6. ✅ Run `make check` (100% coverage, mypy, ruff)
+7. ✅ Commit and create PR
 
 **Test Coverage:**
 
-- Test check flow sends category list (5 options)
-- Test report flow sends category list (5 options)
-- Test selecting list item extracts correct category
-- Test fallback text parsing still works
+- ✅ Test check flow sends category list (4 options)
+- ✅ Test report flow sends category list (4 options)
+- ✅ Test selecting list item extracts correct category
+- ✅ Test fallback text parsing still works
 
 **Acceptance Criteria:**
 
-- [ ] Category prompts use list messages
-- [ ] List selections correctly extract ItemCategory
-- [ ] Backward compatible with text category names
-- [ ] All tests pass with 100% coverage
-- [ ] No mypy or ruff errors
-- [ ] Pre-commit checks pass
+- [x] Category prompts use list messages
+- [x] List selections correctly extract ItemCategory
+- [x] Backward compatible with text category names
+- [x] All tests pass with 100% coverage
+- [x] No mypy or ruff errors
+- [x] Pre-commit checks pass
 
 ---
 
