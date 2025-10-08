@@ -50,7 +50,7 @@ class FlowEngine:
         self._config = config
         self._handler_registry = handler_registry
 
-    async def start_flow(self, flow_id: str, user_id: str) -> FlowContext:
+    def start_flow(self, flow_id: str, user_id: str) -> FlowContext:
         """Start a new flow execution.
 
         Args:

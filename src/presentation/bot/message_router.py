@@ -107,7 +107,7 @@ class MessageRouter:
         Returns:
             Router response with prompt and new state
         """
-        flow_context = await self.flow_engine.start_flow(flow_id, context.phone_number)  # type: ignore[union-attr]
+        flow_context = self.flow_engine.start_flow(flow_id, context.phone_number)  # type: ignore[union-attr]
         new_context = await self.state_machine.transition(
             context, ConversationState.ACTIVE_FLOW
         )

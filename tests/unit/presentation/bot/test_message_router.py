@@ -159,7 +159,7 @@ class TestMessageRouter:
 
         parser = MagicMock()
         flow_engine = MagicMock()
-        flow_engine.start_flow = AsyncMock(
+        flow_engine.start_flow = MagicMock(
             return_value=MagicMock(
                 flow_id="check_item",
                 user_id=phone_number,
@@ -443,7 +443,7 @@ class TestMessageRouter:
 
         parser = MagicMock()
         flow_engine = MagicMock()
-        flow_engine.start_flow = AsyncMock(
+        flow_engine.start_flow = MagicMock(
             return_value=MagicMock(
                 flow_id="report_item",
                 user_id=phone_number,
@@ -497,7 +497,7 @@ class TestMessageRouter:
 
         parser = MagicMock()
         flow_engine = MagicMock()
-        flow_engine.start_flow = AsyncMock(
+        flow_engine.start_flow = MagicMock(
             return_value=MagicMock(
                 flow_id="contact_us",
                 user_id=phone_number,

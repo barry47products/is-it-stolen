@@ -76,7 +76,7 @@ flows:
         engine = FlowEngine(config, HandlerRegistry())
 
         # Act
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Assert
         assert context.flow_id == "test_flow"
@@ -105,7 +105,7 @@ flows:
         loader = FlowConfigLoader(config_file)
         config = loader.load()
         engine = FlowEngine(config, HandlerRegistry())
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Act
         prompt = engine.get_prompt(context)
@@ -136,7 +136,7 @@ flows:
         loader = FlowConfigLoader(config_file)
         config = loader.load()
         engine = FlowEngine(config, HandlerRegistry())
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Act
         new_context = await engine.process_input(context, "bicycle")
@@ -173,7 +173,7 @@ flows:
         registry.register_handler("test_handler", MockCheckHandler)
 
         engine = FlowEngine(config, registry)
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Act - provide category and advance to terminal step
         context = await engine.process_input(context, "bicycle")
@@ -205,7 +205,7 @@ flows:
 
         # Act & Assert
         with pytest.raises(ValueError, match="Flow 'unknown' not found"):
-            await engine.start_flow("unknown", user_id="user123")
+            engine.start_flow("unknown", user_id="user123")
 
     @pytest.mark.asyncio
     async def test_is_complete_returns_false_for_non_terminal_steps(
@@ -232,7 +232,7 @@ flows:
         loader = FlowConfigLoader(config_file)
         config = loader.load()
         engine = FlowEngine(config, HandlerRegistry())
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Act & Assert
         assert not context.is_complete
@@ -278,7 +278,7 @@ flows:
         registry.register_handler("test_handler", ParamCaptureHandler)
 
         engine = FlowEngine(config, registry)
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Act - collect data and execute
         context = await engine.process_input(context, "bicycle")
@@ -316,7 +316,7 @@ flows:
         registry.register_handler("test_handler", MockCheckHandler)
 
         engine = FlowEngine(config, registry)
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Act - provide input on current step with handler
         context = await engine.process_input(context, "yes")
@@ -351,7 +351,7 @@ flows:
         loader = FlowConfigLoader(config_file)
         config = loader.load()
         engine = FlowEngine(config, HandlerRegistry())
-        context = await engine.start_flow("test_flow", user_id="user123")
+        context = engine.start_flow("test_flow", user_id="user123")
 
         # Act - advance to terminal step without handler
         context = await engine.process_input(context, "bicycle")
