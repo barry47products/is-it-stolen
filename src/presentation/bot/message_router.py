@@ -165,13 +165,32 @@ class MessageRouter:
                     "state": new_context.state.value,
                 }
         elif choice in ["2", "report", "Report", "report_item"]:
-            new_context = await self.state_machine.transition(
-                context, ConversationState.REPORTING_CATEGORY
-            )
-            return {
-                "reply": self.response_builder.build_category_list(),
-                "state": new_context.state.value,
-            }
+            # Use flow engine if available
+            if self.flow_engine is not None:
+                flow_context = await self.flow_engine.start_flow(
+                    "report_item", context.phone_number
+                )
+                new_context = await self.state_machine.transition(
+                    context, ConversationState.ACTIVE_FLOW
+                )
+                new_context = await self.state_machine.update_data(
+                    new_context,
+                    {"flow_id": "report_item", "flow_context": flow_context},
+                )
+                prompt = self.flow_engine.get_prompt(flow_context)
+                return {
+                    "reply": prompt or "Please provide information",
+                    "state": new_context.state.value,
+                }
+            else:
+                # Legacy state-based flow
+                new_context = await self.state_machine.transition(
+                    context, ConversationState.REPORTING_CATEGORY
+                )
+                return {
+                    "reply": self.response_builder.build_category_list(),
+                    "state": new_context.state.value,
+                }
         else:
             return {
                 "reply": self.response_builder.format_main_menu_invalid_choice(),

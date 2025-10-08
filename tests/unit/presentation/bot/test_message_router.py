@@ -1684,3 +1684,57 @@ class TestMessageRouter:
         # Assert
         assert "Flow completed successfully" in response["reply"]
         assert response["state"] == "complete"
+
+    @pytest.mark.asyncio
+    async def test_report_flow_starts_with_flow_engine(self) -> None:
+        """Test report flow uses flow engine when report_item is selected."""
+        # Arrange
+        phone_number = "+1234567890"
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.MAIN_MENU,
+            )
+        )
+        state_machine.transition = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.ACTIVE_FLOW,
+                data={"flow_id": "report_item"},
+            )
+        )
+        state_machine.update_data = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.ACTIVE_FLOW,
+                data={"flow_id": "report_item", "flow_context": MagicMock()},
+            )
+        )
+
+        parser = MagicMock()
+        flow_engine = MagicMock()
+        flow_engine.start_flow = AsyncMock(
+            return_value=MagicMock(
+                flow_id="report_item",
+                user_id=phone_number,
+                current_step="category",
+                data={},
+                is_complete=False,
+            )
+        )
+        flow_engine.get_prompt = MagicMock(return_value="What type of item was stolen?")
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            flow_engine=flow_engine,
+        )
+
+        # Act
+        response = await router.route_message(phone_number, "report_item")
+
+        # Assert
+        assert response["state"] == "active_flow"
+        flow_engine.start_flow.assert_called_once_with("report_item", phone_number)
+        flow_engine.get_prompt.assert_called_once()
