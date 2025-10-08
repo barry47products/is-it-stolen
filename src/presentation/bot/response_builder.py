@@ -18,8 +18,9 @@ class ResponseBuilder:
             "👋 Welcome to Is It Stolen!\n\n"
             "What would you like to do?\n"
             "1️⃣ Check if an item is stolen\n"
-            "2️⃣ Report a stolen item\n\n"
-            "Reply with 1 or 2, or type 'cancel' to exit."
+            "2️⃣ Report a stolen item\n"
+            "3️⃣ Contact us\n\n"
+            "Reply with 1, 2, or 3, or type 'cancel' to exit."
         )
 
     def format_cancel(self) -> str:

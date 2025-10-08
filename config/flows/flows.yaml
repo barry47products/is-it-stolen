@@ -47,3 +47,20 @@ flows:
       execute_report:
         handler: "report_stolen_item"
         handler_type: "command"
+
+  contact_us:
+    name: "Contact Us"
+    description: "Send a message to support"
+    initial_step: "message"
+    steps:
+      message:
+        prompt: "Please describe your issue or question"
+        prompt_type: "text"
+        next: "email"
+      email:
+        prompt: "Would you like to provide an email for follow-up? (Optional - send 'skip' to skip)"
+        prompt_type: "text"
+        next: "execute_create_ticket"
+      execute_create_ticket:
+        handler: "create_support_ticket"
+        handler_type: "command"

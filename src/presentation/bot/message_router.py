@@ -191,6 +191,30 @@ class MessageRouter:
                     "reply": self.response_builder.build_category_list(),
                     "state": new_context.state.value,
                 }
+        elif choice in ["3", "contact", "Contact", "contact_us"]:
+            # Use flow engine if available
+            if self.flow_engine is not None:
+                flow_context = await self.flow_engine.start_flow(
+                    "contact_us", context.phone_number
+                )
+                new_context = await self.state_machine.transition(
+                    context, ConversationState.ACTIVE_FLOW
+                )
+                new_context = await self.state_machine.update_data(
+                    new_context,
+                    {"flow_id": "contact_us", "flow_context": flow_context},
+                )
+                prompt = self.flow_engine.get_prompt(flow_context)
+                return {
+                    "reply": prompt or "Please provide information",
+                    "state": new_context.state.value,
+                }
+            else:
+                # No legacy fallback for contact_us (config-only flow)
+                return {
+                    "reply": "Contact us feature is not available. Please try again later.",
+                    "state": context.state.value,
+                }
         else:
             return {
                 "reply": self.response_builder.format_main_menu_invalid_choice(),

@@ -44,3 +44,7 @@ handlers:
     dependencies:
       - stolen_item_repository
       - event_publisher
+
+  create_support_ticket:
+    class: "src.application.commands.create_support_ticket.CreateSupportTicketHandler"
+    dependencies: []
