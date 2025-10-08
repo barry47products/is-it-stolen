@@ -117,6 +117,28 @@ class TestDependencies:
         # Assert
         assert client1 is client2
 
+    def test_get_flow_engine_returns_flow_engine(self) -> None:
+        """Test get_flow_engine returns flow engine instance."""
+        # Act
+        from src.presentation.api.dependencies import get_flow_engine
+        from src.presentation.bot.flow_engine import FlowEngine
+
+        flow_engine = get_flow_engine()
+
+        # Assert
+        assert isinstance(flow_engine, FlowEngine)
+
+    def test_get_flow_engine_returns_singleton(self) -> None:
+        """Test get_flow_engine returns same instance."""
+        # Act
+        from src.presentation.api.dependencies import get_flow_engine
+
+        engine1 = get_flow_engine()
+        engine2 = get_flow_engine()
+
+        # Assert
+        assert engine1 is engine2
+
     def test_get_event_bus_returns_event_bus(self) -> None:
         """Test get_event_bus returns event bus instance."""
         # Act

@@ -6,6 +6,7 @@ from src.infrastructure.cache.rate_limiter import RateLimiter, RateLimitExceeded
 from src.infrastructure.metrics.metrics_service import get_metrics_service
 from src.infrastructure.whatsapp.client import WhatsAppClient
 from src.presentation.bot.error_handler import ErrorHandler
+from src.presentation.bot.flow_engine import FlowEngine
 from src.presentation.bot.message_parser import MessageParser
 from src.presentation.bot.message_router import MessageRouter
 from src.presentation.bot.state_machine import ConversationStateMachine
@@ -18,6 +19,7 @@ class MessageProcessor:
         self,
         state_machine: ConversationStateMachine,
         whatsapp_client: WhatsAppClient,
+        flow_engine: FlowEngine | None = None,
         rate_limiter: RateLimiter | None = None,
         error_handler: ErrorHandler | None = None,
     ) -> None:
@@ -26,6 +28,7 @@ class MessageProcessor:
         Args:
             state_machine: Conversation state machine for managing flow
             whatsapp_client: WhatsApp client for sending responses
+            flow_engine: Flow engine for config-driven conversation flows
             rate_limiter: Optional rate limiter for preventing abuse
             error_handler: Optional error handler for user-friendly messages
         """
@@ -34,7 +37,7 @@ class MessageProcessor:
         self.rate_limiter = rate_limiter
         self.error_handler = error_handler or ErrorHandler()
         self.parser = MessageParser()
-        self.router = MessageRouter(state_machine, self.parser)
+        self.router = MessageRouter(state_machine, self.parser, flow_engine=flow_engine)
 
     async def process_message(
         self, phone_number: str, message_text: str

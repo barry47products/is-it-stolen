@@ -14,6 +14,7 @@ from src.infrastructure.persistence.repositories.postgres_stolen_item_repository
     PostgresStolenItemRepository,
 )
 from src.infrastructure.whatsapp.client import WhatsAppClient
+from src.presentation.bot.flow_engine import FlowEngine
 from src.presentation.bot.message_processor import MessageProcessor
 from src.presentation.bot.state_machine import ConversationStateMachine
 from src.presentation.bot.storage import RedisConversationStorage
@@ -26,6 +27,7 @@ _redis_client: Redis | None = None  # type: ignore[type-arg]
 _conversation_storage: RedisConversationStorage | None = None
 _state_machine: ConversationStateMachine | None = None
 _whatsapp_client: WhatsAppClient | None = None
+_flow_engine: FlowEngine | None = None
 _message_processor: MessageProcessor | None = None
 _ip_rate_limiter: RateLimiter | None = None
 
@@ -135,6 +137,37 @@ def get_whatsapp_client() -> WhatsAppClient:
     return _whatsapp_client
 
 
+def get_flow_engine() -> FlowEngine:
+    """Get or create flow engine singleton.
+
+    Returns:
+        Flow engine instance for config-driven conversation flows
+    """
+    global _flow_engine
+    if _flow_engine is None:
+        from pathlib import Path
+
+        from src.infrastructure.config.flow_config_loader import FlowConfigLoader
+        from src.infrastructure.handlers.handler_registry import HandlerRegistry
+
+        # Load flow configurations from YAML
+        # Go from src/presentation/api/dependencies.py to project root, then to config
+        config_path = (
+            Path(__file__).parent.parent.parent.parent
+            / "config"
+            / "flows"
+            / "flows.yaml"
+        )
+        loader = FlowConfigLoader(config_path=config_path)
+        config = loader.load()
+
+        # Create handler registry
+        handler_registry = HandlerRegistry()
+
+        _flow_engine = FlowEngine(config=config, handler_registry=handler_registry)
+    return _flow_engine
+
+
 def get_message_processor() -> MessageProcessor:
     """Get or create message processor singleton.
 
@@ -145,8 +178,11 @@ def get_message_processor() -> MessageProcessor:
     if _message_processor is None:
         state_machine = get_state_machine()
         whatsapp_client = get_whatsapp_client()
+        flow_engine = get_flow_engine()
         _message_processor = MessageProcessor(
-            state_machine=state_machine, whatsapp_client=whatsapp_client
+            state_machine=state_machine,
+            whatsapp_client=whatsapp_client,
+            flow_engine=flow_engine,
         )
     return _message_processor
 
