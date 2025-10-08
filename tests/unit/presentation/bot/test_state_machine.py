@@ -94,12 +94,12 @@ class TestConversationStateMachine:
             phone_number="+1234567890", state=ConversationState.IDLE
         )
 
-        # Act & Assert
+        # Act & Assert - IDLE can only transition to MAIN_MENU, not ACTIVE_FLOW
         with pytest.raises(InvalidStateTransitionError) as exc_info:
-            await state_machine.transition(context, ConversationState.CHECKING_CATEGORY)
+            await state_machine.transition(context, ConversationState.ACTIVE_FLOW)
 
         assert "idle" in str(exc_info.value).lower()
-        assert "checking_category" in str(exc_info.value).lower()
+        assert "active_flow" in str(exc_info.value).lower()
 
     @pytest.mark.asyncio
     async def test_update_data_merges_data_and_saves(
@@ -156,7 +156,7 @@ class TestConversationStateMachine:
         """Test complete transitions to COMPLETE state and deletes context."""
         # Arrange
         context = ConversationContext(
-            phone_number="+1234567890", state=ConversationState.REPORTING_CONFIRM
+            phone_number="+1234567890", state=ConversationState.ACTIVE_FLOW
         )
 
         # Act

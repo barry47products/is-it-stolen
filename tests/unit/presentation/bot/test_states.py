@@ -14,12 +14,11 @@ class TestConversationStates:
         for state in ConversationState:
             assert isinstance(state.value, str)
 
-    def test_has_simplified_and_legacy_states(self) -> None:
-        """Test that state machine has simplified states plus legacy states."""
+    def test_has_simplified_states_only(self) -> None:
+        """Test that state machine only has simplified states (legacy removed)."""
         states = list(ConversationState)
-        # 5 simplified + 10 legacy (deprecated) = 15 total states
-        # (IDLE, MAIN_MENU, ACTIVE_FLOW, COMPLETE, CANCELLED + 10 legacy states)
-        assert len(states) == 15
+        # 5 states: IDLE, MAIN_MENU, ACTIVE_FLOW, COMPLETE, CANCELLED
+        assert len(states) == 5
 
     def test_idle_state_exists(self) -> None:
         """Test IDLE state exists."""
