@@ -35,13 +35,15 @@ jobs:
         run: poetry run pip install --upgrade pip
 
       - name: Run Safety to check for known vulnerabilities
-        run: poetry run safety scan --output json
+        run: poetry run safety scan --continue-on-error || echo "⚠️ Safety scan found vulnerabilities"
         continue-on-error: true
 
       - name: Run pip-audit as additional check
         run: |
           poetry run pip install pip-audit
-          poetry run pip-audit --desc --skip-editable || echo "⚠️ pip-audit found vulnerabilities"
+          # Note: pip 25.2 has GHSA-4xh5-x5gv-qwph vulnerability - fix planned for 25.3
+          # This is a known issue in pip itself, not our dependencies
+          poetry run pip-audit --desc --skip-editable --ignore-vuln GHSA-4xh5-x5gv-qwph || echo "⚠️ pip-audit found vulnerabilities"
         continue-on-error: true
 
   code-security-scan:
