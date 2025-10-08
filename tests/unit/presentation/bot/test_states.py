@@ -14,6 +14,13 @@ class TestConversationStates:
         for state in ConversationState:
             assert isinstance(state.value, str)
 
+    def test_has_simplified_and_legacy_states(self) -> None:
+        """Test that state machine has simplified states plus legacy states."""
+        states = list(ConversationState)
+        # 5 simplified + 10 legacy (deprecated) = 15 total states
+        # (IDLE, MAIN_MENU, ACTIVE_FLOW, COMPLETE, CANCELLED + 10 legacy states)
+        assert len(states) == 15
+
     def test_idle_state_exists(self) -> None:
         """Test IDLE state exists."""
         assert ConversationState.IDLE.value == "idle"
@@ -21,6 +28,10 @@ class TestConversationStates:
     def test_main_menu_state_exists(self) -> None:
         """Test MAIN_MENU state exists."""
         assert ConversationState.MAIN_MENU.value == "main_menu"
+
+    def test_active_flow_state_exists(self) -> None:
+        """Test ACTIVE_FLOW state exists."""
+        assert ConversationState.ACTIVE_FLOW.value == "active_flow"
 
     def test_terminal_states_exist(self) -> None:
         """Test terminal states exist."""
@@ -36,71 +47,58 @@ class TestStateTransitions:
         """Test IDLE can transition to MAIN_MENU."""
         assert is_valid_transition(ConversationState.IDLE, ConversationState.MAIN_MENU)
 
-    def test_idle_cannot_transition_to_checking(self) -> None:
-        """Test IDLE cannot skip to CHECKING_CATEGORY."""
+    def test_idle_cannot_transition_to_active_flow(self) -> None:
+        """Test IDLE cannot skip directly to ACTIVE_FLOW."""
         assert not is_valid_transition(
-            ConversationState.IDLE, ConversationState.CHECKING_CATEGORY
+            ConversationState.IDLE, ConversationState.ACTIVE_FLOW
         )
 
-    def test_main_menu_can_transition_to_checking(self) -> None:
-        """Test MAIN_MENU can transition to checking flow."""
+    def test_main_menu_can_transition_to_active_flow(self) -> None:
+        """Test MAIN_MENU can transition to ACTIVE_FLOW."""
         assert is_valid_transition(
-            ConversationState.MAIN_MENU, ConversationState.CHECKING_CATEGORY
+            ConversationState.MAIN_MENU, ConversationState.ACTIVE_FLOW
         )
 
-    def test_main_menu_can_transition_to_reporting(self) -> None:
-        """Test MAIN_MENU can transition to reporting flow."""
+    def test_main_menu_can_cancel(self) -> None:
+        """Test MAIN_MENU can transition to CANCELLED."""
         assert is_valid_transition(
-            ConversationState.MAIN_MENU, ConversationState.REPORTING_CATEGORY
+            ConversationState.MAIN_MENU, ConversationState.CANCELLED
         )
 
-    def test_can_cancel_from_any_active_state(self) -> None:
-        """Test user can cancel from any non-terminal state."""
-        cancellable_states = [
-            ConversationState.MAIN_MENU,
-            ConversationState.CHECKING_CATEGORY,
-            ConversationState.REPORTING_CATEGORY,
-        ]
+    def test_active_flow_can_stay_in_active_flow(self) -> None:
+        """Test ACTIVE_FLOW can transition to itself (multi-step flows)."""
+        assert is_valid_transition(
+            ConversationState.ACTIVE_FLOW, ConversationState.ACTIVE_FLOW
+        )
 
-        for state in cancellable_states:
-            assert is_valid_transition(state, ConversationState.CANCELLED)
+    def test_active_flow_can_complete(self) -> None:
+        """Test ACTIVE_FLOW can transition to COMPLETE."""
+        assert is_valid_transition(
+            ConversationState.ACTIVE_FLOW, ConversationState.COMPLETE
+        )
 
-    def test_cannot_transition_from_complete(self) -> None:
-        """Test COMPLETE is a terminal state."""
+    def test_active_flow_can_cancel(self) -> None:
+        """Test ACTIVE_FLOW can transition to CANCELLED."""
+        assert is_valid_transition(
+            ConversationState.ACTIVE_FLOW, ConversationState.CANCELLED
+        )
+
+    def test_complete_can_restart(self) -> None:
+        """Test COMPLETE can transition back to IDLE for new conversation."""
+        assert is_valid_transition(ConversationState.COMPLETE, ConversationState.IDLE)
+
+    def test_cancelled_can_restart(self) -> None:
+        """Test CANCELLED can transition back to IDLE for new conversation."""
+        assert is_valid_transition(ConversationState.CANCELLED, ConversationState.IDLE)
+
+    def test_complete_cannot_transition_to_active_flow(self) -> None:
+        """Test COMPLETE cannot directly transition to ACTIVE_FLOW."""
         assert not is_valid_transition(
-            ConversationState.COMPLETE, ConversationState.MAIN_MENU
+            ConversationState.COMPLETE, ConversationState.ACTIVE_FLOW
         )
 
-    def test_cannot_transition_from_cancelled(self) -> None:
-        """Test CANCELLED is a terminal state."""
+    def test_cancelled_cannot_transition_to_active_flow(self) -> None:
+        """Test CANCELLED cannot directly transition to ACTIVE_FLOW."""
         assert not is_valid_transition(
-            ConversationState.CANCELLED, ConversationState.MAIN_MENU
-        )
-
-    def test_can_go_back_in_checking_flow(self) -> None:
-        """Test user can navigate backwards in checking flow."""
-        # From description back to category
-        assert is_valid_transition(
-            ConversationState.CHECKING_DESCRIPTION,
-            ConversationState.CHECKING_CATEGORY,
-        )
-
-        # From location back to description
-        assert is_valid_transition(
-            ConversationState.CHECKING_LOCATION,
-            ConversationState.CHECKING_DESCRIPTION,
-        )
-
-    def test_can_go_back_in_reporting_flow(self) -> None:
-        """Test user can navigate backwards in reporting flow."""
-        # From description back to category
-        assert is_valid_transition(
-            ConversationState.REPORTING_DESCRIPTION,
-            ConversationState.REPORTING_CATEGORY,
-        )
-
-        # From location back to description
-        assert is_valid_transition(
-            ConversationState.REPORTING_LOCATION,
-            ConversationState.REPORTING_DESCRIPTION,
+            ConversationState.CANCELLED, ConversationState.ACTIVE_FLOW
         )
