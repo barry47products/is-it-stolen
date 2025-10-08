@@ -891,47 +891,114 @@ elif choice in ["3", "contact", "Contact", "contact_us"]:
 
 ---
 
-### Issue #114: Simplify State Machine (Remove Obsolete States)
+### Issue #114: Simplify State Machine (Remove Obsolete States) 🔄
+
+**Status:** 🔄 IN PROGRESS - PR [#127](https://github.com/barry47products/is-it-stolen/pull/127) (Phase 1 Complete)
 
 **GitHub Issue:** [#114](https://github.com/barry47products/is-it-stolen/issues/114)
-**Dependencies:** [#113](https://github.com/barry47products/is-it-stolen/issues/113) (All flows migrated)
-**Branch:** `feature/simplify-state-machine`
+**Dependencies:** [#113](https://github.com/barry47products/is-it-stolen/issues/113) (All flows migrated) ✅
+**Branch:** `feature/114-simplify-state-machine`
 
-**Files:**
+**Files Modified:**
 
-- `src/presentation/bot/states.py` (modify)
-- `src/presentation/bot/message_router.py` (modify)
-- `tests/unit/presentation/bot/test_states.py` (modify)
-- `tests/unit/presentation/bot/test_state_machine.py` (modify)
+- `src/presentation/bot/states.py` - Documented ACTIVE_FLOW, marked legacy states as deprecated
+- `tests/unit/presentation/bot/test_states.py` - Updated tests for new transition model
 
-**Description:**
-Remove obsolete hardcoded states now that flows are configuration-driven. Simplify to: IDLE, MAIN_MENU, ACTIVE_FLOW, COMPLETE, CANCELLED.
+**Implementation:**
 
-**Tasks:**
+This issue revealed that **production code doesn't use flow_engine yet**. The infrastructure is ready (#110-#113), but MessageProcessor needs wiring. This changes the scope from simple cleanup to a multi-phase migration.
 
-1. Write tests for simplified state set
-2. Remove CHECKING*\* and REPORTING*\* states
-3. Add generic ACTIVE_FLOW state for any running flow
-4. Update STATE_TRANSITIONS to simplified model
-5. Remove hardcoded flow methods from message_router
-6. Update all affected tests
-7. Run `make check` (100% coverage, mypy, ruff)
-8. Commit and create PR
+#### Phase 1: Documentation & Deprecation ✅ (PR #127)
 
-**Test Coverage:**
+What Was Completed:
 
-- Test simplified state transitions
-- Test ACTIVE_FLOW works for any configured flow
-- Test no hardcoded flow logic remains
+1. **Documented ACTIVE_FLOW Pattern**
+   - Added comprehensive documentation to ConversationState
+   - Clearly separated "preferred" vs "deprecated" states
+   - Explained simplified 5-state architecture
 
-**Acceptance Criteria:**
+2. **Marked Legacy States as Deprecated**
+   - CHECKING_CATEGORY, CHECKING_DESCRIPTION, CHECKING_LOCATION, CHECKING_RESULTS
+   - REPORTING_CATEGORY, REPORTING_DESCRIPTION, REPORTING_LOCATION, REPORTING_DATE, REPORTING_IMAGE, REPORTING_CONFIRM
+   - Added deprecation comments and documentation
 
-- [ ] State machine reduced to 5 states
+3. **Updated State Transitions**
+   - Added COMPLETE → IDLE (allow conversation restart)
+   - Added CANCELLED → IDLE (allow conversation restart)
+   - Maintains backward compatibility with legacy flows
+
+4. **Test Coverage**
+   - All 182 bot tests passing ✅
+   - 100% coverage on presentation/bot module ✅
+   - Added tests for new ACTIVE_FLOW transitions
+
+Key Discovery:
+
+Current MessageProcessor (line 37):
+
+```python
+self.router = MessageRouter(state_machine, self.parser)  # No flow_engine!
+```
+
+This means:
+
+- ✅ Flow infrastructure ready (#110, #111, #112, #113)
+- ❌ Production doesn't use it yet
+- 🔄 Legacy handlers still needed for backward compatibility
+
+#### Phase 2: Production Wiring (Future PR - #114a)
+
+Tasks:
+
+1. Wire flow_engine into MessageProcessor
+2. Update dependencies.py to inject flow_engine
+3. Test all flows use ACTIVE_FLOW in production
+4. Verify no regression in production behaviour
+
+#### Phase 3: Legacy Removal (Future PR - #114b)
+
+Tasks:
+
+1. Remove `_handle_checking_*` methods from MessageRouter
+2. Remove `_handle_reporting_*` methods from MessageRouter
+3. Remove deprecated states from ConversationState enum
+4. Simplify STATE_TRANSITIONS to 5-state model
+5. Update/remove ~30 legacy flow tests
+
+Quality Metrics (Phase 1):
+
+- MyPy: ✅ Success (no issues)
+- Ruff: ✅ All checks passed
+- Coverage: ✅ 100% on presentation/bot (182 tests)
+- States coverage: ✅ 100% (21 statements)
+
+Acceptance Criteria:
+
+Phase 1 (Complete):
+
+- [x] Document ACTIVE_FLOW pattern
+- [x] Mark legacy states as deprecated
+- [x] Update state transitions for conversation restart
+- [x] All tests pass with 100% coverage
+- [x] No mypy or ruff errors
+- [x] Pre-commit checks pass
+
+Phase 2 (Pending):
+
+- [ ] Flow engine wired into MessageProcessor
+- [ ] All flows execute via flow engine in production
+- [ ] No regressions in production behaviour
+
+Phase 3 (Pending):
+
+- [ ] State machine reduced to 5 states (14 → 5)
 - [ ] All hardcoded flow methods removed
-- [ ] All flows execute via flow engine
-- [ ] All tests pass with 100% coverage
-- [ ] No mypy or ruff errors
-- [ ] Pre-commit checks pass
+- [ ] Legacy tests removed
+- [ ] Final 100% coverage maintained
+
+**Result (Phase 1):**
+
+Successfully prepared for state machine simplification while maintaining backward compatibility. Discovered that production wiring is needed before legacy code can be removed, requiring a phased approach.
 
 ---
 
@@ -1141,7 +1208,7 @@ Each issue is isolated and can be reverted independently.
 | [#111](https://github.com/barry47products/is-it-stolen/issues/111) | Migrate Check Flow to Config | #110 | ✅ Complete | [#124](https://github.com/barry47products/is-it-stolen/pull/124) | ✅ |
 | [#112](https://github.com/barry47products/is-it-stolen/issues/112) | Migrate Report Flow to Config | #111 | ✅ Complete | [#125](https://github.com/barry47products/is-it-stolen/pull/125) | ✅ |
 | [#113](https://github.com/barry47products/is-it-stolen/issues/113) | Add Contact Us Flow (Config Only!) | #112 | ✅ Complete | [#126](https://github.com/barry47products/is-it-stolen/pull/126) | ✅ |
-| [#114](https://github.com/barry47products/is-it-stolen/issues/114) | Simplify State Machine | #113 | 🔲 Not Started | - | - |
+| [#114](https://github.com/barry47products/is-it-stolen/issues/114) | Simplify State Machine (Phase 1) | #113 | 🔄 In Progress | [#127](https://github.com/barry47products/is-it-stolen/pull/127) | - |
 | [#115](https://github.com/barry47products/is-it-stolen/issues/115) | Update Integration & E2E Tests | #114 | 🔲 Not Started | - | - |
 
 **Status Legend:**
