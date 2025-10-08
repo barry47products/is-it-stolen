@@ -15,7 +15,7 @@ class TestLocalMediaStorage:
     """Test local filesystem media storage."""
 
     @pytest.fixture
-    def temp_dir(self) -> Generator[Path, None, None]:
+    def temp_dir(self) -> Generator[Path]:
         """Create temporary directory for tests."""
         with tempfile.TemporaryDirectory() as tmpdir:
             yield Path(tmpdir)

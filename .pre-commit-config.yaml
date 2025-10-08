@@ -9,6 +9,7 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: debug-statements
+        language_version: python3.13
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.13.3
@@ -21,6 +22,7 @@ repos:
     rev: v1.18.2
     hooks:
       - id: mypy
+        language_version: python3.13
         additional_dependencies:
           - pydantic>=2.5.0
           - pydantic-settings>=2.0.0

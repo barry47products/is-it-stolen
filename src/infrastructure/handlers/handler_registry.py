@@ -3,14 +3,14 @@
 import importlib
 import logging
 from pathlib import Path
-from typing import Any, TypeAlias
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-HandlerClass: TypeAlias = type[Any]
+type HandlerClass = type[Any]
 
 
 class HandlerConfig(BaseModel):

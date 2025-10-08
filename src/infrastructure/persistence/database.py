@@ -42,7 +42,7 @@ def get_engine():  # type: ignore[no-untyped-def]
     return engine
 
 
-def get_db_session() -> Generator[Session, None, None]:
+def get_db_session() -> Generator[Session]:
     """Get database session with automatic cleanup.
 
     Yields:
@@ -65,7 +65,7 @@ def get_db_session() -> Generator[Session, None, None]:
 
 
 @contextmanager
-def get_db() -> Generator[Session, None, None]:
+def get_db() -> Generator[Session]:
     """Context manager for database sessions.
 
     Yields:
