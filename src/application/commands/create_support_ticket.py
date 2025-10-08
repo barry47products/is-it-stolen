@@ -1,5 +1,6 @@
 """Create Support Ticket command and handler."""
 
+import asyncio
 from dataclasses import dataclass
 from typing import Any
 from uuid import uuid4
@@ -51,10 +52,11 @@ class CreateSupportTicketHandler:
         ticket_id = uuid4()
 
         # In production, this would:
-        # 1. Save to database
-        # 2. Send email notification
-        # 3. Integrate with ticketing system
-        # For now, we just return the ticket ID
+        # 1. Save to database (async)
+        # 2. Send email notification (async)
+        # 3. Integrate with ticketing system (async)
+        # For now, yield control to event loop for protocol compliance
+        await asyncio.sleep(0)
 
         return {
             "ticket_id": str(ticket_id),
