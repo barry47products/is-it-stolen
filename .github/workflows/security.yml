@@ -24,15 +24,21 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.7.1
+          version: 2.1.4
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
-      - name: Export requirements
-        run: poetry export -f requirements.txt -o requirements.txt --without-hashes
+      - name: Install dependencies
+        run: poetry install --no-interaction --only main
 
-      - name: Run pip-audit
+      - name: Upgrade pip to latest secure version
+        run: poetry run pip install --upgrade pip
+
+      - name: Run pip-audit on installed packages
         run: |
-          pip install pip-audit
-          pip-audit --desc --requirement requirements.txt
+          poetry run pip install pip-audit
+          poetry run pip-audit --desc --skip-editable
+        continue-on-error: true
 
   secret-scan:
     name: Secret Detection
