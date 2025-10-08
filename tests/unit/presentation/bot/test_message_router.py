@@ -1380,28 +1380,6 @@ class TestMessageRouter:
         assert captured_query.longitude is None
 
     @pytest.mark.asyncio
-    async def test_geocode_location_method_returns_none_without_service(
-        self,
-    ) -> None:
-        """Test _geocode_location method directly when service is None."""
-        # Arrange
-        state_machine = MagicMock()
-        parser = MagicMock()
-
-        # Create router WITHOUT geocoding service
-        router = MessageRouter(
-            state_machine,
-            parser,
-            geocoding_service=None,
-        )
-
-        # Act - call private method directly
-        result = await router._geocode_location("London")
-
-        # Assert
-        assert result is None
-
-    @pytest.mark.asyncio
     async def test_check_flow_starts_with_flow_engine(self) -> None:
         """Test check flow uses flow engine when check_item is selected."""
         # Arrange

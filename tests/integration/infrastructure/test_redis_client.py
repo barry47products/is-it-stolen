@@ -12,7 +12,7 @@ class TestRedisClientIntegration:
     """Integration tests for Redis client with real Redis."""
 
     @pytest.fixture
-    async def redis_client(self) -> AsyncGenerator[RedisClient, None]:
+    async def redis_client(self) -> AsyncGenerator[RedisClient]:
         """Create Redis client connected to test Redis instance."""
         settings = get_settings()
         client = RedisClient(str(settings.redis_url))

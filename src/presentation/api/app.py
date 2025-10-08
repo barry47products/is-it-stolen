@@ -39,7 +39,7 @@ ItemCategory.set_keywords(load_category_keywords())
 @asynccontextmanager
 async def lifespan(  # type: ignore[no-any-unimported]
     _app: FastAPI,
-) -> AsyncGenerator[None, None]:
+) -> AsyncGenerator[None]:
     """Application lifespan manager for startup and shutdown events.
 
     Handles:
