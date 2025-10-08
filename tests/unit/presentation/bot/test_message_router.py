@@ -1738,3 +1738,82 @@ class TestMessageRouter:
         assert response["state"] == "active_flow"
         flow_engine.start_flow.assert_called_once_with("report_item", phone_number)
         flow_engine.get_prompt.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_contact_us_flow_starts_with_flow_engine(self) -> None:
+        """Test contact us flow uses flow engine when contact_us is selected."""
+        # Arrange
+        phone_number = "+1234567890"
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.MAIN_MENU,
+            )
+        )
+        state_machine.transition = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.ACTIVE_FLOW,
+                data={"flow_id": "contact_us"},
+            )
+        )
+        state_machine.update_data = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.ACTIVE_FLOW,
+                data={"flow_id": "contact_us", "flow_context": MagicMock()},
+            )
+        )
+
+        parser = MagicMock()
+        flow_engine = MagicMock()
+        flow_engine.start_flow = AsyncMock(
+            return_value=MagicMock(
+                flow_id="contact_us",
+                user_id=phone_number,
+                current_step="message",
+                data={},
+                is_complete=False,
+            )
+        )
+        flow_engine.get_prompt = MagicMock(
+            return_value="Please describe your issue or question"
+        )
+
+        router = MessageRouter(
+            state_machine,
+            parser,
+            flow_engine=flow_engine,
+        )
+
+        # Act
+        response = await router.route_message(phone_number, "contact_us")
+
+        # Assert
+        assert response["state"] == "active_flow"
+        flow_engine.start_flow.assert_called_once_with("contact_us", phone_number)
+        flow_engine.get_prompt.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_contact_us_without_flow_engine(self) -> None:
+        """Test contact us without flow engine returns error message."""
+        # Arrange
+        phone_number = "+1234567890"
+        state_machine = MagicMock()
+        state_machine.get_or_create = AsyncMock(
+            return_value=ConversationContext(
+                phone_number=phone_number,
+                state=ConversationState.MAIN_MENU,
+            )
+        )
+
+        parser = MagicMock()
+        router = MessageRouter(state_machine, parser, flow_engine=None)
+
+        # Act
+        response = await router.route_message(phone_number, "3")
+
+        # Assert
+        assert response["state"] == "main_menu"
+        assert "not available" in response["reply"]
