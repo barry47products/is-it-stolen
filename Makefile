@@ -153,17 +153,28 @@ ci-lint: ## Run CI linting
 	$(MYPY) src --no-error-summary
 
 # Security commands
-security-scan: ## Run all security scans locally
+security-scan: ## Run all security scans locally (Safety + Bandit)
 	@echo "Running security scans..."
-	@echo "\n1. Dependency vulnerability scan..."
-	@poetry export -f requirements.txt --without-hashes -o requirements.txt
-	@poetry run pip install -q pip-audit || pip install pip-audit
-	@poetry run pip-audit --desc -r requirements.txt || echo "⚠️  Vulnerabilities found"
-	@rm requirements.txt
-	@echo "\n2. Secret detection scan..."
-	@poetry run pip install -q detect-secrets || pip install detect-secrets
-	@poetry run detect-secrets scan --all-files --force-use-all-plugins --exclude-files '.secrets.baseline|poetry.lock|.git/'
+	@echo "\n1. Dependency vulnerability scan (Safety)..."
+	@poetry run safety scan || echo "⚠️  Vulnerabilities found"
+	@echo "\n2. Static code security analysis (Bandit)..."
+	@poetry run bandit -r src/ -f screen || echo "⚠️  Security issues found"
 	@echo "\n✅ Security scans complete!"
+
+security-deps: ## Check dependencies for known vulnerabilities (Safety)
+	@poetry run safety scan --detailed-output
+
+security-code: ## Run static security analysis on code (Bandit)
+	@poetry run bandit -r src/ -f screen
+
+security-code-json: ## Generate Bandit security report in JSON
+	@poetry run bandit -r src/ -f json -o bandit-report.json
+	@echo "✅ Bandit report saved to bandit-report.json"
+
+security-secrets: ## Scan for secrets in codebase (optional, can be slow)
+	@echo "Running secret detection scan..."
+	@pip list | grep -q detect-secrets || pip install -q detect-secrets
+	@detect-secrets scan --all-files --force-use-all-plugins --exclude-files '.secrets.baseline|poetry.lock|.git/' || echo "⚠️  Secrets detected"
 
 security-scan-docker: ## Scan Docker image for vulnerabilities
 	@echo "Building Docker image..."

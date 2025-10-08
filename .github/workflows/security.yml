@@ -29,16 +29,46 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Install dependencies
-        run: poetry install --no-interaction --only main
+        run: poetry install --no-interaction --only main,dev
 
-      - name: Upgrade pip to latest secure version
-        run: poetry run pip install --upgrade pip
+      - name: Run Safety to check for known vulnerabilities
+        run: poetry run safety scan --output json
+        continue-on-error: true
 
-      - name: Run pip-audit on installed packages
+      - name: Run pip-audit as additional check
         run: |
           poetry run pip install pip-audit
           poetry run pip-audit --desc --skip-editable
         continue-on-error: true
+
+  code-security-scan:
+    name: Static Code Security Analysis (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.1.4
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --only dev
+
+      - name: Run Bandit security linter
+        run: poetry run bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Display Bandit results
+        if: always()
+        run: poetry run bandit -r src/ -f screen
 
   secret-scan:
     name: Secret Detection

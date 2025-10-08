@@ -84,6 +84,12 @@ make format                 # Format code with Ruff
 make type-check             # Run MyPy type checking
 make check                  # Run lint, type-check, and all tests
 
+# Security scanning
+make security-scan          # Run all security scans (Safety + Bandit)
+make security-deps          # Check dependencies for vulnerabilities (Safety)
+make security-code          # Run static code security analysis (Bandit)
+make security-code-json     # Generate Bandit JSON report
+
 # Database
 make migrate-create message="description"  # Create new migration
 make migrate-up             # Apply migrations

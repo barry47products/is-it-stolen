@@ -122,3 +122,7 @@ Thumbs.db
 infra/certs/*.crt
 infra/certs/*.csr
 infra/certs/*.key
+
+# Security scan reports
+bandit-report.json
+security-scan-*.txt
