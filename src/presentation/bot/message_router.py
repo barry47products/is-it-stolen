@@ -3,6 +3,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
+from src.domain.constants import ButtonId, FlowId, UserCommand
 from src.presentation.bot.context import ConversationContext
 from src.presentation.bot.error_handler import ErrorHandler
 from src.presentation.bot.flow_engine import FlowEngine
@@ -66,7 +67,7 @@ class MessageRouter:
         context = await self.state_machine.get_or_create(phone_number)
 
         # Handle global commands
-        if message_text.lower().strip() in ["cancel", "quit", "exit", "stop"]:
+        if UserCommand.is_cancel_command(message_text):
             await self.state_machine.cancel(context)
             return {
                 "reply": self.response_builder.format_cancel(),
@@ -132,15 +133,15 @@ class MessageRouter:
         choice = message_text.strip()
 
         # Handle check item flow
-        if choice in ["1", "check", "Check", "check_item"]:
+        if choice in ["1", "check", "Check", ButtonId.CHECK_ITEM.value]:
             return await self._route_check_flow(context)
 
         # Handle report item flow
-        if choice in ["2", "report", "Report", "report_item"]:
+        if choice in ["2", "report", "Report", ButtonId.REPORT_ITEM.value]:
             return await self._route_report_flow(context)
 
         # Handle contact us flow
-        if choice in ["3", "contact", "Contact", "contact_us"]:
+        if choice in ["3", "contact", "Contact", ButtonId.CONTACT_US.value]:
             return await self._route_contact_flow(context)
 
         # Invalid choice
@@ -152,7 +153,7 @@ class MessageRouter:
     async def _route_check_flow(self, context: ConversationContext) -> RouterResponse:
         """Route to check flow using config-driven flow engine."""
         if self.flow_engine is not None:
-            return await self._start_flow(context, "check_item")
+            return await self._start_flow(context, FlowId.CHECK_ITEM.value)
 
         return {
             "reply": FLOW_NOT_AVAILABLE,
@@ -162,7 +163,7 @@ class MessageRouter:
     async def _route_report_flow(self, context: ConversationContext) -> RouterResponse:
         """Route to report flow using config-driven flow engine."""
         if self.flow_engine is not None:
-            return await self._start_flow(context, "report_item")
+            return await self._start_flow(context, FlowId.REPORT_ITEM.value)
 
         return {
             "reply": FLOW_NOT_AVAILABLE,
@@ -172,7 +173,7 @@ class MessageRouter:
     async def _route_contact_flow(self, context: ConversationContext) -> RouterResponse:
         """Route to contact flow using config-driven flow engine."""
         if self.flow_engine is not None:
-            return await self._start_flow(context, "contact_us")
+            return await self._start_flow(context, FlowId.CONTACT_US.value)
 
         return {
             "reply": FLOW_NOT_AVAILABLE,
