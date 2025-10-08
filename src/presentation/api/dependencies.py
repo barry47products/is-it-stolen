@@ -66,7 +66,7 @@ def get_verification_service() -> VerificationService:
     return _verification_service
 
 
-async def get_repository() -> AsyncGenerator[PostgresStolenItemRepository, None]:
+async def get_repository() -> AsyncGenerator[PostgresStolenItemRepository]:
     """Get repository instance for dependency injection.
 
     Yields:
