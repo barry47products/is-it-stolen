@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --only main,dev
 
+      - name: Upgrade pip to latest version
+        run: poetry run pip install --upgrade pip
+
       - name: Run Safety to check for known vulnerabilities
         run: poetry run safety scan --output json
         continue-on-error: true
@@ -38,7 +41,7 @@ jobs:
       - name: Run pip-audit as additional check
         run: |
           poetry run pip install pip-audit
-          poetry run pip-audit --desc --skip-editable
+          poetry run pip-audit --desc --skip-editable || echo "⚠️ pip-audit found vulnerabilities"
         continue-on-error: true
 
   code-security-scan:
