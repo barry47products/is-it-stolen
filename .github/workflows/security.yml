@@ -34,8 +34,10 @@ jobs:
       - name: Upgrade pip to latest version
         run: poetry run pip install --upgrade pip
 
-      - name: Run Safety to check for known vulnerabilities
-        run: poetry run safety scan --continue-on-error || echo "⚠️ Safety scan found vulnerabilities"
+      - name: Run Safety to check for known vulnerabilities (using legacy check for CI)
+        run: |
+          # Safety scan requires authentication in v3+, using legacy check command for CI
+          poetry run safety check --output text || echo "⚠️ Safety found vulnerabilities"
         continue-on-error: true
 
       - name: Run pip-audit as additional check
