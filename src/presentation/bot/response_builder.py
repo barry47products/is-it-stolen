@@ -112,38 +112,6 @@ class ResponseBuilder:
             "• Type 'unknown' if you're not sure"
         )
 
-    def format_reporting_date_prompt(self) -> str:
-        """Format date prompt for reporting flow.
-
-        Returns:
-            Formatted date prompt
-        """
-        return (
-            "📅 When was it stolen?\n\n"
-            "Examples:\n"
-            "• 'today'\n"
-            "• 'yesterday'\n"
-            "• '3 days ago'\n"
-            "• '15 January 2024'\n"
-            "• 'last week'\n\n"
-            "Type 'unknown' if you're not sure"
-        )
-
-    def format_invalid_date(self) -> str:
-        """Format invalid date error message.
-
-        Returns:
-            Formatted error message
-        """
-        return (
-            "❌ I didn't understand that date.\n\n"
-            "Please try again with formats like:\n"
-            "• 'today' or 'yesterday'\n"
-            "• '2 days ago'\n"
-            "• '15 Jan 2024'\n\n"
-            "Or type 'unknown' if you're not sure"
-        )
-
     def format_checking_complete(
         self, matches_found: bool, match_count: int = 0
     ) -> str:

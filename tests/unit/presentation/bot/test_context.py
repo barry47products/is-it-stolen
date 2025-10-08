@@ -121,6 +121,30 @@ class TestConversationContext:
         assert "created_at" in result
         assert "updated_at" in result
 
+    def test_to_dict_serializes_datetime_in_data(self) -> None:
+        """Test to_dict serializes datetime objects in data dict."""
+        # Arrange
+        from datetime import UTC, datetime
+
+        stolen_date = datetime.now(UTC)
+        context = ConversationContext(
+            phone_number="+1234567890",
+            state=ConversationState.ACTIVE_FLOW,
+            data={"stolen_date": stolen_date, "description": "Red bike"},
+        )
+
+        # Act
+        result = context.to_dict()
+
+        # Assert
+        assert result["phone_number"] == "+1234567890"
+        assert result["state"] == "active_flow"
+        assert isinstance(
+            result["data"]["stolen_date"], str
+        )  # Serialized to ISO string
+        assert result["data"]["stolen_date"] == stolen_date.isoformat()
+        assert result["data"]["description"] == "Red bike"
+
     def test_from_dict_deserializes_context(self) -> None:
         """Test from_dict creates context from dictionary."""
         # Arrange

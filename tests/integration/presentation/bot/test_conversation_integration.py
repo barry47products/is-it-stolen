@@ -75,17 +75,17 @@ class TestConversationIntegration:
             assert retrieved is not None
             assert retrieved.state == ConversationState.MAIN_MENU
 
-            # Add data and transition to checking flow
+            # Add data and transition to active flow
             context = await state_machine.update_data(context, {"action": "check"})
             context = await state_machine.transition(
-                context, ConversationState.CHECKING_CATEGORY
+                context, ConversationState.ACTIVE_FLOW
             )
 
             # Verify data persisted
             retrieved = await storage.get(phone_number)
             assert retrieved is not None
             assert retrieved.data == {"action": "check"}
-            assert retrieved.state == ConversationState.CHECKING_CATEGORY
+            assert retrieved.state == ConversationState.ACTIVE_FLOW
 
             # Complete conversation
             context = await state_machine.complete(context)
@@ -178,7 +178,7 @@ class TestConversationIntegration:
                 context2, ConversationState.MAIN_MENU
             )
             context2 = await state_machine.transition(
-                context2, ConversationState.REPORTING_CATEGORY
+                context2, ConversationState.ACTIVE_FLOW
             )
             context2 = await state_machine.update_data(context2, {"user": "user2"})
 
@@ -191,7 +191,7 @@ class TestConversationIntegration:
             assert retrieved1.data == {"user": "user1"}
             assert retrieved2.data == {"user": "user2"}
             assert retrieved1.state == ConversationState.MAIN_MENU
-            assert retrieved2.state == ConversationState.REPORTING_CATEGORY
+            assert retrieved2.state == ConversationState.ACTIVE_FLOW
 
         finally:
             # Cleanup
