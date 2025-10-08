@@ -1,4 +1,18 @@
-"""End-to-end tests for complete conversation flows."""
+"""End-to-end tests for complete conversation flows.
+
+These tests verify complete user conversation flows work end-to-end with real database,
+Redis, and message processing. They are compatible with both legacy state-based flows
+and new configuration-driven flows.
+
+The tests use legacy states (CHECKING_*, REPORTING_*) which are deprecated but still
+functional. Once Issue #114 Phase 3 is complete and flow_engine is wired into production,
+these tests will automatically use ACTIVE_FLOW state without requiring changes.
+
+Future Enhancements:
+- Add tests for interactive message webhooks (button/list responses)
+- Add tests for contact_us flow
+- Test error handling with interactive messages
+"""
 
 import pytest
 from redis.asyncio import Redis

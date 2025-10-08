@@ -1,4 +1,12 @@
-"""Integration tests for conversation state machine with real Redis."""
+"""Integration tests for conversation state machine with real Redis.
+
+These tests verify the conversation state machine works correctly with Redis persistence.
+They are compatible with both legacy state-based flows and new configuration-driven flows.
+
+Note: These tests use legacy states (CHECKING_*, REPORTING_*) which are deprecated but
+still functional. Once Issue #114 Phase 3 is complete, these can be updated to use
+ACTIVE_FLOW state exclusively.
+"""
 
 import pytest
 from redis.asyncio import Redis
