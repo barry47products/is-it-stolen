@@ -4,22 +4,34 @@ from enum import Enum
 
 
 class ConversationState(str, Enum):
-    """States for conversation flow."""
+    """States for conversation flow.
+
+    **New simplified states (preferred):**
+    - IDLE: Initial state
+    - MAIN_MENU: User sees main menu options
+    - ACTIVE_FLOW: Generic state for any running configuration-driven flow
+    - COMPLETE: Flow completed successfully
+    - CANCELLED: Flow cancelled by user
+
+    **Legacy states (deprecated, will be removed in future version):**
+    - CHECKING_* states: Legacy check flow states
+    - REPORTING_* states: Legacy report flow states
+    """
 
     # Initial states
     IDLE = "idle"
     MAIN_MENU = "main_menu"
 
-    # Active flow (configuration-driven)
+    # Active flow (configuration-driven) - PREFERRED
     ACTIVE_FLOW = "active_flow"
 
-    # Check item flow (legacy)
+    # Legacy check item flow states (DEPRECATED - use ACTIVE_FLOW instead)
     CHECKING_CATEGORY = "checking_category"
     CHECKING_DESCRIPTION = "checking_description"
     CHECKING_LOCATION = "checking_location"
     CHECKING_RESULTS = "checking_results"
 
-    # Report item flow (legacy)
+    # Legacy report item flow states (DEPRECATED - use ACTIVE_FLOW instead)
     REPORTING_CATEGORY = "reporting_category"
     REPORTING_DESCRIPTION = "reporting_description"
     REPORTING_LOCATION = "reporting_location"
@@ -38,16 +50,18 @@ STATE_TRANSITIONS: dict[ConversationState, list[ConversationState]] = {
         ConversationState.MAIN_MENU,
     ],
     ConversationState.MAIN_MENU: [
-        ConversationState.ACTIVE_FLOW,
-        ConversationState.CHECKING_CATEGORY,
-        ConversationState.REPORTING_CATEGORY,
+        ConversationState.ACTIVE_FLOW,  # Preferred: config-driven flows
+        ConversationState.CHECKING_CATEGORY,  # Legacy fallback
+        ConversationState.REPORTING_CATEGORY,  # Legacy fallback
         ConversationState.CANCELLED,
     ],
+    # New config-driven flow state (PREFERRED)
     ConversationState.ACTIVE_FLOW: [
         ConversationState.ACTIVE_FLOW,  # Can stay in ACTIVE_FLOW while processing
         ConversationState.COMPLETE,
         ConversationState.CANCELLED,
     ],
+    # Legacy check flow states (DEPRECATED)
     ConversationState.CHECKING_CATEGORY: [
         ConversationState.CHECKING_DESCRIPTION,
         ConversationState.MAIN_MENU,
@@ -68,6 +82,7 @@ STATE_TRANSITIONS: dict[ConversationState, list[ConversationState]] = {
         ConversationState.COMPLETE,
         ConversationState.CANCELLED,
     ],
+    # Legacy report flow states (DEPRECATED)
     ConversationState.REPORTING_CATEGORY: [
         ConversationState.REPORTING_DESCRIPTION,
         ConversationState.MAIN_MENU,
@@ -98,8 +113,13 @@ STATE_TRANSITIONS: dict[ConversationState, list[ConversationState]] = {
         ConversationState.REPORTING_IMAGE,
         ConversationState.CANCELLED,
     ],
-    ConversationState.COMPLETE: [],
-    ConversationState.CANCELLED: [],
+    # Terminal states
+    ConversationState.COMPLETE: [
+        ConversationState.IDLE,  # Allow starting new conversation
+    ],
+    ConversationState.CANCELLED: [
+        ConversationState.IDLE,  # Allow starting new conversation
+    ],
 }
 
 
