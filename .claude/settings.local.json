@@ -19,7 +19,8 @@
       "Bash(gh api:*)",
       "Bash(done)",
       "Bash(gh label list:*)",
-      "Bash(gh label create:*)"
+      "Bash(gh label create:*)",
+      "Read(//Users/barrytandy/Dev/Personal/**)"
     ],
     "deny": [],
     "ask": []

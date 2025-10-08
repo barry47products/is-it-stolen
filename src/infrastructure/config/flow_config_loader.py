@@ -6,6 +6,8 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field, field_validator
 
+from src.domain.constants import HandlerType, PromptType
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +28,7 @@ class FlowStep(BaseModel):
     @classmethod
     def validate_prompt_type(cls, v: str) -> str:
         """Validate prompt type is one of allowed values."""
-        allowed = {"text", "list", "button"}
+        allowed = {pt.value for pt in PromptType}
         if v not in allowed:
             raise ValueError(f"prompt_type must be one of {allowed}, got {v}")
         return v
@@ -37,7 +39,7 @@ class FlowStep(BaseModel):
         """Validate handler type is one of allowed values."""
         if v is None:  # pragma: no cover
             return v  # Pydantic calls validator even for None default
-        allowed = {"query", "command"}
+        allowed = {ht.value for ht in HandlerType}
         if v not in allowed:
             raise ValueError(f"handler_type must be one of {allowed}, got {v}")
         return v

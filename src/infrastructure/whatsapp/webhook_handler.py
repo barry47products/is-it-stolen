@@ -8,6 +8,13 @@ from typing import TypedDict
 from fastapi import HTTPException
 from fastapi.responses import PlainTextResponse
 
+from src.domain.constants import InteractiveType, MessageType
+from src.infrastructure.whatsapp.constants import (
+    HTTP_OK,
+    WEBHOOK_MODE_SUBSCRIBE,
+    WEBHOOK_SIGNATURE_PREFIX,
+)
+
 
 class ParsedMessage(TypedDict, total=False):
     """Parsed message from webhook."""
@@ -40,11 +47,11 @@ def verify_webhook_signature(
     Returns:
         True if signature is valid, False otherwise
     """
-    if not signature_header.startswith("sha256="):
+    if not signature_header.startswith(WEBHOOK_SIGNATURE_PREFIX):
         return False
 
-    # Extract signature from header (remove 'sha256=' prefix)
-    received_signature = signature_header.removeprefix("sha256=")
+    # Extract signature from header (remove prefix)
+    received_signature = signature_header.removeprefix(WEBHOOK_SIGNATURE_PREFIX)
 
     # Generate expected signature
     expected_signature = hmac.new(
@@ -91,13 +98,13 @@ class WebhookHandler:
         Raises:
             HTTPException: If verification fails
         """
-        if mode != "subscribe":
+        if mode != WEBHOOK_MODE_SUBSCRIBE:
             raise HTTPException(status_code=403, detail="Invalid mode")
 
         if token != self.verify_token:
             raise HTTPException(status_code=403, detail="Invalid verify token")
 
-        return PlainTextResponse(content=challenge, status_code=200)
+        return PlainTextResponse(content=challenge, status_code=HTTP_OK)
 
     def parse_webhook_payload(
         self,
@@ -246,13 +253,18 @@ class WebhookHandler:
             msg_type: Type of message
             parsed: Parsed message dict to update
         """
-        if msg_type == "text":
+        if msg_type == MessageType.TEXT.value:
             self._add_text_content(msg, parsed)
-        elif msg_type in ("image", "video", "document", "audio"):
+        elif msg_type in (
+            MessageType.IMAGE.value,
+            MessageType.VIDEO.value,
+            MessageType.DOCUMENT.value,
+            MessageType.AUDIO.value,
+        ):
             self._add_media_content(msg, msg_type, parsed)
-        elif msg_type == "location":
+        elif msg_type == MessageType.LOCATION.value:
             self._add_location_content(msg, parsed)
-        elif msg_type == "interactive":
+        elif msg_type == MessageType.INTERACTIVE.value:
             self._add_interactive_content(msg, parsed)
 
     def _add_text_content(self, msg: dict[str, object], parsed: dict[str, str]) -> None:
@@ -342,9 +354,9 @@ class WebhookHandler:
 
         parsed["interactive_type"] = interactive_type
 
-        if interactive_type == "button_reply":
+        if interactive_type == InteractiveType.BUTTON_REPLY.value:
             self._add_button_reply_content(interactive_data, parsed)
-        elif interactive_type == "list_reply":
+        elif interactive_type == InteractiveType.LIST_REPLY.value:
             self._add_list_reply_content(interactive_data, parsed)
 
     def _add_button_reply_content(

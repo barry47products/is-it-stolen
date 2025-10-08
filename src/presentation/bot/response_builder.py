@@ -2,7 +2,30 @@
 
 from typing import Any
 
+from src.domain.constants import ButtonId
 from src.domain.value_objects.item_category import ItemCategory
+from src.infrastructure.whatsapp.constants import (
+    INTERACTIVE_TYPE_BUTTON,
+    INTERACTIVE_TYPE_LIST,
+    MAX_BUTTON_TITLE_LENGTH,
+    MAX_BUTTONS_PER_MESSAGE,
+    MAX_ROWS_PER_LIST,
+    MAX_SECTIONS_PER_LIST,
+    MESSAGE_TYPE_INTERACTIVE,
+    MIN_BUTTONS_REQUIRED,
+    MIN_SECTIONS_REQUIRED,
+    REPLY_TYPE,
+)
+from src.presentation.bot.messages import (
+    CANCELLATION_MESSAGES,
+    CHECK_FLOW_MESSAGES,
+    ERROR_MESSAGES,
+    LABEL_CHECK_ITEM,
+    LABEL_REPORT_ITEM,
+    LABEL_SELECT_CATEGORY,
+    REPORT_FLOW_MESSAGES,
+    WELCOME_MESSAGES,
+)
 
 
 class ResponseBuilder:
@@ -14,14 +37,7 @@ class ResponseBuilder:
         Returns:
             Formatted welcome message
         """
-        return (
-            "👋 Welcome to Is It Stolen!\n\n"
-            "What would you like to do?\n"
-            "1️⃣ Check if an item is stolen\n"
-            "2️⃣ Report a stolen item\n"
-            "3️⃣ Contact us\n\n"
-            "Reply with 1, 2, or 3, or type 'cancel' to exit."
-        )
+        return WELCOME_MESSAGES.welcome
 
     def format_cancel(self) -> str:
         """Format cancellation message.
@@ -29,7 +45,7 @@ class ResponseBuilder:
         Returns:
             Formatted cancel message
         """
-        return "Conversation cancelled. Send any message to start again."
+        return CANCELLATION_MESSAGES.conversation_cancelled
 
     def format_checking_category_prompt(self) -> str:
         """Format prompt for checking category input.
@@ -37,12 +53,7 @@ class ResponseBuilder:
         Returns:
             Formatted category prompt
         """
-        return (
-            "🔍 Check if stolen\n\n"
-            "What type of item do you want to check?\n"
-            "Examples: bike, phone, laptop, car\n\n"
-            "Type 'cancel' to go back."
-        )
+        return CHECK_FLOW_MESSAGES.category_prompt
 
     def format_category_confirmation(self, category: ItemCategory) -> str:
         """Format category confirmation message.
@@ -53,11 +64,7 @@ class ResponseBuilder:
         Returns:
             Formatted confirmation message
         """
-        return (
-            f"✅ Got it, checking for: {category.value}\n\n"
-            "Please describe the item (brand, model, color, etc.):\n"
-            "Example: Red Trek mountain bike, serial ABC123"
-        )
+        return CHECK_FLOW_MESSAGES.category_confirmation(category)
 
     def format_invalid_category(self) -> str:
         """Format invalid category error message.
@@ -65,10 +72,7 @@ class ResponseBuilder:
         Returns:
             Formatted error message
         """
-        return (
-            "❌ I didn't recognize that item type.\n\n"
-            "Please try again with: bike, phone, laptop, or car"
-        )
+        return ERROR_MESSAGES.invalid_category
 
     def format_location_prompt(self) -> str:
         """Format generic location prompt.
@@ -76,13 +80,7 @@ class ResponseBuilder:
         Returns:
             Formatted location prompt
         """
-        return (
-            "📍 Where was it last seen or stolen?\n\n"
-            "You can either:\n"
-            "• Type a location (e.g., 'Main Street, downtown')\n"
-            "• Send your current location\n"
-            "• Type 'skip' if you don't know"
-        )
+        return CHECK_FLOW_MESSAGES.location_prompt
 
     def format_checking_location_prompt(self) -> str:
         """Format location prompt for checking flow.
@@ -90,13 +88,7 @@ class ResponseBuilder:
         Returns:
             Formatted location prompt with skip option
         """
-        return (
-            "📍 Where was it last seen or stolen?\n\n"
-            "You can either:\n"
-            "• Type a location (e.g., 'Main Street, downtown')\n"
-            "• Send your current location\n"
-            "• Type 'skip' if you don't know"
-        )
+        return CHECK_FLOW_MESSAGES.location_prompt
 
     def format_reporting_location_prompt(self) -> str:
         """Format location prompt for reporting flow.
@@ -104,13 +96,7 @@ class ResponseBuilder:
         Returns:
             Formatted location prompt with unknown option
         """
-        return (
-            "📍 Where was it stolen?\n\n"
-            "You can either:\n"
-            "• Type the location\n"
-            "• Send your location\n"
-            "• Type 'unknown' if you're not sure"
-        )
+        return REPORT_FLOW_MESSAGES.location_prompt
 
     def format_checking_complete(
         self, matches_found: bool, match_count: int = 0
@@ -125,18 +111,9 @@ class ResponseBuilder:
             Formatted completion message
         """
         if matches_found:
-            return (
-                f"🔍 Search complete!\n\n"
-                f"Found {match_count} potential match{'es' if match_count != 1 else ''}.\n"
-                "We'll send details in the next message.\n\n"
-                "Send any message to start a new search."
-            )
+            return CHECK_FLOW_MESSAGES.search_complete_with_matches(match_count)
         else:
-            return (
-                "🔍 Searching for matches...\n\n"
-                "No stolen items found matching your description.\n\n"
-                "Send any message to start a new search."
-            )
+            return CHECK_FLOW_MESSAGES.search_complete_no_matches
 
     def format_reporting_category_prompt(self) -> str:
         """Format prompt for reporting category.
@@ -144,12 +121,7 @@ class ResponseBuilder:
         Returns:
             Formatted reporting category prompt
         """
-        return (
-            "📝 Report stolen item\n\n"
-            "What type of item was stolen?\n"
-            "Examples: bike, phone, laptop, car\n\n"
-            "Type 'cancel' to go back."
-        )
+        return REPORT_FLOW_MESSAGES.category_prompt
 
     def format_reporting_confirmation(self, category: ItemCategory) -> str:
         """Format reporting category confirmation.
@@ -160,11 +132,7 @@ class ResponseBuilder:
         Returns:
             Formatted confirmation message
         """
-        return (
-            f"✅ Reporting stolen: {category.value}\n\n"
-            "Please describe the item in detail:\n"
-            "Include: brand, model, color, serial number, any unique features"
-        )
+        return REPORT_FLOW_MESSAGES.category_confirmation(category)
 
     def format_reporting_complete(self) -> str:
         """Format reporting flow completion message.
@@ -172,12 +140,7 @@ class ResponseBuilder:
         Returns:
             Formatted completion message
         """
-        return (
-            "✅ Thank you for reporting!\n\n"
-            "Your stolen item has been recorded.\n"
-            "We'll notify you if there are any matches.\n\n"
-            "Send any message to make another report."
-        )
+        return REPORT_FLOW_MESSAGES.report_complete
 
     def format_main_menu_invalid_choice(self) -> str:
         """Format invalid main menu choice message.
@@ -185,12 +148,7 @@ class ResponseBuilder:
         Returns:
             Formatted error message
         """
-        return (
-            "Please choose an option:\n"
-            "1️⃣ Check if an item is stolen\n"
-            "2️⃣ Report a stolen item\n\n"
-            "Type 'cancel' to exit."
-        )
+        return WELCOME_MESSAGES.main_menu_invalid_choice
 
     def build_reply_buttons(
         self, body: str, buttons: list[dict[str, str]]
@@ -207,27 +165,31 @@ class ResponseBuilder:
         Raises:
             ValueError: If buttons list is invalid (empty, >3 buttons, title too long)
         """
-        if not buttons:
-            raise ValueError("At least 1 button required")
-        if len(buttons) > 3:
-            raise ValueError("Maximum 3 buttons allowed")
+        if len(buttons) < MIN_BUTTONS_REQUIRED:
+            raise ValueError(f"At least {MIN_BUTTONS_REQUIRED} button required")
+        if len(buttons) > MAX_BUTTONS_PER_MESSAGE:
+            raise ValueError(f"Maximum {MAX_BUTTONS_PER_MESSAGE} buttons allowed")
 
-        # Validate button title lengths (Meta API limit: 20 characters)
+        # Validate button title lengths
         for button in buttons:
-            if len(button["title"]) > 20:
+            if len(button["title"]) > MAX_BUTTON_TITLE_LENGTH:
                 raise ValueError(
-                    f"Button title '{button['title']}' cannot exceed 20 characters"
+                    f"Button title '{button['title']}' cannot exceed "
+                    f"{MAX_BUTTON_TITLE_LENGTH} characters"
                 )
 
         action_buttons = [
-            {"type": "reply", "reply": {"id": btn["id"], "title": btn["title"]}}
+            {
+                "type": REPLY_TYPE,
+                "reply": {"id": btn["id"], "title": btn["title"]},
+            }
             for btn in buttons
         ]
 
         return {
-            "type": "interactive",
+            "type": MESSAGE_TYPE_INTERACTIVE,
             "interactive": {
-                "type": "button",
+                "type": INTERACTIVE_TYPE_BUTTON,
                 "body": {"text": body},
                 "action": {"buttons": action_buttons},
             },
@@ -254,17 +216,19 @@ class ResponseBuilder:
         Raises:
             ValueError: If sections is invalid (empty, >10 sections, >10 total rows)
         """
-        if not sections:
-            raise ValueError("At least 1 section required")
-        if len(sections) > 10:
-            raise ValueError("Maximum 10 sections allowed")
+        if len(sections) < MIN_SECTIONS_REQUIRED:
+            raise ValueError(f"At least {MIN_SECTIONS_REQUIRED} section required")
+        if len(sections) > MAX_SECTIONS_PER_LIST:
+            raise ValueError(f"Maximum {MAX_SECTIONS_PER_LIST} sections allowed")
 
         total_rows = sum(len(section.get("rows", [])) for section in sections)
-        if total_rows > 10:
-            raise ValueError("Maximum 10 rows allowed across all sections")
+        if total_rows > MAX_ROWS_PER_LIST:
+            raise ValueError(
+                f"Maximum {MAX_ROWS_PER_LIST} rows allowed across all sections"
+            )
 
         interactive: dict[str, Any] = {
-            "type": "list",
+            "type": INTERACTIVE_TYPE_LIST,
             "body": {"text": body},
             "action": {"button": button_text, "sections": sections},
         }
@@ -272,7 +236,7 @@ class ResponseBuilder:
         if header:
             interactive["header"] = {"type": "text", "text": header}
 
-        return {"type": "interactive", "interactive": interactive}
+        return {"type": MESSAGE_TYPE_INTERACTIVE, "interactive": interactive}
 
     def build_category_list(self) -> dict[str, Any]:
         """Build category selection list message.
@@ -306,7 +270,7 @@ class ResponseBuilder:
 
         return self.build_list_message(
             body="What type of item?",
-            button_text="Select Category",
+            button_text=LABEL_SELECT_CATEGORY,
             sections=sections,
         )
 
@@ -317,11 +281,11 @@ class ResponseBuilder:
             Dict with Meta WhatsApp Cloud API interactive button message
         """
         buttons = [
-            {"id": "check_item", "title": "Check Item"},
-            {"id": "report_item", "title": "Report Item"},
+            {"id": ButtonId.CHECK_ITEM.value, "title": LABEL_CHECK_ITEM},
+            {"id": ButtonId.REPORT_ITEM.value, "title": LABEL_REPORT_ITEM},
         ]
 
         return self.build_reply_buttons(
-            body="👋 Welcome to Is It Stolen!\n\nWhat would you like to do?",
+            body=WELCOME_MESSAGES.welcome_buttons_body,
             buttons=buttons,
         )
