@@ -29,16 +29,53 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Install dependencies
-        run: poetry install --no-interaction --only main
+        run: poetry install --no-interaction --only main,dev
 
-      - name: Upgrade pip to latest secure version
+      - name: Upgrade pip to latest version
         run: poetry run pip install --upgrade pip
 
-      - name: Run pip-audit on installed packages
+      - name: Run Safety to check for known vulnerabilities (using legacy check for CI)
+        run: |
+          # Safety scan requires authentication in v3+, using legacy check command for CI
+          poetry run safety check --output text || echo "⚠️ Safety found vulnerabilities"
+        continue-on-error: true
+
+      - name: Run pip-audit as additional check
         run: |
           poetry run pip install pip-audit
-          poetry run pip-audit --desc --skip-editable
+          # Note: pip 25.2 has GHSA-4xh5-x5gv-qwph vulnerability - fix planned for 25.3
+          # This is a known issue in pip itself, not our dependencies
+          poetry run pip-audit --desc --skip-editable --ignore-vuln GHSA-4xh5-x5gv-qwph || echo "⚠️ pip-audit found vulnerabilities"
         continue-on-error: true
+
+  code-security-scan:
+    name: Static Code Security Analysis (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.1.4
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --only dev
+
+      - name: Run Bandit security linter
+        run: poetry run bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Display Bandit results
+        if: always()
+        run: poetry run bandit -r src/ -f screen
 
   secret-scan:
     name: Secret Detection

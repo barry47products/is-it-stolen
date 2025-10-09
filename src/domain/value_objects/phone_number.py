@@ -44,10 +44,14 @@ class PhoneNumber:
 
         Returns:
             Country code as integer (e.g., 44 for UK, 1 for US, 27 for ZA)
+
+        Raises:
+            ValueError: If country code is missing (should not happen for valid numbers)
         """
         parsed = phonenumbers.parse(self.value, None)
         code = parsed.country_code
-        assert code is not None, "Valid phone number must have country code"
+        if code is None:
+            raise ValueError("Valid phone number must have country code")
         return code
 
     @property

@@ -1,0 +1,23 @@
+[bandit]
+exclude_dirs = [
+    '/tests',
+    '/.venv',
+    '/alembic',
+    '/__pycache__'
+]
+
+# Skipped tests (if any needed in future)
+# B101: assert_used (OK in tests)
+# B601: paramiko_calls
+# B602: subprocess_popen_with_shell_equals_true
+skips = []
+
+# Test severity levels to report
+# Options: LOW, MEDIUM, HIGH
+# Default is to report all levels
+# tests = []
+
+# Confidence levels to report
+# Options: LOW, MEDIUM, HIGH
+# Default is to report all levels
+# confidence = []

@@ -40,7 +40,11 @@ class Settings(BaseSettings):
         le=MAX_PORT,
         description="Server port number (1-65535)",
     )
-    host: str = Field(default="0.0.0.0", description="Server host address")
+    # Binding to 0.0.0.0 is required for Docker/container deployments
+    host: str = Field(
+        default="0.0.0.0",  # nosec B104
+        description="Server host address",
+    )
 
     # Database
     # SECURITY: Never commit real database passwords to the repository

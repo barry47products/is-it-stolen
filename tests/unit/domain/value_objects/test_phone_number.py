@@ -1,5 +1,7 @@
 """Tests for PhoneNumber value object."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from src.domain.value_objects.phone_number import PhoneNumber
@@ -96,3 +98,20 @@ class TestPhoneNumber:
         """Should normalize phone number with dashes."""
         phone = PhoneNumber("+44-7911-123-456")
         assert phone.value == "+447911123456"
+
+    def test_country_code_raises_value_error_when_missing(self) -> None:
+        """Should raise ValueError if country code is None (edge case)."""
+        phone = PhoneNumber("+447911123456")
+
+        # Mock phonenumbers.parse to return object with None country_code
+        mock_parsed = MagicMock()
+        mock_parsed.country_code = None
+
+        with patch(
+            "src.domain.value_objects.phone_number.phonenumbers.parse"
+        ) as mock_parse:
+            mock_parse.return_value = mock_parsed
+            with pytest.raises(
+                ValueError, match="Valid phone number must have country code"
+            ):
+                _ = phone.country_code
