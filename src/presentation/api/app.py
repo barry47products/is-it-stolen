@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from src.domain.value_objects.item_category import ItemCategory
 from src.infrastructure.config import load_category_keywords
@@ -19,6 +20,7 @@ from src.infrastructure.config.settings import get_settings
 from src.infrastructure.logging import configure_logging, get_logger
 from src.infrastructure.monitoring.sentry import init_sentry
 from src.infrastructure.persistence.database import init_db
+from src.infrastructure.tracing import instrument_all, setup_tracing, shutdown_tracing
 from src.presentation.api.middleware import LoggingMiddleware, RequestIDMiddleware
 from src.presentation.api.prometheus import router as prometheus_router
 from src.presentation.api.v1 import api_router as v1_router
@@ -64,6 +66,18 @@ async def lifespan(  # type: ignore[no-any-unimported]
         debug=startup_settings.debug,
     )
 
+    # Initialize OpenTelemetry tracing
+    setup_tracing()
+    if startup_settings.otel_enabled:
+        logger.info(
+            "OpenTelemetry tracing initialized",
+            service_name=startup_settings.otel_service_name,
+            sample_rate=startup_settings.otel_traces_sample_rate,
+        )
+        # Instrument libraries after tracing is configured
+        instrument_all()
+        logger.info("Auto-instrumentation enabled for database, HTTP, and Redis")
+
     # Initialize Sentry error tracking
     init_sentry(startup_settings)
     if startup_settings.sentry_dsn:
@@ -82,6 +96,11 @@ async def lifespan(  # type: ignore[no-any-unimported]
 
     # Shutdown
     logger.info("Shutting down Is It Stolen API")
+
+    # Shutdown tracing and flush pending spans
+    shutdown_tracing()
+    logger.info("OpenTelemetry tracing shutdown complete")
+
     logger.info("Application shutdown complete")
 
 
@@ -130,6 +149,9 @@ def create_app() -> FastAPI:  # type: ignore[no-any-unimported]
             Status message indicating service is healthy
         """
         return {"status": "healthy", "version": "0.1.0"}
+
+    # Instrument FastAPI with OpenTelemetry
+    FastAPIInstrumentor.instrument_app(app)
 
     return app
 

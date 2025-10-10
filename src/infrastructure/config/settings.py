@@ -168,6 +168,26 @@ class Settings(BaseSettings):
         description="Sentry profiles sample rate (0.0-1.0, 0.1 = 10%)",
     )
 
+    # OpenTelemetry Tracing
+    otel_enabled: bool = Field(
+        default=True,
+        description="Enable OpenTelemetry tracing",
+    )
+    otel_service_name: str = Field(
+        default="is-it-stolen",
+        description="Service name for traces",
+    )
+    otel_exporter_endpoint: str = Field(
+        default="",
+        description="OTLP exporter endpoint (leave empty for console export)",
+    )
+    otel_traces_sample_rate: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Trace sampling rate (0.0-1.0, 1.0 = 100%)",
+    )
+
     # Application
     environment: str = Field(
         default="development",
