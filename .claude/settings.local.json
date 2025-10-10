@@ -21,7 +21,8 @@
       "Bash(gh label list:*)",
       "Bash(gh label create:*)",
       "Read(//Users/barrytandy/Dev/Personal/**)",
-      "Bash(gh issue create:*)"
+      "Bash(gh issue create:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []
