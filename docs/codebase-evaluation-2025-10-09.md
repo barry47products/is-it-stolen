@@ -410,27 +410,27 @@ None - The codebase is production-ready
 
 ### 🟠 HIGH PRIORITY (Address Soon)
 
-1. **Add distributed tracing**
+1. **Add distributed tracing** ([#136](https://github.com/barry47products/is-it-stolen/issues/136))
 
    - **Impact:** Improved debugging and performance monitoring
    - **Effort:** Medium (2-3 days)
    - **Action:** Integrate OpenTelemetry
 
-2. **Implement WhatsApp webhook signature validation**
+2. **Implement WhatsApp webhook signature validation** ([#137](https://github.com/barry47products/is-it-stolen/issues/137))
 
    - **Location:** `src/presentation/api/v1/webhook_receiver.py`
    - **Impact:** Security hardening
    - **Effort:** Low (1 day)
    - **Action:** Verify `X-Hub-Signature-256` header
 
-3. **Add OpenAPI/Swagger documentation**
+3. **Add OpenAPI/Swagger documentation** ([#138](https://github.com/barry47products/is-it-stolen/issues/138))
    - **Impact:** Better API discoverability
    - **Effort:** Low (1 day)
    - **Action:** Configure FastAPI docs with examples
 
 ### 🟡 MEDIUM PRIORITY (Plan for Next Sprint)
 
-1. **Refactor long methods to meet 10-line guideline**
+1. **Refactor long methods to meet 10-line guideline** ([#140](https://github.com/barry47products/is-it-stolen/issues/140))
 
    - **Locations:**
      - `src/presentation/bot/message_router.py:54-87`
@@ -438,23 +438,23 @@ None - The codebase is production-ready
    - **Impact:** Improved readability and testability
    - **Effort:** Medium (2-3 days)
 
-2. **Reduce type: ignore comments**
+2. **Reduce type: ignore comments** ([#141](https://github.com/barry47products/is-it-stolen/issues/141))
 
    - **Impact:** Stronger type safety
    - **Effort:** Medium (3-4 days)
    - **Action:** Use TypedDict or Protocol for SQLAlchemy models
 
-3. **Add contract testing for WhatsApp API**
+3. **Add contract testing for WhatsApp API** ([#139](https://github.com/barry47products/is-it-stolen/issues/139))
    - **Impact:** Prevent breaking changes from API updates
    - **Effort:** Medium (2-3 days)
    - **Action:** Use Pact or VCR.py
 
 ### 🟢 LOW PRIORITY (Nice to Have)
 
-1. **Enhance business metrics** - Conversion tracking, user journey analytics
-2. **Add property-based testing** - Use Hypothesis for edge cases
-3. **Implement deployment automation** - Add deploy.yml workflow
-4. **Secrets management integration** - AWS Secrets Manager or Vault
+1. **Enhance business metrics** ([#144](https://github.com/barry47products/is-it-stolen/issues/144)) - Conversion tracking, user journey analytics
+2. **Add property-based testing** ([#142](https://github.com/barry47products/is-it-stolen/issues/142)) - Use Hypothesis for edge cases
+3. **Implement deployment automation** ([#145](https://github.com/barry47products/is-it-stolen/issues/145)) - Add deploy.yml workflow
+4. **Secrets management integration** ([#143](https://github.com/barry47products/is-it-stolen/issues/143)) - AWS Secrets Manager or Vault
 
 ---
 
