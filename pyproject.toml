@@ -30,6 +30,13 @@ prometheus-client = "^0.23.1"
 dateparser = "^1.2.2"
 structlog = "^25.4.0"
 python-json-logger = "^4.0.0"
+opentelemetry-api = "^1.37.0"
+opentelemetry-sdk = "^1.37.0"
+opentelemetry-instrumentation-fastapi = "^0.58b0"
+opentelemetry-instrumentation-sqlalchemy = "^0.58b0"
+opentelemetry-instrumentation-redis = "^0.58b0"
+opentelemetry-instrumentation-httpx = "^0.58b0"
+opentelemetry-exporter-otlp = "^1.37.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
@@ -127,6 +134,7 @@ module = [
     "celery.*",
     "alembic.*",
     "sentry_sdk.*",
+    "opentelemetry.*",
 ]
 ignore_missing_imports = true
 

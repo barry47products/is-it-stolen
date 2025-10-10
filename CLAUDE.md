@@ -107,6 +107,29 @@ make issue number=X name=feature-name  # Create branch for GitHub issue
 make pr-issue number=X      # Push and get PR URL for issue
 ```
 
+### Observability and Tracing
+
+The application uses OpenTelemetry for distributed tracing:
+
+- **Auto-instrumentation**: FastAPI, SQLAlchemy, Redis, and httpx are automatically traced
+- **Console output**: In development (no `OTEL_EXPORTER_ENDPOINT` set)
+- **OTLP export**: Configure `OTEL_EXPORTER_ENDPOINT` for Jaeger/other backends
+- **Sampling**: Configure `OTEL_TRACES_SAMPLE_RATE` (1.0 = 100%, 0.1 = 10%)
+
+```bash
+# Development: Traces output to console (stderr)
+OTEL_ENABLED=true
+OTEL_SERVICE_NAME=is-it-stolen
+OTEL_EXPORTER_ENDPOINT=
+OTEL_TRACES_SAMPLE_RATE=1.0
+
+# Production: Export to Jaeger or other OTLP collector
+OTEL_ENABLED=true
+OTEL_SERVICE_NAME=is-it-stolen
+OTEL_EXPORTER_ENDPOINT=http://jaeger:4317
+OTEL_TRACES_SAMPLE_RATE=0.1
+```
+
 ### Single Test Execution
 
 ```bash

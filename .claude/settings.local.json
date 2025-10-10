@@ -20,7 +20,8 @@
       "Bash(done)",
       "Bash(gh label list:*)",
       "Bash(gh label create:*)",
-      "Read(//Users/barrytandy/Dev/Personal/**)"
+      "Read(//Users/barrytandy/Dev/Personal/**)",
+      "Bash(gh issue create:*)"
     ],
     "deny": [],
     "ask": []
