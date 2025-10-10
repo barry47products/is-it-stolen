@@ -423,10 +423,12 @@ None - The codebase is production-ready
    - **Status:** Implemented Oct 3, 2025 (commit 603237b, PR #66) - Evaluation report error corrected
    - **Implementation:** HMAC-SHA256 signature verification with timing-safe comparison, returns 403 on invalid signatures
 
-3. **Add OpenAPI/Swagger documentation** ([#138](https://github.com/barry47products/is-it-stolen/issues/138))
-   - **Impact:** Better API discoverability
-   - **Effort:** Low (1 day)
-   - **Action:** Configure FastAPI docs with examples
+3. **~~Add OpenAPI/Swagger documentation~~** ([#138](https://github.com/barry47products/is-it-stolen/issues/138)) ✅ **COMPLETED** - [PR #TBD](https://github.com/barry47products/is-it-stolen/pull/TBD)
+   - **Impact:** Better API discoverability → **Achieved**
+   - **Effort:** Low (1 day) → **Actual: 1 day**
+   - **Implementation:** Comprehensive OpenAPI metadata with descriptions, examples, and error responses for all endpoints
+   - **Endpoints documented:** Webhooks (POST/GET), Health (basic, liveness, readiness), Metrics (GET, POST reset)
+   - **Features added:** Request/response examples, error documentation, endpoint tags, contact/license info
 
 ### 🟡 MEDIUM PRIORITY (Plan for Next Sprint)
 

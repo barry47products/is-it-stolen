@@ -34,7 +34,9 @@ class TestApplicationLifecycle:
         # Assert
         assert app.title == "Is It Stolen API"
         assert app.version == "0.1.0"
-        assert app.description == "WhatsApp bot for checking and reporting stolen items"
+        assert "WhatsApp bot for checking and reporting stolen items" in app.description
+        assert "Features" in app.description
+        assert "Authentication" in app.description
 
     def test_create_app_includes_v1_routes(self) -> None:
         """Test that created app includes v1 API routes."""
