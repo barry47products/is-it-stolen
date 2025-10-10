@@ -319,10 +319,80 @@ def _redact_payload_phone_numbers(payload: dict[str, object]) -> dict[str, objec
     return _sanitize_with_json(redacted)
 
 
-@router.post("/webhook", status_code=200)
+@router.post(
+    "/webhook",
+    status_code=200,
+    summary="Receive WhatsApp webhook events",
+    description="""
+Receives incoming WhatsApp messages and webhook events from Meta's WhatsApp Business API.
+
+This endpoint processes various webhook event types:
+- **Incoming text messages** - User-sent text content
+- **Interactive messages** - Button clicks, list selections
+- **Location messages** - GPS coordinates shared by users
+- **Message status updates** - Delivered, read, failed notifications
+
+## Security
+
+Requires valid `X-Hub-Signature-256` header containing HMAC-SHA256 signature.
+The signature is computed using your WhatsApp app secret to verify webhook authenticity.
+
+## Rate Limiting
+
+IP-based rate limiting is enforced (10 requests/minute per IP by default).
+Exceeded limits return 429 with `Retry-After` header.
+
+## Processing Flow
+
+1. Verify HMAC signature (403 if invalid)
+2. Check IP rate limit (429 if exceeded)
+3. Parse webhook payload
+4. Extract messages from payload
+5. Route through conversation state machine
+6. Return processing statistics
+    """,
+    response_description="Webhook processed successfully with statistics",
+    responses={
+        200: {
+            "description": "Webhook received and processed",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "messages_received": 1,
+                        "processed": 1,
+                        "failed": 0,
+                    }
+                }
+            },
+        },
+        403: {
+            "description": "Invalid webhook signature",
+            "content": {
+                "application/json": {"example": {"detail": "Invalid signature"}}
+            },
+        },
+        429: {
+            "description": "Rate limit exceeded",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Rate limit exceeded. Retry after 60 seconds."
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Validation error - malformed payload",
+        },
+    },
+)
 async def receive_webhook(  # type: ignore[no-any-unimported]
     request: Request,
-    x_hub_signature_256: str = Header(alias="X-Hub-Signature-256"),
+    x_hub_signature_256: str = Header(
+        alias="X-Hub-Signature-256",
+        description="HMAC-SHA256 signature for webhook verification (format: sha256=<hex>)",
+    ),
     message_processor: MessageProcessor = Depends(get_message_processor),
     ip_rate_limiter: RateLimiter = Depends(get_ip_rate_limiter),
 ) -> dict[str, str | int]:

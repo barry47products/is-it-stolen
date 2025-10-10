@@ -114,11 +114,63 @@ def create_app() -> FastAPI:  # type: ignore[no-any-unimported]
 
     app = FastAPI(
         title="Is It Stolen API",
-        description="WhatsApp bot for checking and reporting stolen items",
+        description="""
+WhatsApp bot for checking and reporting stolen items.
+
+## Features
+
+* **Check stolen items** - Verify if items are reported as stolen
+* **Report stolen items** - Submit theft reports with location data
+* **Location-based search** - Find nearby reported thefts
+* **Police verification** - Link reports with official police references
+* **Real-time notifications** - Receive updates via WhatsApp
+
+## Authentication
+
+Webhook endpoints require HMAC-SHA256 signature validation using the `X-Hub-Signature-256` header.
+
+## Architecture
+
+Built with Domain-Driven Design principles:
+- **Domain Layer** - Core business logic with no external dependencies
+- **Application Layer** - Use cases and orchestration
+- **Infrastructure Layer** - Database, WhatsApp API, Redis, messaging
+- **Presentation Layer** - FastAPI endpoints and WhatsApp bot conversation flow
+
+## Technology Stack
+
+- **Framework**: FastAPI with async/await
+- **Database**: PostgreSQL with PostGIS (geospatial)
+- **Cache**: Redis
+- **Observability**: OpenTelemetry, Prometheus, Sentry
+- **Testing**: pytest with 80%+ coverage
+        """,
         version="0.1.0",
         lifespan=lifespan,
         docs_url="/docs" if settings.environment != "production" else None,
         redoc_url="/redoc" if settings.environment != "production" else None,
+        contact={
+            "name": "Is It Stolen Team",
+            "url": "https://github.com/barry47products/is-it-stolen",
+        },
+        license_info={
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT",
+        },
+        openapi_tags=[
+            {
+                "name": "webhook",
+                "description": "WhatsApp webhook endpoints for receiving messages and verification",
+            },
+            {
+                "name": "health",
+                "description": "Service health monitoring endpoints (liveness, readiness)",
+            },
+            {
+                "name": "metrics",
+                "description": "Prometheus metrics endpoint for observability",
+            },
+        ],
     )
 
     # Configure CORS

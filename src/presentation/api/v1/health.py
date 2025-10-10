@@ -19,7 +19,22 @@ router = APIRouter(prefix="/health", tags=["health"])
 SERVICE_VERSION = "0.1.0"
 
 
-@router.get("")
+@router.get(
+    "",
+    summary="Basic health check",
+    description="Returns basic health status of the service without checking dependencies.",
+    response_description="Service health status",
+    responses={
+        200: {
+            "description": "Service is healthy",
+            "content": {
+                "application/json": {
+                    "example": {"status": "healthy", "version": "0.1.0"}
+                }
+            },
+        }
+    },
+)
 async def health_check() -> dict[str, str]:
     """Basic health check endpoint.
 
@@ -29,7 +44,25 @@ async def health_check() -> dict[str, str]:
     return {"status": "healthy", "version": SERVICE_VERSION}
 
 
-@router.get("/live")
+@router.get(
+    "/live",
+    summary="Kubernetes liveness probe",
+    description="""
+Liveness probe endpoint for Kubernetes health checks.
+
+Returns success if the application process is running and responsive.
+Does NOT check external dependencies - use `/health/ready` for that.
+
+Kubernetes will restart the pod if this check fails repeatedly.
+    """,
+    response_description="Service liveness status",
+    responses={
+        200: {
+            "description": "Service is alive",
+            "content": {"application/json": {"example": {"status": "alive"}}},
+        }
+    },
+)
 async def liveness_check() -> dict[str, str]:
     """Liveness probe for Kubernetes.
 
@@ -39,7 +72,49 @@ async def liveness_check() -> dict[str, str]:
     return {"status": "alive"}
 
 
-@router.get("/ready")
+@router.get(
+    "/ready",
+    summary="Kubernetes readiness probe",
+    description="""
+Readiness probe endpoint for Kubernetes health checks.
+
+Verifies all critical dependencies are available:
+- **PostgreSQL database** - Connection and query execution
+- **Redis cache** - Connection and ping response
+
+Returns 200 if all dependencies are healthy, 503 if any fail.
+Kubernetes will remove the pod from load balancer rotation if this fails.
+
+Use this endpoint to ensure the service is fully operational before routing traffic.
+    """,
+    response_description="Service readiness status with dependency health",
+    responses={
+        200: {
+            "description": "Service is ready - all dependencies healthy",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "ready",
+                        "database": "connected",
+                        "redis": "connected",
+                    }
+                }
+            },
+        },
+        503: {
+            "description": "Service unavailable - one or more dependencies unhealthy",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "unavailable",
+                        "database": "disconnected",
+                        "redis": "connected",
+                    }
+                }
+            },
+        },
+    },
+)
 async def readiness_check() -> JSONResponse:  # type: ignore[no-any-unimported]
     """Readiness probe checking all critical dependencies.
 
