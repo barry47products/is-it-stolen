@@ -2,17 +2,11 @@
 
 from __future__ import annotations
 
-import sys
-
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-    ConsoleSpanExporter,
-    SimpleSpanProcessor,
-)
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.sampling import ParentBasedTraceIdRatio
 
 from src.infrastructure.config.settings import get_settings
@@ -42,10 +36,9 @@ def setup_tracing() -> None:
         otlp_exporter = OTLPSpanExporter(endpoint=settings.otel_exporter_endpoint)
         batch_processor = BatchSpanProcessor(otlp_exporter)
         provider.add_span_processor(batch_processor)
-    else:
-        console_exporter = ConsoleSpanExporter(out=sys.stderr)
-        simple_processor = SimpleSpanProcessor(console_exporter)
-        provider.add_span_processor(simple_processor)
+    # Note: If no exporter endpoint configured, tracing is enabled but spans
+    # are not exported anywhere. This allows instrumentation to work without
+    # cluttering logs. To see traces, configure OTEL_EXPORTER_ENDPOINT in .env
 
     trace.set_tracer_provider(provider)
 

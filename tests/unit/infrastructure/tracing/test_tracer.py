@@ -34,10 +34,10 @@ class TestSetupTracing:
 
     @patch("src.infrastructure.tracing.tracer.get_settings")
     @patch("src.infrastructure.tracing.tracer.trace.set_tracer_provider")
-    def test_setup_tracing_with_console_exporter(
+    def test_setup_tracing_without_exporter_endpoint(
         self, mock_set_provider: MagicMock, mock_get_settings: MagicMock
     ) -> None:
-        """Should configure console exporter when no endpoint provided."""
+        """Should configure tracing without exporter when no endpoint provided."""
         # Arrange
         mock_settings = MagicMock()
         mock_settings.otel_enabled = True
@@ -49,7 +49,7 @@ class TestSetupTracing:
         # Act
         setup_tracing()
 
-        # Assert
+        # Assert - Provider is created but no spans are exported
         mock_set_provider.assert_called_once()
         provider_arg = mock_set_provider.call_args[0][0]
         assert isinstance(provider_arg, TracerProvider)
