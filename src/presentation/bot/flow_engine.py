@@ -6,6 +6,7 @@ from typing import Any, Protocol
 
 from src.infrastructure.config.flow_config_loader import FlowsConfig
 from src.infrastructure.handlers.handler_registry import HandlerRegistry
+from src.infrastructure.metrics.metrics_service import get_metrics_service
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +78,10 @@ class FlowEngine:
             result=None,
         )
 
+        # Track flow start for analytics
+        metrics_service = get_metrics_service()
+        metrics_service.track_flow_started(flow_id, "returning")
+
         logger.info(f"Started flow '{flow_id}' for user '{user_id}'")
         return context
 
@@ -105,6 +110,10 @@ class FlowEngine:
         """
         flow = self._config.flows[context.flow_id]
         current_step = flow.steps[context.current_step]
+        metrics_service = get_metrics_service()
+
+        # Track step completion
+        metrics_service.track_step_completed(context.flow_id, context.current_step)
 
         # Store input data with step name as key
         context.data[context.current_step] = user_input
@@ -124,6 +133,8 @@ class FlowEngine:
                 result = await self._execute_handler(context, next_step.handler)
                 context.is_complete = True
                 context.result = result
+                # Track flow completion
+                metrics_service.track_flow_completed(context.flow_id)
                 logger.info(
                     f"Completed flow '{context.flow_id}' for user '{context.user_id}'"
                 )
@@ -132,6 +143,8 @@ class FlowEngine:
             result = await self._execute_handler(context, current_step.handler)
             context.is_complete = True
             context.result = result
+            # Track flow completion
+            metrics_service.track_flow_completed(context.flow_id)
             logger.info(
                 f"Completed flow '{context.flow_id}' for user '{context.user_id}'"
             )

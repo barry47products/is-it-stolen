@@ -146,3 +146,60 @@ class TestMetricsService:
 
         # Assert
         assert metrics_service.get_average_response_time() == pytest.approx(0.2)
+
+    # Analytics metrics tests
+    def test_track_session_started(self, metrics_service: MetricsService) -> None:
+        """Test tracking session start with user segment."""
+        # Act - should not raise any exceptions
+        metrics_service.track_session_started("first_time")
+        metrics_service.track_session_started("returning")
+        metrics_service.track_session_started("power_user")
+
+        # Assert - no exception means success
+        assert True
+
+    def test_track_session_ended(self, metrics_service: MetricsService) -> None:
+        """Test tracking session end with duration."""
+        # Act - should not raise any exceptions
+        metrics_service.track_session_ended(120.5)
+        metrics_service.track_session_ended(300.0)
+
+        # Assert - no exception means success
+        assert True
+
+    def test_track_flow_started(self, metrics_service: MetricsService) -> None:
+        """Test tracking flow start."""
+        # Act - should not raise any exceptions
+        metrics_service.track_flow_started("report_item", "first_time")
+        metrics_service.track_flow_started("check_item", "returning")
+
+        # Assert - no exception means success
+        assert True
+
+    def test_track_flow_completed(self, metrics_service: MetricsService) -> None:
+        """Test tracking flow completion."""
+        # Act - should not raise any exceptions
+        metrics_service.track_flow_completed("report_item")
+        metrics_service.track_flow_completed("check_item")
+
+        # Assert - no exception means success
+        assert True
+
+    def test_track_flow_abandoned(self, metrics_service: MetricsService) -> None:
+        """Test tracking flow abandonment."""
+        # Act - should not raise any exceptions
+        metrics_service.track_flow_abandoned("report_item", "category")
+        metrics_service.track_flow_abandoned("check_item", "location")
+
+        # Assert - no exception means success
+        assert True
+
+    def test_track_step_completed(self, metrics_service: MetricsService) -> None:
+        """Test tracking step completion."""
+        # Act - should not raise any exceptions
+        metrics_service.track_step_completed("report_item", "category")
+        metrics_service.track_step_completed("report_item", "description")
+        metrics_service.track_step_completed("check_item", "location")
+
+        # Assert - no exception means success
+        assert True

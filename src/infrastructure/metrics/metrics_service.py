@@ -32,6 +32,42 @@ ACTIVE_USERS = Gauge(
     "Number of unique active users",
 )
 
+# Analytics metrics
+SESSIONS_STARTED = Counter(
+    "sessions_started_total",
+    "Total number of user sessions started",
+    ["user_segment"],
+)
+SESSIONS_ENDED = Counter(
+    "sessions_ended_total",
+    "Total number of user sessions ended",
+)
+SESSION_DURATION = Histogram(
+    "session_duration_seconds",
+    "Session duration in seconds",
+    buckets=(10, 30, 60, 120, 300, 600, 1200, 1800, 3600),
+)
+FLOW_STARTED = Counter(
+    "flow_started_total",
+    "Total number of flows started",
+    ["flow_id", "user_segment"],
+)
+FLOW_COMPLETED = Counter(
+    "flow_completed_total",
+    "Total number of flows completed",
+    ["flow_id"],
+)
+FLOW_ABANDONED = Counter(
+    "flow_abandoned_total",
+    "Total number of flows abandoned",
+    ["flow_id", "step_id"],
+)
+FLOW_STEP_COMPLETED = Counter(
+    "flow_step_completed_total",
+    "Total number of flow steps completed",
+    ["flow_id", "step_id"],
+)
+
 
 class MetricsService:
     """Service for collecting and tracking bot metrics."""
@@ -157,6 +193,59 @@ class MetricsService:
         self._items_checked = 0
         self._response_times = []
         self._active_users = set()
+
+    # Analytics metrics tracking
+    def track_session_started(self, user_segment: str) -> None:
+        """Track session start with user segment.
+
+        Args:
+            user_segment: User segment (first_time, returning, power_user)
+        """
+        SESSIONS_STARTED.labels(user_segment=user_segment).inc()
+
+    def track_session_ended(self, duration_seconds: float) -> None:
+        """Track session end with duration.
+
+        Args:
+            duration_seconds: Session duration in seconds
+        """
+        SESSIONS_ENDED.inc()
+        SESSION_DURATION.observe(duration_seconds)
+
+    def track_flow_started(self, flow_id: str, user_segment: str) -> None:
+        """Track flow start.
+
+        Args:
+            flow_id: Flow identifier
+            user_segment: User segment
+        """
+        FLOW_STARTED.labels(flow_id=flow_id, user_segment=user_segment).inc()
+
+    def track_flow_completed(self, flow_id: str) -> None:
+        """Track flow completion.
+
+        Args:
+            flow_id: Flow identifier
+        """
+        FLOW_COMPLETED.labels(flow_id=flow_id).inc()
+
+    def track_flow_abandoned(self, flow_id: str, step_id: str) -> None:
+        """Track flow abandonment.
+
+        Args:
+            flow_id: Flow identifier
+            step_id: Step where flow was abandoned
+        """
+        FLOW_ABANDONED.labels(flow_id=flow_id, step_id=step_id).inc()
+
+    def track_step_completed(self, flow_id: str, step_id: str) -> None:
+        """Track flow step completion.
+
+        Args:
+            flow_id: Flow identifier
+            step_id: Step identifier
+        """
+        FLOW_STEP_COMPLETED.labels(flow_id=flow_id, step_id=step_id).inc()
 
 
 # Singleton instance
