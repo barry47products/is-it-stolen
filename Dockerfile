@@ -3,7 +3,7 @@
 # For production, consider Dockerfile.chainguard using Wolfi-based images
 
 # Builder stage - install dependencies
-FROM python:3.13-slim AS builder
+FROM python:3.14-slim AS builder
 
 WORKDIR /app
 
@@ -31,7 +31,7 @@ COPY src ./src
 RUN poetry install --only-root --no-interaction --no-ansi
 
 # Final runtime stage
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 # Security labels
 LABEL maintainer="Is It Stolen <noreply@isitstolen.com>" \
